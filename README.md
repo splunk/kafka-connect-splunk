@@ -3,8 +3,7 @@
 ## Build
 1. create a uber jar for cloudfwd-1.0-SNAPSHOT.jar and place it under `kafka-connect-splunk` directory
 2. Run `mvn package` to build a uber JAR for kafka-connect-splunk
-3. Run `bash ci/repackage.sh` to repackage the kafka-connect-splunk jar ball
-4. The repacakged jar will be placed to `/tmp` directory which is target Kafka Connect plugin path by default
+4. cp `kafka-connect-splunk-1.0-SNAPSHOT.jar` to `/tmp` directory which is target Kafka Connect plugin path by default
 
 
 ## Run Kafka Connect
