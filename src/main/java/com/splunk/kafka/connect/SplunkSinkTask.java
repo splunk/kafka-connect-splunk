@@ -32,6 +32,10 @@ public class SplunkSinkTask extends SinkTask {
 
     @Override
     public void put(Collection<SinkRecord> records) {
+        if (records.size() == 0) {
+            return;
+        }
+
         EventBatch batch = Events.createBatch();
         for (SinkRecord record: records) {
             Event event = this.createCloudfwdEventFrom(record);
@@ -39,6 +43,7 @@ public class SplunkSinkTask extends SinkTask {
             // FIXME, batch size support
             batch.add(event);
         }
+
         splunk.sendBatch(batch);
     }
 

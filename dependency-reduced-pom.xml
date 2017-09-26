@@ -21,6 +21,27 @@
         <configuration />
       </plugin>
       <plugin>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>2.5.2</version>
+        <executions>
+          <execution>
+            <id>copy-jar</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>install-file</goal>
+            </goals>
+            <configuration>
+              <file>libs/com/splunk/cloudfwd/1.0-SNAPSHOT/cloudfwd-1.0-SNAPSHOT.jar</file>
+              <repositoryLayout>default</repositoryLayout>
+              <groupId>com.splunk</groupId>
+              <artifactId>cloudfwd</artifactId>
+              <version>1.0-SNAPSHOT</version>
+              <packaging>jar</packaging>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.12.4</version>
         <configuration>
@@ -30,15 +51,12 @@
       </plugin>
     </plugins>
   </build>
-  <dependencies>
-    <dependency>
-      <groupId>com.splunk</groupId>
-      <artifactId>cloudfwd</artifactId>
-      <version>1.0-SNAPSHOT</version>
-      <scope>system</scope>
-      <systemPath>${project.basedir}/src/main/resources/cloudfwd-1.0-SNAPSHOT.jar</systemPath>
-    </dependency>
-  </dependencies>
+  <repositories>
+    <repository>
+      <id>local-repo</id>
+      <url>file://${project.basedir}/libs/</url>
+    </repository>
+  </repositories>
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
