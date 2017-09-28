@@ -13,5 +13,42 @@
 4. Adjust kafka booststrap servers in `ci/connect-distributed.properties` if necessary
 5. Adjust splunk HEC settings in `ci/connector.properties` if necessary
 6. Run `connect-distributed ci/connect-distributed.properties`
-7. Run `confluent load kafka-connect-splunk -d ci/connector.properties
+7. Run the following command to create a connector
+
+    ```
+	curl localhost:8083/connectors -X POST -H "Content-Type: application/json" -d '{
+   "name": "kafka-connect-splunk",
+   "config": {
+      "topics": "perf2",
+      "tasks.max": "3",
+      "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+      "splunk.hec.uri": "https://127.0.0.1:8088",
+      "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534",
+      "splunk.hec.raw": "false",
+      "splunk.hec.ack.enabled": "true",
+      "splunk.hec.ssl.validate.certs": "false",
+      "name": "kafka-connect-splunk"
+  }
+  }'
+	```
+
+7. Run the following commands to check the status of connector and tasks
+ 
+	```
+	# List active connectors
+	curl http://localhost:8083/connectors
+	
+	# Get kafka-connect-splunk connector info
+	curl http://localhost:8083/connectors/kafka-connect-splunk
+	
+	# Get kafka-connect-splunk connector config info
+	curl http://localhost:8083/connectors/kafka-connect-splunk/config
+	
+	# Get kafka-connect-splunk connector task info
+	curl http://localhost:8083/connectors/kafka-connect-splunk/tasks
+	
+	# Delete kafka-connect-splunk connector
+	curl http://localhost:8083/connectors/kafka-connect-splunk -X DELETE
+	```
+
 8. Data should flow into Splunk
