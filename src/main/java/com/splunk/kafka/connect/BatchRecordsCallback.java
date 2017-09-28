@@ -27,8 +27,9 @@ public class BatchRecordsCallback implements ConnectionCallbacks {
     @Override
     public void systemError(Exception e) {
 
-	}
-	@Override
+    }
+
+    @Override
     public void systemWarning(Exception e) {
 
     }
