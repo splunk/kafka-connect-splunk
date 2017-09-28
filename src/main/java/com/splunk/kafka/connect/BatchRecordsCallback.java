@@ -23,4 +23,14 @@ public class BatchRecordsCallback implements ConnectionCallbacks {
         // long sequenceNumber = (long) events.getId(); // highest sequence number in the event batch
         // FIXME Commits checkpoint
     }
+
+    @Override
+    public void systemError(Exception e) {
+
+    }
+
+    @Override
+    public void systemWarning(Exception e) {
+
+    }
 }
