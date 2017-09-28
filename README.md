@@ -20,20 +20,21 @@ SplunkSinkConnector supports writing data from Kafka topics into Splunk via Splu
 7. Run the following command to create a connector
  
     ```
-    curl localhost:8083/connectors -X POST -H "Content-Type: application/json" -d '{
-   "name": "kafka-connect-splunk",
-   "config": {
-      "topics": "<topics-to-consume>",
-      "tasks.max": "3",
-      "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
-      "splunk.hec.uri": "https://127.0.0.1:8088",
-      "splunk.hec.token": "<Splunk-HEC-Token>",
-      "splunk.hec.raw": "false",
-      "splunk.hec.ack.enabled": "true",
-      "splunk.hec.ssl.validate.certs": "false",
-      "name": "kafka-connect-splunk"
-  }
-  }}'
+    curl localhost:8083/connectors -X POST -H "Content-Type: application/json" -d 
+    '{
+    "name": "kafka-connect-splunk",
+    "config": {
+       "topics": "<topics-to-consume>",
+       "tasks.max": "3",
+       "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+       "splunk.hec.uri": "https://127.0.0.1:8088",
+       "splunk.hec.token": "<Splunk-HEC-Token>",
+       "splunk.hec.raw": "false",
+       "splunk.hec.ack.enabled": "true",
+       "splunk.hec.ssl.validate.certs": "false",
+       "name": "kafka-connect-splunk"}}
+       }'
+       
     ```
  
 7. Run the following commands to check the status of connector and tasks
