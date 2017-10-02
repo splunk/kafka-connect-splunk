@@ -27,7 +27,7 @@ public class SplunkSinkTask extends SinkTask {
         this.connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
         this.splunk = Connections.create(new BatchRecordsCallback(), this.connectorConfig.cloudfwdConnectionSettings());
         this.taskId = taskConfig.get("assigned_task_id");
-        this.LOG.info("kafka-connect-splunk task={} starts with config={}", this.taskId, this.connectorConfig.String());
+        this.LOG.info("kafka-connect-splunk task={} starts with config={}", this.taskId, this.connectorConfig);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class SplunkSinkTask extends SinkTask {
 
     @Override
     public void stop() {
-        this.LOG.info("kafka-connect-splunk task={} ends with config={}", this.taskId, this.connectorConfig.String());
+        this.LOG.info("kafka-connect-splunk task={} ends with config={}", this.taskId, this.connectorConfig);
     }
 
     @Override
