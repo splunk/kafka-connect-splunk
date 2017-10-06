@@ -1,6 +1,7 @@
 package com.splunk.kafka.connect;
 
 import com.splunk.cloudfwd.*;
+import com.splunk.cloudfwd.error.*;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.connect.sink.SinkRecord;
@@ -21,30 +22,48 @@ public class SplunkSinkTask extends SinkTask {
     private SplunkSinkConnectorConfig connectorConfig;
     private Connection splunk;
     private String taskId;
+    private int batchSize = 10000; //FIXME: Make configurable
 
     @Override
     public void start(Map<String, String> taskConfig) {
         connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
-        this.splunk = Connections.create(new BatchRecordsCallback(), this.connectorConfig.cloudfwdConnectionSettings());
-        this.taskId = taskConfig.get("assigned_task_id");
-        this.LOG.info("kafka-connect-splunk task={} starts with config={}", this.taskId, this.connectorConfig);
+        splunk = Connections.create(new BatchRecordsCallback(), connectorConfig.cloudfwdConnectionSettings());
+        taskId = taskConfig.get("assigned_task_id");
+        LOG.info("kafka-connect-splunk task={} starts with config={}", taskId, connectorConfig);
     }
 
     @Override
     public void put(Collection<SinkRecord> records) {
         if (records.size() == 0) {
+            LOG.info("Nothing to Post");
             return;
         }
+        int batchSizeCount=0,totalPosted = 0;
 
         EventBatch batch = Events.createBatch();
-        for (SinkRecord record: records) {
-            Event event = this.createCloudfwdEventFrom(record);
-
-            // FIXME, batch size support
+        for (SinkRecord record: records ) {
+            Event event = createCloudfwdEventFrom(record);
             batch.add(event);
-        }
+            batchSizeCount++;
 
-        splunk.sendBatch(batch);
+            if(batchSizeCount == batchSize ) { //FIXME: Flush on timer as well,  to ensure events dont go stale
+                LOG.info("Posting {} events, {} events remain", batchSizeCount, (records.size() - totalPosted) );
+               try {
+                   int bytesSent = splunk.sendBatch(batch);
+           /*    }catch(HecConnectionTimeoutException ex1) {
+                   LOG.error("Caught HecConnectionTimeoutException Doing ...");
+               }catch(HecNoValidChannelsException ex2) {
+                   LOG.error("Caught HecNoValidChannelsException Doing ...");
+               }
+               */
+               }
+               catch(Exception ex) {
+
+               }
+                //FIXME: Flush EventBatch
+                totalPosted += batchSize;
+            }
+        }
     }
 
     @Override

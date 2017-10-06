@@ -2,13 +2,11 @@ package com.splunk.kafka.connect;
 
 import org.apache.kafka.common.config.ConfigDef;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -17,22 +15,17 @@ import java.util.*;
 
 @DisplayName("SplunkSinkConnector Tests")
 class SplunkSinkConnecterTest {
-    private static SplunkSinkConnector ssc;
+    SplunkSinkConnector ssc;
 
-    @BeforeAll
-    static void init() {
+    @BeforeEach void init() {
         ssc = new SplunkSinkConnector();
     }
 
-    @Test
-    @DisplayName("Test version of SplunkSinkConnector")
-    void createConnectorAndCheckVersion(TestInfo testInfo) {
-        assertEquals("1.0.0",ssc.version());
+    @Test @DisplayName("Test version of SplunkSinkConnector") void createConnectorAndCheckVersion(TestInfo testInfo) {
+        assertEquals("1.0.0", ssc.version());
     }
 
-    @Test
-    @DisplayName("Test ConfigDef of SplunkSinkConnector")
-    void createConnectorAndCheckConfig(TestInfo testInfo) {
+    @Test @DisplayName("Test ConfigDef of SplunkSinkConnector") void createConnectorAndCheckConfig(TestInfo testInfo) {
         ConfigDef def = ssc.config();
         Set<String> names = def.names();
 
