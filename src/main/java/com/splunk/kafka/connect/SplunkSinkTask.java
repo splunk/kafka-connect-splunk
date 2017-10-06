@@ -24,7 +24,7 @@ public class SplunkSinkTask extends SinkTask {
 
     @Override
     public void start(Map<String, String> taskConfig) {
-        this.connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
+        connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
         this.splunk = Connections.create(new BatchRecordsCallback(), this.connectorConfig.cloudfwdConnectionSettings());
         this.taskId = taskConfig.get("assigned_task_id");
         this.LOG.info("kafka-connect-splunk task={} starts with config={}", this.taskId, this.connectorConfig);

@@ -16,13 +16,13 @@ import org.slf4j.LoggerFactory;
  */
 public class SplunkSinkConnector extends SinkConnector {
     private final Logger LOG = LoggerFactory.getLogger(SplunkSinkConnector.class.getName());
-
     private Map<String, String> taskConfig;
 
     @Override
     public void start(Map<String, String> taskConfig) {
         this.taskConfig = taskConfig;
         this.LOG.info("kafka-connect-splunk starts");
+        this.LOG.info("taskConfig");
     }
 
     @Override
