@@ -15,19 +15,19 @@ import org.slf4j.LoggerFactory;
  * Created by kchen on 9/24/17.
  */
 public class SplunkSinkConnector extends SinkConnector {
-    private final Logger LOG = LoggerFactory.getLogger(SplunkSinkConnector.class.getName());
+    private final Logger log = LoggerFactory.getLogger(SplunkSinkConnector.class.getName());
 
     private Map<String, String> taskConfig;
 
     @Override
     public void start(Map<String, String> taskConfig) {
         this.taskConfig = taskConfig;
-        this.LOG.info("kafka-connect-splunk starts");
+        this.log.info("kafka-connect-splunk starts");
     }
 
     @Override
     public void stop() {
-        this.LOG.info("kafka-connect-splunk stops");
+        this.log.info("kafka-connect-splunk stops");
     }
 
     @Override
@@ -39,7 +39,7 @@ public class SplunkSinkConnector extends SinkConnector {
             // 2. assign task ID
             tasks.add(this.taskConfig);
         }
-        this.LOG.info("kafka-connect-splunk discovered {} tasks", tasks.size());
+        this.log.info("kafka-connect-splunk discovered {} tasks", tasks.size());
         return tasks;
     }
 

@@ -16,44 +16,44 @@ import org.slf4j.LoggerFactory;
  * Created by kchen on 9/21/17.
  */
 public class SplunkSinkTask extends SinkTask {
-    private final Logger LOG = LoggerFactory.getLogger(SplunkSinkTask.class.getName());
+    private final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class.getName());
 
     private SplunkSinkConnectorConfig connectorConfig;
     private Connection splunk;
-    private String taskId;
 
     @Override
     public void start(Map<String, String> taskConfig) {
-        this.connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
-        this.splunk = Connections.create(new BatchRecordsCallback(), this.connectorConfig.cloudfwdConnectionSettings());
-        this.taskId = taskConfig.get("assigned_task_id");
-        this.LOG.info("kafka-connect-splunk task={} starts with config={}", this.taskId, this.connectorConfig);
+        connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
+        splunk = Connections.create(new BatchRecordsCallback(), connectorConfig.cloudfwdConnectionSettings());
+        log.info("kafka-connect-splunk starts with config={}", connectorConfig);
     }
 
     @Override
     public void put(Collection<SinkRecord> records) {
-        if (records.size() == 0) {
+        if (records.isEmpty()) {
             return;
         }
 
         EventBatch batch = Events.createBatch();
         for (SinkRecord record: records) {
-            Event event = this.createCloudfwdEventFrom(record);
+            Event event = createCloudfwdEventFrom(record);
 
             // FIXME, batch size support
             batch.add(event);
         }
 
         splunk.sendBatch(batch);
+        log.info("Sent {} events to Splunk", records.size());
     }
 
     @Override
-    public void flush(Map<TopicPartition, OffsetAndMetadata> meta) {
+    public Map<TopicPartition, OffsetAndMetadata> preCommit(Map<TopicPartition, OffsetAndMetadata> meta) {
+        return meta;
     }
 
     @Override
     public void stop() {
-        this.LOG.info("kafka-connect-splunk task={} ends with config={}", this.taskId, this.connectorConfig);
+        log.info("kafka-connect-splunk task={} ends with config={}", connectorConfig);
     }
 
     @Override
