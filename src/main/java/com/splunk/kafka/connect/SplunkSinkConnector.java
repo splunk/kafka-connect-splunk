@@ -15,31 +15,28 @@ import org.slf4j.LoggerFactory;
  * Created by kchen on 9/24/17.
  */
 public class SplunkSinkConnector extends SinkConnector {
-    private final Logger log = LoggerFactory.getLogger(SplunkSinkConnector.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(SplunkSinkConnector.class);
 
     private Map<String, String> taskConfig;
 
     @Override
     public void start(Map<String, String> taskConfig) {
         this.taskConfig = taskConfig;
-        this.log.info("kafka-connect-splunk starts");
+        log.info("kafka-connect-splunk starts");
     }
 
     @Override
     public void stop() {
-        this.log.info("kafka-connect-splunk stops");
+        log.info("kafka-connect-splunk stops");
     }
 
     @Override
     public List<Map<String, String>> taskConfigs(int maxTasks) {
         List<Map<String, String>> tasks = new ArrayList<>();
         for (int i = 0; i < maxTasks; i++) {
-            // FIXME,
-            // 1. discover how many partitions in the topic, task number should not execeed partition number
-            // 2. assign task ID
-            tasks.add(this.taskConfig);
+            tasks.add(taskConfig);
         }
-        this.log.info("kafka-connect-splunk discovered {} tasks", tasks.size());
+        log.info("kafka-connect-splunk discovered {} tasks", tasks.size());
         return tasks;
     }
 
