@@ -64,9 +64,8 @@ public class SplunkSinkTask extends SinkTask {
 
     @Override
     public Map<TopicPartition, OffsetAndMetadata> preCommit(Map<TopicPartition, OffsetAndMetadata> meta) {
-        // tell Kafka Connect framework what offsets we can safely commit to Kafka now
-        Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap();
-        offsets.putAll(committedOffsets);
+        // tell Kafka Connect framework what kind of offsets we can safely commit to Kafka now
+        Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap(committedOffsets);
         log.info("commits offsets {}", offsets);
         return offsets;
     }
@@ -82,8 +81,7 @@ public class SplunkSinkTask extends SinkTask {
     }
 
     public void commitOffset(TopicPartition key, long offset) {
-        OffsetAndMetadata offsetMeta = new OffsetAndMetadata(offset);
-        committedOffsets.put(key, offsetMeta);
+        committedOffsets.put(key, new OffsetAndMetadata(offset + 1));
     }
 
     private Event createCloudfwdEventFrom(SinkRecord record) {
