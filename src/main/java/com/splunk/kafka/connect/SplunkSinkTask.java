@@ -1,6 +1,7 @@
 package com.splunk.kafka.connect;
 
 import com.splunk.cloudfwd.*;
+import com.splunk.cloudfwd.error.*;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.connect.sink.SinkRecord;

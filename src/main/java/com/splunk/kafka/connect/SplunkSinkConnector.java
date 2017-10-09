@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
  */
 public class SplunkSinkConnector extends SinkConnector {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkConnector.class);
-
     private Map<String, String> taskConfig;
 
     @Override
