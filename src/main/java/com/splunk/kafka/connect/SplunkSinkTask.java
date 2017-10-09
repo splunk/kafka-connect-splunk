@@ -97,8 +97,8 @@ public class SplunkSinkTask extends SinkTask {
             event.setSourceType(metas.get(connectorConfig.SOURCETYPE));
         }
 
-        if (metas.get(connectorConfig.SOURCETYPE) != null) {
-            event.setSource(metas.get(connectorConfig.SOURCETYPE));
+        if (metas.get(connectorConfig.SOURCE) != null) {
+            event.setSource(metas.get(connectorConfig.SOURCE));
         }
 
         return event;
