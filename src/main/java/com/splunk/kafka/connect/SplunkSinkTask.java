@@ -22,7 +22,6 @@ public class SplunkSinkTask extends SinkTask {
     private SplunkSinkConnectorConfig connectorConfig;
     private Connection splunk;
     private String taskId;
-    private int batchSize = 10000; //FIXME: Make configurable
 
     @Override
     public void start(Map<String, String> taskConfig) {
@@ -35,35 +34,18 @@ public class SplunkSinkTask extends SinkTask {
     @Override
     public void put(Collection<SinkRecord> records) {
         if (records.size() == 0) {
-            LOG.info("Nothing to Post");
             return;
         }
-        int batchSizeCount=0,totalPosted = 0;
 
         EventBatch batch = Events.createBatch();
-        for (SinkRecord record: records ) {
-            Event event = createCloudfwdEventFrom(record);
+        for (SinkRecord record: records) {
+            Event event = this.createCloudfwdEventFrom(record);
+
+            // FIXME, batch size support
             batch.add(event);
-            batchSizeCount++;
-
-            if(batchSizeCount == batchSize ) { //FIXME: Flush on timer as well,  to ensure events dont go stale
-                LOG.info("Posting {} events, {} events remain", batchSizeCount, (records.size() - totalPosted) );
-               try {
-                   int bytesSent = splunk.sendBatch(batch);
-           /*    }catch(HecConnectionTimeoutException ex1) {
-                   LOG.error("Caught HecConnectionTimeoutException Doing ...");
-               }catch(HecNoValidChannelsException ex2) {
-                   LOG.error("Caught HecNoValidChannelsException Doing ...");
-               }
-               */
-               }
-               catch(Exception ex) {
-
-               }
-                //FIXME: Flush EventBatch
-                totalPosted += batchSize;
-            }
         }
+
+        splunk.sendBatch(batch);
     }
 
     @Override
