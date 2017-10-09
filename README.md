@@ -4,40 +4,42 @@ SplunkSinkConnector supports writing data from Kafka topics into Splunk via Splu
  
  
 ## Build
-1. Install [Apache Kafka](https://kafka.apache.org/)
-2. Install Kafka Connect and add it to bin path
-3. Build [Cloudfwd](https://github.com/splunk/cloudfwd) using `mvn clean install` and copy the created cloudfwd-1.0-SNAPSHOT.jar under `kafka-connect-splunk` directory ($HOME/kafka-connect-splunk/libs/com/splunk/cloudfwd/1.0-SNAPSHOT)
-4. Run `mvn package` to build a uber JAR for kafka-connect-splunk
-5. cp `kafka-connect-splunk-1.0-SNAPSHOT.jar` to `/tmp` directory (in kafka-connect env) which is target Kafka Connect plugin path by default
+1. Clone the https://github.com/splunk/kafka-connect-splunk
+2. Make sure Java8 JRE or JDK is installed
+3. Run `bash build.sh`
  
  
 ## Run Kafka Connect
-1. [Start up](https://kafka.apache.org/quickstart) Kafka Cluster and Zookeeper locally and create a test topic (eg: `perf`)
-2. Inject JSON events to `perf` topic using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen)
-4. Adjust `ci/connect-distributed.properties` for your environment if necessary
-5. Adjust Splunk HEC settings in `ci/connector.properties` if necessary
-6. Run `$KAFKA_CONNECT_HOME/bin/connect-distributed.sh $HOME/kafka-connect-splunk/ci/connect-distributed.properties` to start Kafka Connect
-7. Run the following command to create a connector
+1. [Start up](https://kafka.apache.org/quickstart) Kafka Cluster and Zookeeper locally and create a test topic (eg: `perf`). If you have already had a cluster, then use the existing cluster is fine.
+2. Inject events to `perf` topic for example using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen) or use kafka-console-consumer
+3. Untar the package, `tar xzvf kafka-connect-splunk.tar.gz`
+4. Enter `kafka-connect-splunk`
+5. Adjust `bootstrap.servers` and `plugin.path` in `config/connect-distributed.properties` for your environment if necessary. Default values should be fine for experiment
+6. Run `./bin/connect-distributed.sh config/connect-distributed.properties` to start Kafka Connect
+7. Run the following command to create a connector tasks. Adjust the `topics`, `tasks.max`, `indexes`, `sources`, `sourcetypes` and `hec` etc settings if necessary
  
     ```
-    curl localhost:8083/connectors -X POST -H "Content-Type: application/json" -d 
-    '{
+    curl localhost:8083/connectors -X POST -H "Content-Type: application/json" -d '{
     "name": "kafka-connect-splunk",
     "config": {
-       "topics": "<topics-to-consume>",
+       "topics": "<list-of-topics-separated-by-comma>",
+       "indexes": "<list-of-indexes-for-topics-data-separated-by-comma>",
+       "sources": "<list-of-sources-for-topics-data-separated-by-comma>",
+       "sourcetypes": "<list-of-sourcetypes-for-topics-data-separated-by-comma>",
        "tasks.max": "3",
        "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
-       "splunk.hec.uri": "https://127.0.0.1:8088",
+       "splunk.hec.uri": "<Splunk-HEC-URI>",
        "splunk.hec.token": "<Splunk-HEC-Token>",
        "splunk.hec.raw": "false",
        "splunk.hec.ack.enabled": "true",
        "splunk.hec.ssl.validate.certs": "false",
-       "name": "kafka-connect-splunk"}}
-       }'
+       "name": "kafka-connect-splunk"
+      }
+    }'
        
     ```
- 
-7. Run the following commands to check the status of connector and tasks
+8. If everything is fine, data should flow to splunk
+9. Run the following commands to check the status of connector and tasks
   
     ```
     # List active connectors
@@ -60,5 +62,3 @@ SplunkSinkConnector supports writing data from Kafka topics into Splunk via Splu
  
     Refer to [this](https://docs.confluent.io/current/connect/managing.html#common-rest-examples) for more examples.
     ```
- 
-8. Data should flow into Splunk
