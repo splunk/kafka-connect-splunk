@@ -2,12 +2,21 @@ package com.splunk.kafka.connect;
 
 import com.splunk.cloudfwd.ConnectionCallbacks;
 import com.splunk.cloudfwd.EventBatch;
+import com.sun.scenario.effect.Offset;
+import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.internals.Topic;
 
 /**
  * Created by kchen on 9/24/17.
  */
 public class BatchRecordsCallback implements ConnectionCallbacks {
-    public BatchRecordsCallback() {
+    private TopicPartition partition;
+    private SplunkSinkTask task;
+
+    public BatchRecordsCallback(TopicPartition partition, SplunkSinkTask task) {
+        this.partition = partition;
+        this.task = task;
     }
 
     @Override
@@ -20,8 +29,8 @@ public class BatchRecordsCallback implements ConnectionCallbacks {
 
     @Override
     public void checkpoint(EventBatch events) {
-        // long sequenceNumber = (long) events.getId(); // highest sequence number in the event batch
-        // FIXME Commits checkpoint
+        long offset = (long) events.getId(); // highest sequence number in the event batch
+        task.commitOffset(partition, offset);
     }
 
     @Override

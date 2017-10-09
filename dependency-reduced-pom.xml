@@ -16,6 +16,13 @@
             <goals>
               <goal>shade</goal>
             </goals>
+            <configuration>
+              <artifactSet>
+                <excludes>
+                  <exclude>org.apache.kafka:kafka-clients</exclude>
+                </excludes>
+              </artifactSet>
+            </configuration>
           </execution>
         </executions>
         <configuration />
