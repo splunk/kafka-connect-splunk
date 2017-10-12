@@ -1,9 +1,9 @@
 package com.splunk.kafka.connect;
 
 import com.splunk.cloudfwd.*;
-import com.splunk.cloudfwd.error.*;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.connect.errors.RetriableException;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTask;
 
@@ -132,5 +132,18 @@ public class SplunkSinkTask extends SinkTask {
         conn = Connections.create(new BatchRecordsCallback(key, this), connectorConfig.cloudfwdConnectionSettings());
         splunkConns.put(key, conn);
         return conn;
+    }
+
+    // sendBatch will send the EventBatch to Splunk. If it enounters any exception, convert the exception to
+    // RetriableException, then the framework will do the retry etc
+    // Note: do not retry it here ourselves since it will probably break the conumer group membership if we
+    // the retry takes too much time
+    private static void sendBatch(Connection splunk, EventBatch batch) {
+        try {
+            splunk.sendBatch(batch);
+        } catch (Exception ex) {
+            log.error("sending batch to splunk encountered error={}", ex);
+            throw new RetriableException(ex);
+        }
     }
 }
