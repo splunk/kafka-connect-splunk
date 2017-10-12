@@ -1,6 +1,7 @@
 package com.splunk.kafka.connect;
 
 import com.splunk.cloudfwd.*;
+import com.splunk.cloudfwd.error.HecConnectionStateException;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.connect.errors.RetriableException;
@@ -139,11 +140,27 @@ public class SplunkSinkTask extends SinkTask {
     // Note: do not retry it here ourselves since it will probably break the conumer group membership if we
     // the retry takes too much time
     private static void sendBatch(Connection splunk, EventBatch batch) {
+        boolean retry = false;
+        Exception cause = null;
+
         try {
             splunk.sendBatch(batch);
+        } catch (HecConnectionStateException ex) {
+            if (ex.getType() == HecConnectionStateException.Type.ALREADY_ACKNOWLEDGED) {
+                // already done, we are good
+                retry = false;
+            } else {
+                retry = true;
+                cause = ex;
+            }
         } catch (Exception ex) {
-            log.error("sending batch to splunk encountered error={}", ex);
-            throw new RetriableException(ex);
+            retry = true;
+            cause = ex;
+        }
+
+        if (retry) {
+            log.error("sending batch to splunk encountered error", cause);
+            throw new RetriableException(cause);
         }
     }
 }
