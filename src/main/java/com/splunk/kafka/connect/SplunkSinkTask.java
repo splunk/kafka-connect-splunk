@@ -146,7 +146,8 @@ public class SplunkSinkTask extends SinkTask {
         try {
             splunk.sendBatch(batch);
         } catch (HecConnectionStateException ex) {
-            if (ex.getType() == HecConnectionStateException.Type.ALREADY_ACKNOWLEDGED) {
+            if (ex.getType() == HecConnectionStateException.Type.ALREADY_ACKNOWLEDGED ||
+                    ex.getType() ==  HecConnectionStateException.Type.ALREADY_SENT) {
                 // already done, we are good
                 retry = false;
             } else {
