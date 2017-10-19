@@ -18,6 +18,7 @@ import java.io.IOException;
  */
 public class Indexer {
     private static final Logger log = LoggerFactory.getLogger(Indexer.class);
+
     private CloseableHttpClient httpClient;
     private String baseUrl;
     private String hecToken;
@@ -38,6 +39,10 @@ public class Indexer {
         headers = new Header[2];
         headers[0] = new BasicHeader("Authorization", String.format("Splunk %s", hecToken));
         headers[1] = new BasicHeader("X-Splunk-Request-Channel", channel.getId());
+    }
+
+    public Header[] getHeaders() {
+        return headers;
     }
 
     public String getToken() {

@@ -11,4 +11,10 @@ public class HecClientException extends RuntimeException {
     public HecClientException(String message, Throwable cause) {
         super(message, cause);
     }
+
+    /**
+     * Created by kchen on 10/19/17.
+     */
+    public static class InvalidDataException {
+    }
 }

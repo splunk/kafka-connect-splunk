@@ -5,13 +5,15 @@ package com.splunk.hecclient;
  */
 public class HecChannel {
     private String id;
-    private long batchId;
     private Indexer indexer;
 
     public HecChannel(Indexer idx) {
         id = newChannelId();
-        batchId = 0;
         indexer = idx;
+    }
+
+    public Indexer getIndexer() {
+        return indexer;
     }
 
     public String getId() {
@@ -29,6 +31,11 @@ public class HecChannel {
             return id.equals(ch.getId());
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return id;
     }
 
     private static String newChannelId() {
