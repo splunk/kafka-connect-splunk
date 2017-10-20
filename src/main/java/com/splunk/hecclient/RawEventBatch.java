@@ -1,7 +1,5 @@
 package com.splunk.hecclient;
 
-import com.splunk.hecclient.errors.InvalidEventTypeException;
-
 import org.apache.http.client.utils.URIBuilder;
 
 /**
@@ -23,12 +21,12 @@ public class RawEventBatch extends EventBatch {
         this.time = time;
     }
 
-    public void add(Event event) throws InvalidEventTypeException {
+    public void add(Event event) throws HecClientException {
         if (event instanceof RawEvent) {
             events.add(event);
             len += event.length();
         } else {
-            throw new InvalidEventTypeException("only RawEvent can be add to RawEventBatch");
+            throw new HecClientException("only RawEvent can be add to RawEventBatch");
         }
     }
 
@@ -44,10 +42,10 @@ public class RawEventBatch extends EventBatch {
 
     private String getMetadataParams() {
         URIBuilder params = new URIBuilder();
-        putIfPresent(index, "index=", params);
-        putIfPresent(sourcetype,"sourcetype=", params);
-        putIfPresent(source,"source=", params);
-        putIfPresent(host,"host=", params);
+        putIfPresent(index, "index", params);
+        putIfPresent(sourcetype,"sourcetype", params);
+        putIfPresent(source,"source", params);
+        putIfPresent(host,"host", params);
 
         if (time != -1) {
             params.addParameter("time",  String.valueOf(time));

@@ -1,6 +1,5 @@
 package com.splunk.hecclient;
 
-import com.splunk.hecclient.errors.InvalidEventTypeException;
 
 /**
  * Created by kchen on 10/17/17.
@@ -11,7 +10,7 @@ public class JsonEventBatch extends EventBatch {
             events.add(event);
             len += event.length();
         } else {
-            throw new InvalidEventTypeException("only JsonEvent can be add to JsonEventBatch");
+            throw new HecClientException("only JsonEvent can be add to JsonEventBatch");
         }
     }
 

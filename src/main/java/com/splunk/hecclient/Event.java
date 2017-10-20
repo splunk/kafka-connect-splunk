@@ -2,7 +2,6 @@ package com.splunk.hecclient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.splunk.hecclient.errors.InvalidEventException;
 import org.slf4j.*;
 
 import java.io.ByteArrayInputStream;
@@ -36,7 +35,7 @@ public abstract class Event {
 
     public Event(Object data, Object tied) {
         if (data == null) {
-            throw new InvalidEventException("Null data for event");
+            throw new HecClientException("Null data for event");
         }
 
         this.data = data;

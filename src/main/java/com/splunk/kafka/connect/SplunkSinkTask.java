@@ -1,7 +1,5 @@
 package com.splunk.kafka.connect;
 
-import com.splunk.cloudfwd.*;
-import com.splunk.cloudfwd.error.HecConnectionStateException;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.connect.errors.RetriableException;
@@ -24,13 +22,13 @@ public class SplunkSinkTask extends SinkTask {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class);
 
     private SplunkSinkConnectorConfig connectorConfig;
-    private Map<TopicPartition, Connection> splunkConns;
+    // private Map<TopicPartition, Connection> splunkConns;
     private ConcurrentHashMap<TopicPartition, OffsetAndMetadata> committedOffsets;
 
     @Override
     public void start(Map<String, String> taskConfig) {
         connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
-        splunkConns = new HashMap();
+        // splunkConns = new HashMap();
         committedOffsets = new ConcurrentHashMap();
         log.info("kafka-connect-splunk task starts with config={}", connectorConfig);
     }
@@ -41,7 +39,7 @@ public class SplunkSinkTask extends SinkTask {
             return;
         }
 
-        Map<TopicPartition, Collection<SinkRecord>> partitionedRecords = partitionRecords(records);
+        /* Map<TopicPartition, Collection<SinkRecord>> partitionedRecords = partitionRecords(records);
         for (Map.Entry<TopicPartition, Collection<SinkRecord>> entry: partitionedRecords.entrySet()) {
             Connection splunk = getCloudFwdConnection(entry.getKey());
             EventBatch batch = Events.createBatch();
@@ -61,7 +59,7 @@ public class SplunkSinkTask extends SinkTask {
 
             splunk.sendBatch(batch);
             log.info("Sent {} events for {} to Splunk", batch.getNumEvents(), entry.getKey());
-        }
+        } */
     }
 
     @Override
@@ -86,7 +84,7 @@ public class SplunkSinkTask extends SinkTask {
         committedOffsets.put(key, new OffsetAndMetadata(offset + 1));
     }
 
-    private Event createCloudfwdEventFrom(SinkRecord record) {
+    /*private Event createCloudfwdEventFrom(SinkRecord record) {
         // FIXME, raw event and json event mode is configurable
         EventWithMetadata event = new EventWithMetadata(record.value(), record.kafkaOffset());
         Map<String, String> metas = connectorConfig.topicMetas.get(record.topic());
@@ -104,7 +102,7 @@ public class SplunkSinkTask extends SinkTask {
         }
 
         return event;
-    }
+    }*/
 
     // partition records according to topic-partition key
     private Map<TopicPartition, Collection<SinkRecord>> partitionRecords(Collection<SinkRecord> records) {
@@ -123,7 +121,7 @@ public class SplunkSinkTask extends SinkTask {
     }
 
     // Get cloudfwd connection for specific topic-partition, create a new connection object if necessary
-    private Connection getCloudFwdConnection(TopicPartition key) {
+    /*private Connection getCloudFwdConnection(TopicPartition key) {
         Connection conn = splunkConns.get(key);
         if (conn != null) {
             return conn;
@@ -163,5 +161,5 @@ public class SplunkSinkTask extends SinkTask {
             log.error("sending batch to splunk encountered error", cause);
             throw new RetriableException(cause);
         }
-    }
+    }*/
 }

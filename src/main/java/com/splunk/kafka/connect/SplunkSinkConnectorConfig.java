@@ -2,7 +2,6 @@ package com.splunk.kafka.connect;
 
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.sink.SinkConnector;
-import com.splunk.cloudfwd.PropertyKeys;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 
@@ -102,7 +101,7 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
     public Properties cloudfwdConnectionSettings() {
         //FIXME - List of variables available at https://splunk.github.io/cloudfwd/apidocs/constant-values.html
         Properties props = new Properties();
-        props.setProperty(PropertyKeys.TOKEN, splunkToken);
+        /*props.setProperty(PropertyKeys.TOKEN, splunkToken);
         props.setProperty(PropertyKeys.COLLECTOR_URI, splunkURI);
 
         if (raw) {
@@ -130,7 +129,7 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
         props.setProperty(PropertyKeys.ENABLE_HTTP_DEBUG, "false");
         props.setProperty(PropertyKeys.HEALTH_POLL_MS, PropertyKeys.DEFAULT_HEALTH_POLL_MS);
         props.setProperty(PropertyKeys.RETRIES, PropertyKeys.DEFAULT_RETRIES);
-        props.setProperty(PropertyKeys.UNRESPONSIVE_MS, PropertyKeys.DEFAULT_UNRESPONSIVE_MS);
+        props.setProperty(PropertyKeys.UNRESPONSIVE_MS, PropertyKeys.DEFAULT_UNRESPONSIVE_MS); */
 
         /*FIXME, may not need these
         props.setProperty(PropertyKeys.ACK_POLL_MS, PropertyKeys.DEFAULT_ACK_POLL_MS);

@@ -1,7 +1,5 @@
 package com.splunk.hecclient;
 
-import com.splunk.hecclient.errors.InvalidEventException;
-
 import java.io.UnsupportedEncodingException;
 
 /**
@@ -24,7 +22,7 @@ public class RawEvent extends Event {
                 bytes = s.getBytes("UTF-8");
             } catch (UnsupportedEncodingException ex) {
                 log.error("failed to encode as UTF-8: " + ex);
-                throw new InvalidEventException("Not UTF-8 encodable: " + ex.getMessage());
+                throw new HecClientException("Not UTF-8 encodable: " + ex.getMessage());
             }
         } else if (data instanceof byte[]) {
             bytes = (byte[]) data;
@@ -34,7 +32,7 @@ public class RawEvent extends Event {
                 bytes = jsonMapper.writeValueAsBytes(data);
             } catch (Exception ex) {
                 log.error("Invalid json data:" + ex);
-                throw new InvalidEventException("Failed to json marshal the data: " + ex.getMessage());
+                throw new HecClientException("Failed to json marshal the data: " + ex.getMessage());
             }
         }
         return bytes;
@@ -46,7 +44,7 @@ public class RawEvent extends Event {
             return new String(bytes, "UTF-8");
         } catch (UnsupportedEncodingException ex) {
             log.error("failed to decode as UTF-8: ", ex);
-            throw new InvalidEventException("Not UTF-8 decodable: " + ex.getMessage());
+            throw new HecClientException("Not UTF-8 decodable: " + ex.getMessage());
         }
     }
 }

@@ -42,6 +42,15 @@ public abstract class EventBatch {
         return e;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        for (Event e: events) {
+            builder.append(e.toString());
+        }
+        return builder.toString();
+    }
+
     private class HttpEventBatchEntity extends AbstractHttpEntity {
         @Override
         public boolean isRepeatable() {

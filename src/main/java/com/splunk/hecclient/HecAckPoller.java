@@ -1,7 +1,5 @@
 package com.splunk.hecclient;
 
-import com.splunk.hecclient.errors.*;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpResponse;
@@ -12,7 +10,6 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.FutureRequestExecutionService;
-import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,13 +18,12 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.*;
 
 /**
  * Created by kchen on 10/18/17.
  */
-public class HecAckPoller implements AckPoller {
+public class HecAckPoller implements Poller {
     private final static Logger log = LoggerFactory.getLogger(HecAckPoller.class);
     private final static ObjectMapper jsonMapper = new ObjectMapper();
 
@@ -35,35 +31,34 @@ public class HecAckPoller implements AckPoller {
 
     private CloseableHttpClient httpClient;
     private ConcurrentHashMap<HecChannel, ConcurrentHashMap<Long, EventBatch>> outstandingEventBatches;
-    private ConcurrentHashMap<HecChannel, AtomicLong> eventStartingIds;
     private AtomicLong totalOutstandingEventBatches;
     private int expirationDuration; // in seconds
     private int ackPollInterval; // in seconds
     private int pollThreads;
-    private AckCallback ackCallback;
+    private PollerCallback pollerCallback;
     FutureRequestExecutionService ackPollerService;
     private ScheduledExecutorService scheduler;
     private AtomicBoolean started;
 
     // HecAckPoller owns client
-    public HecAckPoller(CloseableHttpClient client, AckCallback cb) {
+    public HecAckPoller(CloseableHttpClient client, PollerCallback cb) {
         httpClient = client;
         outstandingEventBatches = new ConcurrentHashMap<>();
-        eventStartingIds = new ConcurrentHashMap<>();
         totalOutstandingEventBatches = new AtomicLong(0);
         ackPollInterval = 10; // 10 seconds
         expirationDuration = 2 * 60; // 2 mins
         pollThreads = 4;
-        ackCallback = cb;
+        pollerCallback = cb;
         started = new AtomicBoolean(false);
     }
 
     @Override
     public void start() {
         if (started.compareAndSet(false, true)) {
-            ExecutorService executorService = Executors.newFixedThreadPool(pollThreads);
+            ThreadFactory workerF = (Runnable r) -> new Thread(r, "HEC-ACK-poller");
+            ExecutorService executorService = Executors.newFixedThreadPool(pollThreads, workerF);
             ackPollerService = new FutureRequestExecutionService(httpClient, executorService);
-            ThreadFactory f = (Runnable r) -> new Thread(r, "ACK poller");
+            ThreadFactory f = (Runnable r) -> new Thread(r, "HEC-ACK-poller-scheduler");
             scheduler = Executors.newScheduledThreadPool(1, f);
             Runnable poller = () -> {
                 poll();
@@ -80,42 +75,24 @@ public class HecAckPoller implements AckPoller {
                 ackPollerService.close();
             } catch (IOException ex) {
                 log.error("failed to close ack poller service", ex);
-                throw new ShutdownException("failed to close ack poller service", ex);
+                throw new HecClientException("failed to close ack poller service", ex);
             }
         }
     }
 
     @Override
-    public HecChannel minLoadChannel() {
-        return minChannel(eventStartingIds);
-    }
-
-    @Override
-    public HecChannel currentMinLoadChannel() {
-        return minChannel(outstandingEventBatches);
-    }
-
-    private static <T, R> T minChannel(ConcurrentHashMap<T, R> map) {
-        T minCh = null;
+    public HecChannel getMinLoadChannel() {
+        HecChannel minCh = null;
         long minEvents = Long.MAX_VALUE;
 
         // Find channel which has min outstanding events
-        for (Map.Entry<T, R> entry: map.entrySet()) {
-            T ch = entry.getKey();
-            R val = entry.getValue();
+        for (Map.Entry<HecChannel, ConcurrentHashMap<Long, EventBatch>> entry: outstandingEventBatches.entrySet()) {
+            HecChannel ch = entry.getKey();
+            Map<Long, EventBatch> val = entry.getValue();
 
-            long size = 0;
-            if (val instanceof ConcurrentHashMap<?, ?>) {
-                size = ((ConcurrentHashMap<?, ?>) val).size();
-            } else if (val instanceof AtomicLong){
-                size = ((AtomicLong) val).longValue();
-            } else {
-                assert false: "invalid type " + val;
-            }
-
-            if (size < minEvents) {
+            if (val.size() < minEvents) {
                 minCh = ch;
-                minEvents = size;
+                minEvents = val.size();
             }
         }
         return minCh;
@@ -127,13 +104,15 @@ public class HecAckPoller implements AckPoller {
     }
 
     @Override
-    public void add(HecChannel channel, EventBatch batch) {
-        AtomicLong eventId = eventStartingIds.get(channel);
-        if (eventId == null) {
-            eventStartingIds.putIfAbsent(channel, new AtomicLong(0));
-            eventId = eventStartingIds.get(channel);
+    public void add(HecChannel channel, EventBatch batch, String response) {
+        PostResponse resp = null;
+        try {
+            resp = jsonMapper.readValue(response, PostResponse.class);
+        } catch (Exception ex) {
+            log.error("failed to parse response", ex);
+            fail(channel, batch);
+            return;
         }
-        Long eid = eventId.getAndIncrement();
 
         ConcurrentHashMap<Long, EventBatch> channelEvents = outstandingEventBatches.get(channel);
         if (channelEvents == null) {
@@ -141,10 +120,14 @@ public class HecAckPoller implements AckPoller {
             channelEvents = outstandingEventBatches.get(channel);
         }
 
-        channelEvents.put(eid, batch);
+        channelEvents.put(resp.getAckId(), batch);
 
         // increase total number of event batches
         totalOutstandingEventBatches.incrementAndGet();
+    }
+
+    @Override
+    public void fail(HecChannel channel, EventBatch batch) {
     }
 
     // setPollThreads before calling start
@@ -166,65 +149,43 @@ public class HecAckPoller implements AckPoller {
     }
 
     private void poll() {
+        log.info(String.format("start polling %d outstanding acks", totalOutstandingEventBatches.get()));
+
         for (Map.Entry<HecChannel, ConcurrentHashMap<Long, EventBatch>> entry: outstandingEventBatches.entrySet()) {
             Set<Long> ids = entry.getValue().keySet();
             if (ids.isEmpty()) {
                 continue;
             }
+            HecChannel channel = entry.getKey();
+            log.info(String.format("polling %d acks for channel=%s on indexer=%s",
+                    ids.size(), channel.getId(), channel.getIndexer().getBaseUrl()));
             HttpUriRequest ackReq = createAckPollRequest(entry.getKey(), ids);
-            // FIXME null context
-            ackPollerService.execute(ackReq, HttpClientContext.create(), new AckResponseHandler(), new AckPollResponseHandler(entry.getKey()));
+            // FIXME context
+            ackPollerService.execute(ackReq, HttpClientContext.create(), new AckResponseHandler(channel));
         }
     }
 
-    private final class AckResponseHandler implements ResponseHandler<HttpResponse> {
-        @Override
-        public HttpResponse handleResponse(final HttpResponse response) {
-            // just pass through
-            return response;
-        }
-    }
-
-    private final class AckPollResponse {
-        private final SortedMap<String, Boolean> acks = new TreeMap<>();
-
-        Collection<Long> getSuccessIds() {
-            Set<Long> successful = new HashSet<>();
-            for(Map.Entry<String,Boolean> e: acks.entrySet()){
-                if(e.getValue()) { // was 'true' in json, meaning it succeeded
-                    successful.add(Long.parseLong(e.getKey()));
-                }
-            }
-            return successful;
-        }
-
-        public Map<String, Boolean> getAcks() {
-            return acks;
-        }
-    }
-
-    private final class AckPollResponseHandler implements FutureCallback<HttpResponse> {
+    private final class AckResponseHandler implements ResponseHandler<Boolean> {
         private HecChannel channel;
 
-        public AckPollResponseHandler(HecChannel ch) {
+        public AckResponseHandler(HecChannel ch) {
             channel = ch;
         }
 
         @Override
-        public void completed(HttpResponse resp) {
-            int code = resp.getStatusLine().getStatusCode();
-
+        public Boolean handleResponse(final HttpResponse resp) {
             String payload;
             try {
                 payload = EntityUtils.toString(resp.getEntity());
             } catch (Exception ex) {
                 log.error("failed to handle ack poll response", ex);
-                return;
+                return false;
             }
 
-            if (code != 200 || code != 201) {
+            int code = resp.getStatusLine().getStatusCode();
+            if (code != 200 && code != 201) {
                 log.error("failed to poll ack", payload);
-                return;
+                return false;
             }
 
             try {
@@ -232,18 +193,9 @@ public class HecAckPoller implements AckPoller {
                 handleAckPollResult(channel, ackPollResult);
             } catch (Exception ex) {
                 log.error("failed to handle ack polled result", ex);
-                return;
+                return false;
             }
-        }
-
-        @Override
-        public void failed(final Exception ex) {
-            log.error("failed to poll acks", ex);
-        }
-
-        @Override
-        public void cancelled() {
-            log.error("cancel to poll acks");
+            return true;
         }
     }
 
@@ -253,21 +205,24 @@ public class HecAckPoller implements AckPoller {
             return;
         }
 
+        log.info(String.format("polled %d acks for channel=%s on indexer=%s",
+                 ids.size(), channel.getId(), channel.getIndexer().getBaseUrl()));
+
         List<EventBatch> batches = new ArrayList<>();
         ConcurrentHashMap<Long, EventBatch> channelBatches = outstandingEventBatches.get(channel);
         for (Long id: ids) {
             EventBatch batch = channelBatches.remove(id);
             if (batch == null) {
-                log.warn(String.format("event batch id={} for channel={} on host={} is not in map anymore",
+                log.warn(String.format("event batch id=%d for channel=%s on host=%s is not in map anymore",
                         id, channel.getId(), channel.getIndexer().getBaseUrl()));
-                assert false: "inconsistent state for event batch ack states";
                 continue;
             }
+            totalOutstandingEventBatches.decrementAndGet();
             batches.add(batch);
         }
 
-        if (!batches.isEmpty() && ackCallback != null) {
-            ackCallback.onEventAcked(batches);
+        if (!batches.isEmpty() && pollerCallback != null) {
+            pollerCallback.onEventCommitted(batches);
         }
     }
 
@@ -280,7 +235,7 @@ public class HecAckPoller implements AckPoller {
             ackIds = jsonMapper.writeValueAsString(json);
         } catch (JsonProcessingException ex) {
             log.error("failed to create ack poll request", ex);
-            throw new InvalidDataException("failed to create ack poll request", ex);
+            throw new HecClientException("failed to create ack poll request", ex);
         }
 
         StringEntity entity = null;
@@ -288,7 +243,7 @@ public class HecAckPoller implements AckPoller {
             entity = new StringEntity(ackIds);
         } catch (UnsupportedEncodingException ex) {
             log.error("failed to create ack poll request", ex);
-            throw new InvalidDataException("failed to create ack poll request", ex);
+            throw new HecClientException("failed to create ack poll request", ex);
         }
 
         entity.setContentType("application/json; profile=urn:splunk:event:1.0; charset=utf-8");

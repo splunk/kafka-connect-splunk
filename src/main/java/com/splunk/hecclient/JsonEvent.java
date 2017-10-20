@@ -1,8 +1,6 @@
 package com.splunk.hecclient;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.splunk.hecclient.errors.InvalidEventException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -20,7 +18,7 @@ public class JsonEvent extends Event {
 
         if (data instanceof String) {
             if (((String) data).isEmpty()) {
-                throw new InvalidEventException("Empty data json event");
+                throw new HecClientException("Empty data json event");
             }
         }
     }
@@ -44,7 +42,7 @@ public class JsonEvent extends Event {
             return jsonMapper.writeValueAsBytes(getJsonNode());
         } catch (Exception ex) {
             log.error("Invalid json event:" + ex);
-            throw new InvalidEventException("Failed to json marshal the event: " + ex.getMessage());
+            throw new HecClientException("Failed to json marshal the event: " + ex.getMessage());
         }
     }
 

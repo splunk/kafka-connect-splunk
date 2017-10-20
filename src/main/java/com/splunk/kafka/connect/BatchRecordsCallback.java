@@ -1,7 +1,5 @@
 package com.splunk.kafka.connect;
 
-import com.splunk.cloudfwd.ConnectionCallbacks;
-import com.splunk.cloudfwd.EventBatch;
 import com.sun.scenario.effect.Offset;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
@@ -10,8 +8,8 @@ import org.apache.kafka.common.internals.Topic;
 /**
  * Created by kchen on 9/24/17.
  */
-public class BatchRecordsCallback implements ConnectionCallbacks {
-    private TopicPartition partition;
+public class BatchRecordsCallback { //implements ConnectionCallbacks {
+/*    private TopicPartition partition;
     private SplunkSinkTask task;
 
     public BatchRecordsCallback(TopicPartition partition, SplunkSinkTask task) {
@@ -41,5 +39,5 @@ public class BatchRecordsCallback implements ConnectionCallbacks {
     @Override
     public void systemWarning(Exception e) {
 
-    }
+    }*/
 }

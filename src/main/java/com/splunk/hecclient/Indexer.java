@@ -1,17 +1,14 @@
 package com.splunk.hecclient;
 
-import com.splunk.hecclient.errors.HttpIOException;
-import com.splunk.hecclient.errors.InvalidHttpProtocolException;
 import org.apache.http.Header;
-import org.apache.http.client.ClientProtocolException;
+import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 
 /**
  * Created by kchen on 10/18/17.
@@ -24,10 +21,10 @@ public class Indexer {
     private String hecToken;
     private HecChannel channel;
     private Header[] headers;
-    private AckPoller poller;
+    private Poller poller;
 
     // Indexer doesn't own client, ack poller
-    public Indexer(String baseUrl, String hecToken, CloseableHttpClient client, AckPoller poller) {
+    public Indexer(String baseUrl, String hecToken, CloseableHttpClient client, Poller poller) {
         this.httpClient = client;
         this.baseUrl = baseUrl;
         this.hecToken = hecToken;
@@ -60,16 +57,38 @@ public class Indexer {
         httpPost.setHeaders(headers);
         httpPost.setEntity(batch.getHttpEntity());
 
+        CloseableHttpResponse resp = null;
         try {
-            CloseableHttpResponse resp = httpClient.execute(httpPost);
-        } catch (ClientProtocolException ex) {
-            log.error("encountered http protocol exception:", ex);
-            throw new InvalidHttpProtocolException("encountered protocol exception", ex);
-        } catch (IOException ex) {
+            resp = httpClient.execute(httpPost);
+        } catch (Exception ex) {
             log.error("encountered io exception:", ex);
-            throw new HttpIOException("encountered io exception when post data", ex);
+            throw new HecClientException("encountered exception when post data", ex);
         }
 
-        poller.add(channel, batch);
+        // read the response payload
+        String respPayload;
+        HttpEntity entity = resp.getEntity();
+        try {
+            respPayload = EntityUtils.toString(entity, "utf-8");
+        } catch (Exception ex) {
+            log.error("failed to process http response", ex);
+            poller.fail(channel, batch);
+            throw new HecClientException("", ex);
+        } finally {
+            try {
+                resp.close();
+            } catch (Exception ex) {
+            }
+        }
+
+        int status = resp.getStatusLine().getStatusCode();
+        if (status != 200 && status != 201) {
+            poller.fail(channel, batch);
+            log.error("failed to post events", respPayload, "status=" + status);
+            return;
+        }
+
+        // we are all good
+        poller.add(channel, batch, respPayload);
     }
 }
