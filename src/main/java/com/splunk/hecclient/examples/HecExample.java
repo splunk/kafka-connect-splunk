@@ -1,6 +1,7 @@
-package com.splunk.com.splunk.hecclient.examples;
+package com.splunk.hecclient.examples;
 
 import com.splunk.hecclient.*;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,20 +21,24 @@ public class HecExample {
         String tokenWithAck = "536AF219-CF36-4C8C-AA0C-FD9793A0F4DD";
         HecClientConfig config = new HecClientConfig(uris, tokenWithAck);
         config.setAckPollerThreads(4)
-                .setBatchEventTimeout(60)
+                .setAckPollInterval(10)
+                .setEventBatchTimeout(60)
                 .setDisableSSLCertVerification(true)
                 .setHttpKeepAlive(true)
-                .setMaxHttpConnectionPoolSizePerIndexer(4);
+                .setMaxHttpConnectionPerIndexer(4);
 
         Logger log = LoggerFactory.getLogger(IndexerExample.class);
 
+        CloseableHttpClient httpCilent = HecClient.createHttpClient(config);
+        Poller poller = HecWithAck.createPoller(config, httpCilent, new PrintIt());
+
         // Json
-        int n = 10;
+        int n = 100000;
         int m = 100;
 
+        Hec hec = new HecWithAck(config, httpCilent, poller);
         Thread jsonThr = new Thread(new Runnable() {
             public void run() {
-                Hec hec = new HecWithAck(config, new PrintIt());
                 for (int j = 0; j < n; j++) {
                     EventBatch batch = new JsonEventBatch();
                     for (int i = 0; i < m; i++) {
@@ -44,15 +49,14 @@ public class HecExample {
                     log.info("json batch: " + j);
                     hec.send(batch);
                 }
-                hec.close();
             }
         });
         jsonThr.start();
 
         // raw
+        Hec rawHec = new HecWithAck(config, httpCilent, poller);
         Thread rawThr = new Thread(new Runnable() {
             public void run() {
-                Hec hec = new HecWithAck(config, new PrintIt());
                 for (int j = 0; j < n; j++) {
                     EventBatch batch = new RawEventBatch("main", null,"test-raw-event", null, -1);
                     for (int i = 0; i < m; i++) {
@@ -61,9 +65,8 @@ public class HecExample {
                         batch.add(evt);
                     }
                     log.info("raw batch: " + j);
-                    hec.send(batch);
+                    rawHec.send(batch);
                 }
-                hec.close();
             }
         });
         rawThr.start();
@@ -73,6 +76,8 @@ public class HecExample {
         } catch (InterruptedException ex) {
         }
 
+        hec.close();
+        rawHec.close();
         log.info("Done");
     }
 }

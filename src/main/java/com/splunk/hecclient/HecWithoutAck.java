@@ -12,6 +12,10 @@ public final class HecWithoutAck extends Hec {
     }
 
     public HecWithoutAck(HecClientConfig config, CloseableHttpClient httpClient, PollerCallback callback) {
-        super(config, httpClient, new ResponsePoller(callback));
+        this(config, httpClient, new ResponsePoller(callback));
+    }
+
+    public HecWithoutAck(HecClientConfig config, CloseableHttpClient httpClient, Poller poller) {
+        super(config, httpClient, poller);
     }
 }

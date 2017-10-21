@@ -1,4 +1,4 @@
-package com.splunk.com.splunk.hecclient.examples;
+package com.splunk.hecclient.examples;
 
 import com.splunk.hecclient.EventBatch;
 import com.splunk.hecclient.PollerCallback;

@@ -1,4 +1,4 @@
-package com.splunk.com.splunk.hecclient.examples;
+package com.splunk.hecclient.examples;
 
 import com.splunk.hecclient.*;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;

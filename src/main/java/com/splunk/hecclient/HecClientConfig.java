@@ -11,8 +11,9 @@ final public class HecClientConfig {
     private boolean disableSSLCertVerification;
     private boolean httpKeepAlive;
     private int ackPollerThreads;
-    private int maxHttpConnectionPoolSizePerIndexer;
-    private int batchEventTimeout; // in seconds
+    private int maxHttpConnectionPerIndexer;
+    private int eventBatchTimeout; // in seconds
+    private int ackPollInterval; // in seconds
 
     public HecClientConfig(List<String> uris, String token) {
         this.uris = uris;
@@ -39,12 +40,16 @@ final public class HecClientConfig {
         return ackPollerThreads;
     }
 
-    public int getMaxHttpConnectionPoolSizePerIndexer() {
-        return maxHttpConnectionPoolSizePerIndexer;
+    public int getMaxHttpConnectionPerIndexer() {
+        return maxHttpConnectionPerIndexer;
     }
 
-    public int getBatchEventTimeout() {
-        return batchEventTimeout;
+    public int getEventBatchTimeout() {
+        return eventBatchTimeout;
+    }
+
+    public int getAckPollInterval() {
+        return ackPollInterval;
     }
 
     public HecClientConfig setDisableSSLCertVerification(boolean disableVerfication) {
@@ -62,13 +67,18 @@ final public class HecClientConfig {
         return this;
     }
 
-    public HecClientConfig setMaxHttpConnectionPoolSizePerIndexer(int poolSize) {
-        maxHttpConnectionPoolSizePerIndexer = poolSize;
+    public HecClientConfig setMaxHttpConnectionPerIndexer(int poolSize) {
+        maxHttpConnectionPerIndexer = poolSize;
         return this;
     }
 
-    public HecClientConfig setBatchEventTimeout(int timeout) {
-        batchEventTimeout = timeout;
+    public HecClientConfig setEventBatchTimeout(int timeout) {
+        eventBatchTimeout = timeout;
+        return this;
+    }
+
+    public HecClientConfig setAckPollInterval(int interval) {
+        ackPollInterval = interval;
         return this;
     }
 }

@@ -11,6 +11,16 @@ public final class HecWithAck extends Hec {
     }
 
     public HecWithAck(HecClientConfig config, CloseableHttpClient httpClient, PollerCallback callback) {
-        super(config, httpClient, new HecAckPoller(httpClient, callback));
+        this(config, httpClient, createPoller(config, httpClient, callback));
+    }
+
+    public HecWithAck(HecClientConfig config, CloseableHttpClient httpClient, Poller poller) {
+        super(config, httpClient, poller);
+    }
+
+    public static HecAckPoller createPoller(HecClientConfig config, CloseableHttpClient httpClient, PollerCallback callback) {
+        return new HecAckPoller(httpClient, callback)
+                .setAckPollInterval(config.getAckPollInterval())
+                .setBatchEventTimeout(config.getEventBatchTimeout());
     }
 }

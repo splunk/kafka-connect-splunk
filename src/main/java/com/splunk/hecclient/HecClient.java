@@ -23,7 +23,7 @@ public class HecClient {
     }
 
     public static CloseableHttpClient createHttpClient(HecClientConfig config) {
-        int poolSizePerDest = config.getMaxHttpConnectionPoolSizePerIndexer();
+        int poolSizePerDest = config.getMaxHttpConnectionPerIndexer();
         return new HttpClientBuilder()
                 .setDisableSSLCertVerification(config.getDisableSSLCertVerification())
                 .setMaxConnectionPoolSizePerDestination(poolSizePerDest)

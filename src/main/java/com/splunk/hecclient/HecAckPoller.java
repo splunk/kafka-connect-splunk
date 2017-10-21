@@ -32,7 +32,7 @@ public class HecAckPoller implements Poller {
     private CloseableHttpClient httpClient;
     private ConcurrentHashMap<HecChannel, ConcurrentHashMap<Long, EventBatch>> outstandingEventBatches;
     private AtomicLong totalOutstandingEventBatches;
-    private int expirationDuration; // in seconds
+    private int batchEventTimeout; // in seconds
     private int ackPollInterval; // in seconds
     private int pollThreads;
     private PollerCallback pollerCallback;
@@ -46,7 +46,7 @@ public class HecAckPoller implements Poller {
         outstandingEventBatches = new ConcurrentHashMap<>();
         totalOutstandingEventBatches = new AtomicLong(0);
         ackPollInterval = 10; // 10 seconds
-        expirationDuration = 2 * 60; // 2 mins
+        batchEventTimeout = 2 * 60; // 2 mins
         pollThreads = 4;
         pollerCallback = cb;
         started = new AtomicBoolean(false);
@@ -136,9 +136,9 @@ public class HecAckPoller implements Poller {
         return this;
     }
 
-    // setExpirationDuration before calling start
-    public HecAckPoller setExpirationDuration(int duration) {
-        expirationDuration = duration;
+    // setBatchEventTimeout before calling start
+    public HecAckPoller setBatchEventTimeout(int timeout) {
+        batchEventTimeout = timeout;
         return this;
     }
 
