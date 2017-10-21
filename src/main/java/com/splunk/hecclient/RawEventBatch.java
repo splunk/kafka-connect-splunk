@@ -21,6 +21,7 @@ public class RawEventBatch extends EventBatch {
         this.time = time;
     }
 
+    @Override
     public void add(Event event) throws HecClientException {
         if (event instanceof RawEvent) {
             events.add(event);
