@@ -19,6 +19,7 @@ public class Indexer {
     private CloseableHttpClient httpClient;
     private String baseUrl;
     private String hecToken;
+    private boolean keepAlive;
     private HecChannel channel;
     private Header[] headers;
     private Poller poller;
@@ -32,10 +33,32 @@ public class Indexer {
 
         channel = new HecChannel(this);
 
-        // init headers
-        headers = new Header[2];
+        // Init headers
+        headers = new Header[3];
         headers[0] = new BasicHeader("Authorization", String.format("Splunk %s", hecToken));
         headers[1] = new BasicHeader("X-Splunk-Request-Channel", channel.getId());
+
+        // set keep alive header
+        keepAlive = false;
+        setKeepAlive(true);
+    }
+
+    public Indexer setKeepAlive(boolean keepAlive) {
+        if (this.keepAlive == keepAlive) {
+            return this;
+        }
+
+        if (keepAlive) {
+            headers[2] = new BasicHeader("Connection", "Keep-Alive");
+        } else {
+            headers[2] = new BasicHeader("Connection", "close");
+        }
+        this.keepAlive = keepAlive;
+        return this;
+    }
+
+    public boolean getKeepAlive(boolean keepAlive) {
+        return keepAlive;
     }
 
     public Header[] getHeaders() {
@@ -73,7 +96,7 @@ public class Indexer {
         } catch (Exception ex) {
             log.error("failed to process http response", ex);
             poller.fail(channel, batch);
-            throw new HecClientException("", ex);
+            throw new HecClientException("failed to process http response", ex);
         } finally {
             try {
                 resp.close();

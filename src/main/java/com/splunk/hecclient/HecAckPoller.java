@@ -188,13 +188,15 @@ public class HecAckPoller implements Poller {
                 return false;
             }
 
+            AckPollResponse ackPollResult;
             try {
-                AckPollResponse ackPollResult = jsonMapper.readValue(payload, AckPollResponse.class);
-                handleAckPollResult(channel, ackPollResult);
+                ackPollResult = jsonMapper.readValue(payload, AckPollResponse.class);
             } catch (Exception ex) {
                 log.error("failed to handle ack polled result", ex);
                 return false;
             }
+
+            handleAckPollResult(channel, ackPollResult);
             return true;
         }
     }
