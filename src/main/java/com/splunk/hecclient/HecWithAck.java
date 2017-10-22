@@ -21,6 +21,6 @@ public final class HecWithAck extends Hec {
     public static HecAckPoller createPoller(HecClientConfig config, CloseableHttpClient httpClient, PollerCallback callback) {
         return new HecAckPoller(httpClient, callback)
                 .setAckPollInterval(config.getAckPollInterval())
-                .setBatchEventTimeout(config.getEventBatchTimeout());
+                .setEventBatchTimeout(config.getEventBatchTimeout());
     }
 }

@@ -8,12 +8,14 @@ import java.util.List;
 final public class HecClientConfig {
     private List<String> uris;
     private String token;
-    private boolean disableSSLCertVerification;
-    private boolean httpKeepAlive;
-    private int ackPollerThreads;
-    private int maxHttpConnectionPerIndexer;
-    private int eventBatchTimeout; // in seconds
-    private int ackPollInterval; // in seconds
+    private boolean disableSSLCertVerification = false;
+    private boolean httpKeepAlive = true;
+    private int ackPollerThreads = 2;
+    private int maxHttpConnectionPerIndexer = 4;
+    private int eventBatchTimeout = 60 * 2; // in seconds
+    private int ackPollInterval = 10; // in seconds
+    private int socketTimeout = 60; // in seconds
+    private int socketSendBufferSize = 8 * 1024 * 1024; // in byte
 
     public HecClientConfig(List<String> uris, String token) {
         this.uris = uris;
@@ -34,6 +36,14 @@ final public class HecClientConfig {
 
     public boolean getHttpKeepAlive() {
         return httpKeepAlive;
+    }
+
+    public int getSocketTimeout() {
+        return socketTimeout;
+    }
+
+    public int getSocketSendBufferSize() {
+        return socketSendBufferSize;
     }
 
     public int getAckPollerThreads() {
@@ -62,6 +72,16 @@ final public class HecClientConfig {
         return this;
     }
 
+    public HecClientConfig setSocketTimeout(int timeout /*seconds*/) {
+        socketTimeout = timeout;
+        return this;
+    }
+
+    public HecClientConfig setSocketSendBufferSize(int bufSize /*bytes*/) {
+        socketSendBufferSize = bufSize;
+        return this;
+    }
+
     public HecClientConfig setAckPollerThreads(int threads) {
         ackPollerThreads = threads;
         return this;
@@ -72,12 +92,12 @@ final public class HecClientConfig {
         return this;
     }
 
-    public HecClientConfig setEventBatchTimeout(int timeout) {
+    public HecClientConfig setEventBatchTimeout(int timeout /*seconds*/) {
         eventBatchTimeout = timeout;
         return this;
     }
 
-    public HecClientConfig setAckPollInterval(int interval) {
+    public HecClientConfig setAckPollInterval(int interval /*seconds*/) {
         ackPollInterval = interval;
         return this;
     }

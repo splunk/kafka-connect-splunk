@@ -2,6 +2,8 @@ package com.splunk.hecclient;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.AbstractHttpEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,12 +17,25 @@ import java.util.List;
  * Created by kchen on 10/18/17.
  */
 public abstract class EventBatch {
+    private static Logger log = LoggerFactory.getLogger(EventBatch.class);
+
+    private long sendTimestamp = System.currentTimeMillis() / 1000; // in seconds
     protected int len;
     protected List<Event> events = new ArrayList();
 
     public abstract String getRestEndpoint();
     public abstract String getContentType();
     public abstract void add(Event event);
+
+    public boolean isTimedout(long ttl) {
+        long flightTime = System.currentTimeMillis() / 1000 - sendTimestamp;
+        if (flightTime < ttl) {
+            return false;
+        }
+
+        log.warn("timed out event batch after {} seconds not acked", ttl);
+        return true;
+    }
 
     // Total length of data for all events
     public int length() {

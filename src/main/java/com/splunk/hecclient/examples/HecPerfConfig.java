@@ -8,11 +8,13 @@ import com.splunk.hecclient.HecClientConfig;
 public class HecPerfConfig {
     private HecClientConfig config;
     private int concurrency;
+    private int clientPoolSize;
     private int iterations;
 
-    public HecPerfConfig(HecClientConfig config, int concurrency, int iterations) {
+    public HecPerfConfig(HecClientConfig config, int concurrency, int clientPoolSize, int iterations) {
         this.config = config;
         this.concurrency = concurrency;
+        this.clientPoolSize = clientPoolSize;
         this.iterations = iterations;
     }
 
@@ -22,6 +24,10 @@ public class HecPerfConfig {
 
     public int getConcurrency() {
         return concurrency;
+    }
+
+    public int getClientPoolSize() {
+        return clientPoolSize;
     }
 
     public int getIterations() {

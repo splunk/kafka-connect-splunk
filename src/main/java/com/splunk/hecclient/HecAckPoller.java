@@ -32,7 +32,7 @@ public class HecAckPoller implements Poller {
     private CloseableHttpClient httpClient;
     private ConcurrentHashMap<HecChannel, ConcurrentHashMap<Long, EventBatch>> outstandingEventBatches;
     private AtomicLong totalOutstandingEventBatches;
-    private int batchEventTimeout; // in seconds
+    private int eventBatchTimeout; // in seconds
     private int ackPollInterval; // in seconds
     private int pollThreads;
     private PollerCallback pollerCallback;
@@ -46,7 +46,7 @@ public class HecAckPoller implements Poller {
         outstandingEventBatches = new ConcurrentHashMap<>();
         totalOutstandingEventBatches = new AtomicLong(0);
         ackPollInterval = 10; // 10 seconds
-        batchEventTimeout = 2 * 60; // 2 mins
+        eventBatchTimeout = 2 * 60; // 2 mins
         pollThreads = 4;
         pollerCallback = cb;
         started = new AtomicBoolean(false);
@@ -77,6 +77,7 @@ public class HecAckPoller implements Poller {
                 log.error("failed to close ack poller service", ex);
                 throw new HecClientException("failed to close ack poller service", ex);
             }
+            log.info("HecAckPoller stopped with {} outstanding un-ACKed events", totalOutstandingEventBatches.get());
         }
     }
 
@@ -136,9 +137,9 @@ public class HecAckPoller implements Poller {
         return this;
     }
 
-    // setBatchEventTimeout before calling start
-    public HecAckPoller setBatchEventTimeout(int timeout) {
-        batchEventTimeout = timeout;
+    // setEventBatchTimeout before calling start
+    public HecAckPoller setEventBatchTimeout(int timeout) {
+        eventBatchTimeout = timeout;
         return this;
     }
 
@@ -149,20 +150,41 @@ public class HecAckPoller implements Poller {
     }
 
     private void poll() {
-        log.info(String.format("start polling %d outstanding acks", totalOutstandingEventBatches.get()));
+        log.info("start polling {} outstanding acks", totalOutstandingEventBatches.get());
 
+        List<EventBatch> timeouts = new ArrayList<>();
         for (Map.Entry<HecChannel, ConcurrentHashMap<Long, EventBatch>> entry: outstandingEventBatches.entrySet()) {
-            Set<Long> ids = entry.getValue().keySet();
+            Map<Long, EventBatch> batches = entry.getValue();
+            findAndRemoveTimedoutBatches(batches, timeouts);
+
+            Set<Long> ids = batches.keySet();
             if (ids.isEmpty()) {
                 continue;
             }
             HecChannel channel = entry.getKey();
-            log.info(String.format("polling %d acks for channel=%s on indexer=%s",
-                    ids.size(), channel.getId(), channel.getIndexer().getBaseUrl()));
+            log.info("polling {} acks for channel={} on indexer={}",
+                    ids.size(), channel.getId(), channel.getIndexer().getBaseUrl());
             HttpUriRequest ackReq = createAckPollRequest(entry.getKey(), ids);
             // FIXME context
             ackPollerService.execute(ackReq, HttpClientContext.create(), new AckResponseHandler(channel));
         }
+
+        if (!timeouts.isEmpty()) {
+            log.warn("detected {} event batches timedout", timeouts.size());
+            pollerCallback.onEventFailure(timeouts);
+        }
+    }
+
+    private void findAndRemoveTimedoutBatches(Map<Long, EventBatch> batches, List<EventBatch> timeouts) {
+        Iterator<Map.Entry<Long, EventBatch>> iterator = batches.entrySet().iterator();
+        while(iterator.hasNext()) {
+            EventBatch batch = iterator.next().getValue();
+            if (batch.isTimedout(eventBatchTimeout)) {
+                timeouts.add(batch);
+                iterator.remove();
+            }
+        }
+        totalOutstandingEventBatches.addAndGet(-timeouts.size());
     }
 
     private final class AckResponseHandler implements ResponseHandler<Boolean> {
@@ -207,16 +229,16 @@ public class HecAckPoller implements Poller {
             return;
         }
 
-        log.info(String.format("polled %d acks for channel=%s on indexer=%s",
-                 ids.size(), channel.getId(), channel.getIndexer().getBaseUrl()));
+        log.info("polled {} acks for channel={} on indexer={}",
+                 ids.size(), channel.getId(), channel.getIndexer().getBaseUrl());
 
         List<EventBatch> batches = new ArrayList<>();
         ConcurrentHashMap<Long, EventBatch> channelBatches = outstandingEventBatches.get(channel);
         for (Long id: ids) {
             EventBatch batch = channelBatches.remove(id);
             if (batch == null) {
-                log.warn(String.format("event batch id=%d for channel=%s on host=%s is not in map anymore",
-                        id, channel.getId(), channel.getIndexer().getBaseUrl()));
+                log.warn("event batch id={} for channel={} on host={} is not in map anymore",
+                        id, channel.getId(), channel.getIndexer().getBaseUrl());
                 continue;
             }
             totalOutstandingEventBatches.decrementAndGet();

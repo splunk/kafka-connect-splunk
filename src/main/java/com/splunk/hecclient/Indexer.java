@@ -38,7 +38,6 @@ public class Indexer {
         headers[0] = new BasicHeader("Authorization", String.format("Splunk %s", hecToken));
         headers[1] = new BasicHeader("X-Splunk-Request-Channel", channel.getId());
 
-        // set keep alive header
         keepAlive = false;
         setKeepAlive(true);
     }

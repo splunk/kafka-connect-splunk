@@ -14,6 +14,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class HecExample {
     public static void main(String[] args) {
+        Logger log = LoggerFactory.getLogger(IndexerExample.class);
+
         List<String> uris = Arrays.asList(
                 "https://52.53.254.149:8088",
                 "https://54.241.138.186:8088",
@@ -26,8 +28,6 @@ public class HecExample {
                 .setDisableSSLCertVerification(true)
                 .setHttpKeepAlive(true)
                 .setMaxHttpConnectionPerIndexer(4);
-
-        Logger log = LoggerFactory.getLogger(IndexerExample.class);
 
         CloseableHttpClient httpCilent = HecClient.createHttpClient(config);
         Poller poller = HecWithAck.createPoller(config, httpCilent, new PrintIt());

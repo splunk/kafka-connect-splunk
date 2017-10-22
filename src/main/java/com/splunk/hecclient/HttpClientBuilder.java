@@ -1,5 +1,6 @@
 package com.splunk.hecclient;
 
+import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -15,9 +16,11 @@ import java.security.cert.X509Certificate;
  * Created by kchen on 10/20/17.
  */
 final public class HttpClientBuilder {
-    private int maxConnectionPoolSizePerDestination;
-    private int maxConnectionPoolSize;
-    private boolean disableSSLCertVerification;
+    private int maxConnectionPoolSizePerDestination = 4;
+    private int maxConnectionPoolSize = 4 * 2;
+    private int socketTimeout = 60; // in seconds
+    private int socketSendBufferSize = 8 * 1024 * 1024; // in bytes
+    private boolean disableSSLCertVerification = false;
 
     public HttpClientBuilder setMaxConnectionPoolSizePerDestination(int connections) {
         this.maxConnectionPoolSizePerDestination = connections;
@@ -29,6 +32,16 @@ final public class HttpClientBuilder {
         return this;
     }
 
+    public HttpClientBuilder setSocketTimeout(int timeout /*seconds*/) {
+        this.socketTimeout = timeout;
+        return this;
+    }
+
+    public HttpClientBuilder setSocketSendBufferSize(int bufSize /*bytes*/) {
+        this.socketSendBufferSize = socketSendBufferSize;
+        return this;
+    }
+
     public HttpClientBuilder setDisableSSLCertVerification(boolean disableVerification) {
         disableSSLCertVerification = disableVerification;
         return this;
@@ -36,12 +49,17 @@ final public class HttpClientBuilder {
 
     public CloseableHttpClient build() {
         SSLConnectionSocketFactory sslFactory = getSSLConnectionFactory();
+        SocketConfig config = SocketConfig.custom()
+                .setSndBufSize(socketSendBufferSize)
+                .setSoTimeout(socketTimeout * 1000)
+                .build();
 
         return HttpClients.custom()
                 .useSystemProperties()
                 .setSSLSocketFactory(sslFactory)
                 .setMaxConnPerRoute(maxConnectionPoolSizePerDestination)
                 .setMaxConnTotal(maxConnectionPoolSize)
+                .setDefaultSocketConfig(config)
                 .build();
     }
 
