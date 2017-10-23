@@ -37,8 +37,4 @@ public class HecClient {
     public void send(EventBatch batch) {
         loadBalancer.send(batch);
     }
-
-    public void sendAckPollRequests() {
-        loadBalancer.sendAckPollRequests();
-    }
 }

@@ -33,7 +33,8 @@ public class HecAckPoller implements Poller {
     private int ackPollInterval; // in seconds
     private int pollThreads;
     private PollerCallback pollerCallback;
-    private ScheduledExecutorService scheduler;
+    private ScheduledThreadPoolExecutor scheduler;
+    private ExecutorService exectorService;
     private AtomicBoolean started;
 
     // HecAckPoller owns client
@@ -51,11 +52,18 @@ public class HecAckPoller implements Poller {
     public void start() {
         if (started.compareAndSet(false, true)) {
             ThreadFactory f = (Runnable r) -> new Thread(r, "HEC-ACK-poller-scheduler");
-            scheduler = Executors.newScheduledThreadPool(1, f);
+            scheduler = new ScheduledThreadPoolExecutor(1, f);
+            scheduler.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+            scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
+            scheduler.setRemoveOnCancelPolicy(true);
+
             Runnable poller = () -> {
                 poll();
             };
             scheduler.scheduleWithFixedDelay(poller, ackPollInterval, ackPollInterval, TimeUnit.SECONDS);
+
+            ThreadFactory e = (Runnable r) -> new Thread(r, "HEC-ACK-poller");
+            exectorService = Executors.newFixedThreadPool(pollThreads, e);
         }
     }
 
@@ -64,6 +72,7 @@ public class HecAckPoller implements Poller {
         if (started.compareAndSet(true, false)) {
             scheduler.shutdownNow();
             log.info("HecAckPoller stopped with {} outstanding un-ACKed events", totalOutstandingEventBatches.get());
+            exectorService.shutdownNow();
         }
     }
 
@@ -87,7 +96,7 @@ public class HecAckPoller implements Poller {
 
     @Override
     public long getTotalOutstandingEventBatches() {
-        return totalOutstandingEventBatches.longValue();
+        return totalOutstandingEventBatches.get();
     }
 
     @Override
@@ -105,6 +114,12 @@ public class HecAckPoller implements Poller {
         if (channelEvents == null) {
             outstandingEventBatches.putIfAbsent(channel, new ConcurrentHashMap<>());
             channelEvents = outstandingEventBatches.get(channel);
+        }
+
+        if (channelEvents.get(resp.getAckId()) != null) {
+            log.error("ackId already exists for channel={} index={}", channel, channel.getIndexer());
+            assert false: "ackId already exists";
+            return;
         }
 
         channelEvents.put(resp.getAckId(), batch);
@@ -139,7 +154,7 @@ public class HecAckPoller implements Poller {
     }
 
     private void poll() {
-        log.info("start polling {} outstanding acks", totalOutstandingEventBatches.get());
+        log.info("start polling {} outstanding acks for {} channels", totalOutstandingEventBatches.get(), outstandingEventBatches.size());
 
         List<EventBatch> timeouts = new ArrayList<>();
         for (Map.Entry<HecChannel, ConcurrentHashMap<Long, EventBatch>> entry: outstandingEventBatches.entrySet()) {
@@ -153,13 +168,29 @@ public class HecAckPoller implements Poller {
             HecChannel channel = entry.getKey();
             log.info("polling {} acks for channel={} on indexer={}", ids.size(), channel, channel.getIndexer());
             HttpUriRequest ackReq = createAckPollHttpRequest(entry.getKey(), ids);
-            HecAckPollRequest hecAckReq = new HecAckPollRequest(ackReq, this, channel, eventBatchTimeout);
-            channel.handleAckPollRequest(hecAckReq);
+            exectorService.submit(new RunAckQuery(ackReq, channel));
         }
 
         if (!timeouts.isEmpty()) {
             log.warn("detected {} event batches timedout", timeouts.size());
+            totalOutstandingEventBatches.addAndGet(-timeouts.size());
             pollerCallback.onEventFailure(timeouts);
+        }
+    }
+
+    private final class RunAckQuery implements Runnable {
+        private HecChannel channel;
+        private HttpUriRequest request;
+
+        public RunAckQuery(HttpUriRequest req, HecChannel ch) {
+            channel = ch;
+            request = req;
+        }
+
+        @Override
+        public void run() {
+            String resp = channel.executeHttpRequest(request);
+            handleAckPollResponse(resp, channel);
         }
     }
 
@@ -172,10 +203,10 @@ public class HecAckPoller implements Poller {
                 iterator.remove();
             }
         }
-        totalOutstandingEventBatches.addAndGet(-timeouts.size());
     }
 
-    public void handleAckPollResponse(String resp, HecChannel channel) {
+    private void handleAckPollResponse(String resp, HecChannel channel) {
+        log.info("ackPollResponse={}", resp);
         HecAckPollResponse ackPollResult;
         try {
             ackPollResult = jsonMapper.readValue(resp, HecAckPollResponse.class);
@@ -260,6 +291,8 @@ public class HecAckPoller implements Poller {
             log.error("failed to create ack poll request", ex);
             throw new HecClientException("failed to create ack poll request", ex);
         }
+
+        log.info("acks={} channel={} indexer={}", ackIds, ch, ch.getIndexer());
 
         StringEntity entity = null;
         try {

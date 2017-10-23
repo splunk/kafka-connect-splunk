@@ -38,10 +38,4 @@ public class LoadBalancer {
         index = (index + 1) % channels.size();
         channel.send(batch);
     }
-
-    public void sendAckPollRequests() {
-        for (HecChannel channel: channels) {
-            channel.sendAckPollRequests();
-        }
-    }
 }

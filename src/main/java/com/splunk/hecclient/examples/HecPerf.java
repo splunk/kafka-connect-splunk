@@ -46,15 +46,19 @@ public class HecPerf {
         PrintIt print = new PrintIt();
         Poller poller = HecWithAck.createPoller(config.getHecClientConfig(), print);
 
-        int iterationsPerThread = config.getIterations() / config.getConcurrency();
+        int iterationsPerThread = (config.getIterations() + config.getConcurrency()) / config.getConcurrency();
         List<Thread> threads = new ArrayList<>();
 
         long start = System.currentTimeMillis();
         CountDownLatch countdown = new CountDownLatch(config.getConcurrency());
+        List<Hec> hecs = new ArrayList<>();
         for (int i = 0; i < config.getConcurrency(); i++) {
             final int id = i;
+            final Hec hec = new HecWithAck(config.getHecClientConfig(), httpClients.get(id % httpClients.size()), poller);
+            hecs.add(hec);
+
             Runnable r = () -> {
-                perf(config.getHecClientConfig(), httpClients.get(id % httpClients.size()), poller, iterationsPerThread);
+                perf(hec, poller, iterationsPerThread);
                 countdown.countDown();
             };
             Thread thr = new Thread(r, "perf-thread-" + id);
@@ -68,33 +72,34 @@ public class HecPerf {
             th.join();
         }
 
+        log.info("polling acks");
         while (true) {
             if (print.getTotalEventsHandled() < config.getIterations()) {
+                log.info("sleep 1 second");
                 TimeUnit.SECONDS.sleep(1);
             } else {
                 break;
             }
         }
 
+        log.info("shutting down");
+        for (Hec hec: hecs) {
+            hec.close();
+        }
+
         for (CloseableHttpClient client: httpClients) {
-            // client.close();
+            client.close();
         }
 
         log.info("done");
     }
 
-    private static void perf(HecClientConfig config, CloseableHttpClient httpClient, Poller poller, int iteration) {
+    private static void perf(Hec hec, Poller poller, int iteration) {
         log.info("handle {} iterations", iteration);
-        Hec hec = new HecWithAck(config, httpClient, poller);
         for (int i = 0; i < iteration; i++) {
             EventBatch batch = createEventBatch();
             hec.send(batch);
-            if (i % 10 == 0) {
-                hec.sendAckPollRequests();
-            }
         }
-        hec.sendAckPollRequests();
-        hec.close();
     }
 
     private static EventBatch createEventBatch() {

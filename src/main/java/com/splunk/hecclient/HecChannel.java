@@ -1,5 +1,7 @@
 package com.splunk.hecclient;
 
+import org.apache.http.client.methods.HttpUriRequest;
+
 /**
  * Created by kchen on 10/18/17.
  */
@@ -26,13 +28,8 @@ public class HecChannel {
     }
 
     // for convenience
-    public void handleAckPollRequest(final HecAckPollRequest req) {
-        indexer.handleAckPollRequest(req);
-    }
-
-    // for convenience
-    public void sendAckPollRequests() {
-        indexer.sendAckPollRequests();
+    public String executeHttpRequest(final HttpUriRequest req) {
+        return indexer.executeHttpRequest(req);
     }
 
     @Override
