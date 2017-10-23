@@ -41,7 +41,8 @@ public class HecPerf {
             CloseableHttpClient httpClient = HecClient.createHttpClient(config.getHecClientConfig());
             httpClients.add(httpClient);
         }
-        Poller poller = HecWithAck.createPoller(config.getHecClientConfig(), httpClients.get(0), new PrintIt());
+        CloseableHttpClient pollerHttpClient = HecClient.createHttpClient(config.getHecClientConfig());
+        Poller poller = HecWithAck.createPoller(config.getHecClientConfig(), pollerHttpClient, new PrintIt());
 
         int iterationsPerThread = config.getIterations() / config.getConcurrency();
         List<Thread> threads = new ArrayList<>();
@@ -58,11 +59,17 @@ public class HecPerf {
             thr.start();
             threads.add(thr);
         }
+
         countdown.await();
         log.info("Took {} milliseconds to send {} events", System.currentTimeMillis() - start, config.getIterations() * 100);
         for (Thread th: threads) {
             th.join();
         }
+
+        for (CloseableHttpClient client: httpClients) {
+            client.close();
+        }
+
         log.info("done");
     }
 

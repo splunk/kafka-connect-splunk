@@ -103,6 +103,8 @@ public class Indexer {
             }
         }
 
+        // log.info("event posting, channel={}, cookies={}", channel, resp.getHeaders("Set-Cookie"));
+
         int status = resp.getStatusLine().getStatusCode();
         if (status != 200 && status != 201) {
             poller.fail(channel, batch);
@@ -112,5 +114,10 @@ public class Indexer {
 
         // we are all good
         poller.add(channel, batch, respPayload);
+    }
+
+    @Override
+    public String toString() {
+        return baseUrl;
     }
 }

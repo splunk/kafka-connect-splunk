@@ -1,5 +1,7 @@
 package com.splunk.hecclient;
 
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
@@ -53,6 +55,9 @@ final public class HttpClientBuilder {
                 .setSndBufSize(socketSendBufferSize)
                 .setSoTimeout(socketTimeout * 1000)
                 .build();
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setCookieSpec(CookieSpecs.STANDARD)
+                .build();
 
         return HttpClients.custom()
                 .useSystemProperties()
@@ -60,6 +65,7 @@ final public class HttpClientBuilder {
                 .setMaxConnPerRoute(maxConnectionPoolSizePerDestination)
                 .setMaxConnTotal(maxConnectionPoolSize)
                 .setDefaultSocketConfig(config)
+                .setDefaultRequestConfig(requestConfig)
                 .build();
     }
 

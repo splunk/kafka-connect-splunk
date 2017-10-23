@@ -10,6 +10,7 @@ public abstract class Hec {
     private HecClient client;
     private Poller poller;
     private CloseableHttpClient httpClient;
+    protected boolean ownHttpClient = false;
 
     public Hec(HecClientConfig config, CloseableHttpClient httpClient, Poller poller) {
         client = new HecClient(config, httpClient, poller);
@@ -24,10 +25,12 @@ public abstract class Hec {
 
     public void close() {
         poller.stop();
-        try {
-            httpClient.close();
-        } catch (Exception ex) {
-            throw new HecClientException("failed to close http client", ex);
+        if (ownHttpClient) {
+            try {
+                httpClient.close();
+            } catch (Exception ex) {
+                throw new HecClientException("failed to close http client", ex);
+            }
         }
     }
 }

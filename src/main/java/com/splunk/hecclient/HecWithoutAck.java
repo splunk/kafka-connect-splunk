@@ -9,6 +9,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 public final class HecWithoutAck extends Hec {
     public HecWithoutAck(HecClientConfig config, PollerCallback callback) {
         this(config, HecClient.createHttpClient(config), callback);
+        ownHttpClient = true;
     }
 
     public HecWithoutAck(HecClientConfig config, CloseableHttpClient httpClient, PollerCallback callback) {

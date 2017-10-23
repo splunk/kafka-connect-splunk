@@ -23,6 +23,8 @@ import java.util.concurrent.atomic.*;
 /**
  * Created by kchen on 10/18/17.
  */
+
+// HecAckPoller owns CloseableHttpClient
 public class HecAckPoller implements Poller {
     private final static Logger log = LoggerFactory.getLogger(HecAckPoller.class);
     private final static ObjectMapper jsonMapper = new ObjectMapper();
@@ -129,6 +131,9 @@ public class HecAckPoller implements Poller {
 
     @Override
     public void fail(HecChannel channel, EventBatch batch) {
+        if (pollerCallback != null) {
+            pollerCallback.onEventFailure(Arrays.asList(batch));
+        }
     }
 
     // setPollThreads before calling start
@@ -162,11 +167,10 @@ public class HecAckPoller implements Poller {
                 continue;
             }
             HecChannel channel = entry.getKey();
-            log.info("polling {} acks for channel={} on indexer={}",
-                    ids.size(), channel.getId(), channel.getIndexer().getBaseUrl());
+            log.info("polling {} acks for channel={} on indexer={}", ids.size(), channel, channel.getIndexer());
             HttpUriRequest ackReq = createAckPollRequest(entry.getKey(), ids);
             // FIXME context
-            ackPollerService.execute(ackReq, HttpClientContext.create(), new AckResponseHandler(channel));
+            ackPollerService.execute(ackReq, null, new AckResponseHandler(channel));
         }
 
         if (!timeouts.isEmpty()) {
@@ -218,6 +222,7 @@ public class HecAckPoller implements Poller {
                 return false;
             }
 
+            // log.info("ack polling, channel={}, cookies={}", channel, resp.getHeaders("Set-Cookie"));
             handleAckPollResult(channel, ackPollResult);
             return true;
         }
@@ -226,19 +231,18 @@ public class HecAckPoller implements Poller {
     private void handleAckPollResult(HecChannel channel, AckPollResponse result) {
         Collection<Long> ids = result.getSuccessIds();
         if (ids.isEmpty()) {
+            log.info("no ackIds are ready for channel={} on indexer={}", channel, channel.getIndexer());
             return;
         }
 
-        log.info("polled {} acks for channel={} on indexer={}",
-                 ids.size(), channel.getId(), channel.getIndexer().getBaseUrl());
+        log.info("polled {} acks for channel={} on indexer={}", ids.size(), channel, channel.getIndexer());
 
         List<EventBatch> batches = new ArrayList<>();
         ConcurrentHashMap<Long, EventBatch> channelBatches = outstandingEventBatches.get(channel);
         for (Long id: ids) {
             EventBatch batch = channelBatches.remove(id);
             if (batch == null) {
-                log.warn("event batch id={} for channel={} on host={} is not in map anymore",
-                        id, channel.getId(), channel.getIndexer().getBaseUrl());
+                log.warn("event batch id={} for channel={} on host={} is not in map anymore", id, channel, channel.getIndexer());
                 continue;
             }
             totalOutstandingEventBatches.decrementAndGet();
