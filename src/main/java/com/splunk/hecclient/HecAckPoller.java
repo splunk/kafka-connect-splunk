@@ -6,15 +6,11 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.FutureRequestExecutionService;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.concurrent.*;
@@ -24,27 +20,24 @@ import java.util.concurrent.atomic.*;
  * Created by kchen on 10/18/17.
  */
 
-// HecAckPoller owns CloseableHttpClient
+// HecAckPoller, it is multi-thread safe class
 public class HecAckPoller implements Poller {
     private final static Logger log = LoggerFactory.getLogger(HecAckPoller.class);
     private final static ObjectMapper jsonMapper = new ObjectMapper();
 
     private final static String ackEndpoint = "/services/collector/ack";
 
-    private CloseableHttpClient httpClient;
     private ConcurrentHashMap<HecChannel, ConcurrentHashMap<Long, EventBatch>> outstandingEventBatches;
     private AtomicLong totalOutstandingEventBatches;
     private int eventBatchTimeout; // in seconds
     private int ackPollInterval; // in seconds
     private int pollThreads;
     private PollerCallback pollerCallback;
-    FutureRequestExecutionService ackPollerService;
     private ScheduledExecutorService scheduler;
     private AtomicBoolean started;
 
     // HecAckPoller owns client
-    public HecAckPoller(CloseableHttpClient client, PollerCallback cb) {
-        httpClient = client;
+    public HecAckPoller(PollerCallback cb) {
         outstandingEventBatches = new ConcurrentHashMap<>();
         totalOutstandingEventBatches = new AtomicLong(0);
         ackPollInterval = 10; // 10 seconds
@@ -57,9 +50,6 @@ public class HecAckPoller implements Poller {
     @Override
     public void start() {
         if (started.compareAndSet(false, true)) {
-            ThreadFactory workerF = (Runnable r) -> new Thread(r, "HEC-ACK-poller");
-            ExecutorService executorService = Executors.newFixedThreadPool(pollThreads, workerF);
-            ackPollerService = new FutureRequestExecutionService(httpClient, executorService);
             ThreadFactory f = (Runnable r) -> new Thread(r, "HEC-ACK-poller-scheduler");
             scheduler = Executors.newScheduledThreadPool(1, f);
             Runnable poller = () -> {
@@ -73,12 +63,6 @@ public class HecAckPoller implements Poller {
     public void stop() {
         if (started.compareAndSet(true, false)) {
             scheduler.shutdownNow();
-            try {
-                ackPollerService.close();
-            } catch (IOException ex) {
-                log.error("failed to close ack poller service", ex);
-                throw new HecClientException("failed to close ack poller service", ex);
-            }
             log.info("HecAckPoller stopped with {} outstanding un-ACKed events", totalOutstandingEventBatches.get());
         }
     }
@@ -168,9 +152,9 @@ public class HecAckPoller implements Poller {
             }
             HecChannel channel = entry.getKey();
             log.info("polling {} acks for channel={} on indexer={}", ids.size(), channel, channel.getIndexer());
-            HttpUriRequest ackReq = createAckPollRequest(entry.getKey(), ids);
-            // FIXME context
-            ackPollerService.execute(ackReq, null, new AckResponseHandler(channel));
+            HttpUriRequest ackReq = createAckPollHttpRequest(entry.getKey(), ids);
+            HecAckPollRequest hecAckReq = new HecAckPollRequest(ackReq, this, channel, eventBatchTimeout);
+            channel.handleAckPollRequest(hecAckReq);
         }
 
         if (!timeouts.isEmpty()) {
@@ -189,6 +173,17 @@ public class HecAckPoller implements Poller {
             }
         }
         totalOutstandingEventBatches.addAndGet(-timeouts.size());
+    }
+
+    public void handleAckPollResponse(String resp, HecChannel channel) {
+        HecAckPollResponse ackPollResult;
+        try {
+            ackPollResult = jsonMapper.readValue(resp, HecAckPollResponse.class);
+        } catch (Exception ex) {
+            log.error("failed to handle ack polled result", ex);
+            return;
+        }
+        handleAckPollResult(channel, ackPollResult);
     }
 
     private final class AckResponseHandler implements ResponseHandler<Boolean> {
@@ -214,9 +209,9 @@ public class HecAckPoller implements Poller {
                 return false;
             }
 
-            AckPollResponse ackPollResult;
+            HecAckPollResponse ackPollResult;
             try {
-                ackPollResult = jsonMapper.readValue(payload, AckPollResponse.class);
+                ackPollResult = jsonMapper.readValue(payload, HecAckPollResponse.class);
             } catch (Exception ex) {
                 log.error("failed to handle ack polled result", ex);
                 return false;
@@ -228,7 +223,7 @@ public class HecAckPoller implements Poller {
         }
     }
 
-    private void handleAckPollResult(HecChannel channel, AckPollResponse result) {
+    private void handleAckPollResult(HecChannel channel, HecAckPollResponse result) {
         Collection<Long> ids = result.getSuccessIds();
         if (ids.isEmpty()) {
             log.info("no ackIds are ready for channel={} on indexer={}", channel, channel.getIndexer());
@@ -254,7 +249,7 @@ public class HecAckPoller implements Poller {
         }
     }
 
-    private HttpUriRequest createAckPollRequest(HecChannel ch, Set<Long> ids) {
+    private static HttpUriRequest createAckPollHttpRequest(HecChannel ch, Set<Long> ids) {
         // Prepare the payload
         String ackIds;
         Map json = new HashMap();

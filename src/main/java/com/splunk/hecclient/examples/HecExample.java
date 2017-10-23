@@ -22,15 +22,14 @@ public class HecExample {
                 "https://54.183.92.156:8088");
         String tokenWithAck = "536AF219-CF36-4C8C-AA0C-FD9793A0F4DD";
         HecClientConfig config = new HecClientConfig(uris, tokenWithAck);
-        config.setAckPollerThreads(4)
-                .setAckPollInterval(10)
+        config.setAckPollInterval(10)
                 .setEventBatchTimeout(60)
                 .setDisableSSLCertVerification(true)
                 .setHttpKeepAlive(true)
-                .setMaxHttpConnectionPerIndexer(4);
+                .setMaxHttpConnectionPerChannel(4);
 
         CloseableHttpClient httpCilent = HecClient.createHttpClient(config);
-        Poller poller = HecWithAck.createPoller(config, httpCilent, new PrintIt());
+        Poller poller = HecWithAck.createPoller(config, new PrintIt());
 
         // Json
         int n = 100000;

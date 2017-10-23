@@ -20,6 +20,21 @@ public class HecChannel {
         return id;
     }
 
+    // for convenience
+    public void send(EventBatch batch) {
+        indexer.send(batch);
+    }
+
+    // for convenience
+    public void handleAckPollRequest(final HecAckPollRequest req) {
+        indexer.handleAckPollRequest(req);
+    }
+
+    // for convenience
+    public void sendAckPollRequests() {
+        indexer.sendAckPollRequests();
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {

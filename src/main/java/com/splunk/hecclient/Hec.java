@@ -23,6 +23,10 @@ public abstract class Hec {
         client.send(event);
     }
 
+    public void sendAckPollRequests() {
+        client.sendAckPollRequests();
+    }
+
     public void close() {
         poller.stop();
         if (ownHttpClient) {

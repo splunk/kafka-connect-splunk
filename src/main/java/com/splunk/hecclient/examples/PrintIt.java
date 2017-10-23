@@ -24,4 +24,8 @@ class PrintIt implements PollerCallback {
         events.addAndGet(batches.size());
         System.out.println("committed: " + events.get());
     }
+
+    public long getTotalEventsHandled() {
+        return eventsFailed.get() + events.get();
+    }
 }

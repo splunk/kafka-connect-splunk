@@ -6,24 +6,27 @@ import org.apache.http.impl.client.CloseableHttpClient;
  * Created by kchen on 10/17/17.
  */
 
-// HecClient is not threadsafe
+// HecClient is not multi-thread safe
 public class HecClient {
     private HecClientConfig config;
-    private IndexerCluster cluster;
+    private LoadBalancer loadBalancer;
 
     public HecClient(HecClientConfig config, CloseableHttpClient client, Poller poller) {
         this.config = config;
 
-        cluster = new IndexerCluster();
-        for (String uri: config.getUris()) {
-            Indexer indexer = new Indexer(uri, config.getToken(), client, poller);
-            indexer.setKeepAlive(config.getHttpKeepAlive());
-            cluster.add(indexer);
+        loadBalancer = new LoadBalancer();
+        for (int i = 0; i < config.getTotalChannelNumber();) {
+            for (String uri: config.getUris()) {
+                Indexer indexer = new Indexer(uri, config.getToken(), client, poller);
+                indexer.setKeepAlive(config.getHttpKeepAlive());
+                loadBalancer.add(indexer.getChannel());
+                i++;
+            }
         }
     }
 
     public static CloseableHttpClient createHttpClient(HecClientConfig config) {
-        int poolSizePerDest = config.getMaxHttpConnectionPerIndexer();
+        int poolSizePerDest = config.getMaxHttpConnectionPerChannel();
         return new HttpClientBuilder()
                 .setDisableSSLCertVerification(config.getDisableSSLCertVerification())
                 .setMaxConnectionPoolSizePerDestination(poolSizePerDest)
@@ -32,6 +35,10 @@ public class HecClient {
     }
 
     public void send(EventBatch batch) {
-        cluster.send(batch);
+        loadBalancer.send(batch);
+    }
+
+    public void sendAckPollRequests() {
+        loadBalancer.sendAckPollRequests();
     }
 }

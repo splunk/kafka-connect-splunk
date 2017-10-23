@@ -10,8 +10,8 @@ final public class HecClientConfig {
     private String token;
     private boolean disableSSLCertVerification = false;
     private boolean httpKeepAlive = true;
-    private int ackPollerThreads = 2;
-    private int maxHttpConnectionPerIndexer = 4;
+    private int maxHttpConnectionPerChannel = 2;
+    private int totalChannelNumber = 2;
     private int eventBatchTimeout = 60 * 2; // in seconds
     private int ackPollInterval = 10; // in seconds
     private int socketTimeout = 60; // in seconds
@@ -46,12 +46,8 @@ final public class HecClientConfig {
         return socketSendBufferSize;
     }
 
-    public int getAckPollerThreads() {
-        return ackPollerThreads;
-    }
-
-    public int getMaxHttpConnectionPerIndexer() {
-        return maxHttpConnectionPerIndexer;
+    public int getMaxHttpConnectionPerChannel() {
+        return maxHttpConnectionPerChannel;
     }
 
     public int getEventBatchTimeout() {
@@ -60,6 +56,10 @@ final public class HecClientConfig {
 
     public int getAckPollInterval() {
         return ackPollInterval;
+    }
+
+    public int getTotalChannelNumber() {
+        return totalChannelNumber;
     }
 
     public HecClientConfig setDisableSSLCertVerification(boolean disableVerfication) {
@@ -82,13 +82,8 @@ final public class HecClientConfig {
         return this;
     }
 
-    public HecClientConfig setAckPollerThreads(int threads) {
-        ackPollerThreads = threads;
-        return this;
-    }
-
-    public HecClientConfig setMaxHttpConnectionPerIndexer(int poolSize) {
-        maxHttpConnectionPerIndexer = poolSize;
+    public HecClientConfig setMaxHttpConnectionPerChannel(int poolSize) {
+        maxHttpConnectionPerChannel = poolSize;
         return this;
     }
 
@@ -99,6 +94,11 @@ final public class HecClientConfig {
 
     public HecClientConfig setAckPollInterval(int interval /*seconds*/) {
         ackPollInterval = interval;
+        return this;
+    }
+
+    public HecClientConfig setTotalChannelNumber(int channelNumber) {
+        totalChannelNumber = channelNumber;
         return this;
     }
 }
