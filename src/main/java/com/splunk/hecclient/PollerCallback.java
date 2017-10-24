@@ -7,8 +7,8 @@ import java.util.List;
  */
 
 
-// The implementation of PollerCallback shall be threadsafe since the callback may be invoked in multiple threads
+// The implementation of PollerCallback shall be multi-thread safe since the callback may be invoked in multiple threads
 public interface PollerCallback {
-    void onEventFailure(List<EventBatch> failure);
+    void onEventFailure(List<EventBatch> failure, Exception ex);
     void onEventCommitted(List<EventBatch> committed);
 }

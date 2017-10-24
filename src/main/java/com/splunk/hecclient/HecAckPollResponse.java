@@ -6,7 +6,7 @@ import java.util.*;
  * Created by kchen on 10/19/17.
  */
 
-public final class AckPollResponse {
+public final class HecAckPollResponse {
     // {"acks":[0,1,2,3]}
     private final SortedMap<String, Boolean> acks = new TreeMap<>();
 

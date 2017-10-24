@@ -28,9 +28,9 @@ public class ResponsePoller implements Poller {
     }
 
     @Override
-    public void fail(HecChannel channel, EventBatch batch) {
+    public void fail(HecChannel channel, EventBatch batch, Exception ex) {
         if (callback != null) {
-            callback.onEventFailure(Arrays.asList(batch));
+            callback.onEventFailure(Arrays.asList(batch), ex);
         }
     }
 
@@ -49,11 +49,11 @@ public class ResponsePoller implements Poller {
         try {
             PostResponse response = jsonMapper.readValue(resp, PostResponse.class);
             if (!response.isSucceed()) {
-                fail(channel, batch);
+                fail(channel, batch, new HecClientException(response.getText()));
             }
         } catch (Exception ex) {
             log.error("failed to parse response", resp, ex);
-            fail(channel, batch);
+            fail(channel, batch, ex);
             return;
         }
 

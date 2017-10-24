@@ -37,6 +37,10 @@ public abstract class EventBatch {
         return true;
     }
 
+    public final List<Event> getEvents() {
+        return events;
+    }
+
     // Total length of data for all events
     public int length() {
         return len;

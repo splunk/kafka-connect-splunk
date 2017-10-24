@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by kchen on 10/17/17.
@@ -18,12 +19,12 @@ public class HecPerf {
     private static String uriArg = "uris";
     private static String tokenArg = "token";
     private static String concurrencyArg = "concurrency";
-    private static String pollerThreadArg = "ack-poller-threads";
     private static String pollIntervalArg = "ack-poll-interval";
     private static String eventTimoutArg = "event-batch-timeout";
     private static String iterationArg = "iterations";
-    private static String connectionArg = "http-connection-per-indexer";
-    private static String clientPoolArg = "client-pool-size";
+    private static String connectionArg = "http-connection-per-channel";
+    private static String clientPoolArg = "http-client-pool-size";
+    private static String channelNumberArg = "total-channels";
     private static String verificationArg = "disable-cert-verification";
     private static String keepAliveArg = "keep-alive";
 
@@ -41,18 +42,23 @@ public class HecPerf {
             CloseableHttpClient httpClient = HecClient.createHttpClient(config.getHecClientConfig());
             httpClients.add(httpClient);
         }
-        CloseableHttpClient pollerHttpClient = HecClient.createHttpClient(config.getHecClientConfig());
-        Poller poller = HecWithAck.createPoller(config.getHecClientConfig(), pollerHttpClient, new PrintIt());
 
-        int iterationsPerThread = config.getIterations() / config.getConcurrency();
+        PrintIt print = new PrintIt();
+        Poller poller = HecWithAck.createPoller(config.getHecClientConfig(), print);
+
+        int iterationsPerThread = (config.getIterations() + config.getConcurrency()) / config.getConcurrency();
         List<Thread> threads = new ArrayList<>();
 
         long start = System.currentTimeMillis();
         CountDownLatch countdown = new CountDownLatch(config.getConcurrency());
+        List<Hec> hecs = new ArrayList<>();
         for (int i = 0; i < config.getConcurrency(); i++) {
             final int id = i;
+            final Hec hec = new HecWithAck(config.getHecClientConfig(), httpClients.get(id % httpClients.size()), poller);
+            hecs.add(hec);
+
             Runnable r = () -> {
-                perf(config.getHecClientConfig(), httpClients.get(id % httpClients.size()), poller, iterationsPerThread);
+                perf(hec, poller, iterationsPerThread);
                 countdown.countDown();
             };
             Thread thr = new Thread(r, "perf-thread-" + id);
@@ -61,9 +67,24 @@ public class HecPerf {
         }
 
         countdown.await();
-        log.info("Took {} milliseconds to send {} events", System.currentTimeMillis() - start, config.getIterations() * 100);
+        log.info("Took {} milliseconds to send {} event batches", System.currentTimeMillis() - start, config.getIterations());
         for (Thread th: threads) {
             th.join();
+        }
+
+        log.info("polling acks");
+        while (true) {
+            if (print.getTotalEventsHandled() < config.getIterations()) {
+                log.info("sleep 1 second");
+                TimeUnit.SECONDS.sleep(1);
+            } else {
+                break;
+            }
+        }
+
+        log.info("shutting down");
+        for (Hec hec: hecs) {
+            hec.close();
         }
 
         for (CloseableHttpClient client: httpClients) {
@@ -73,14 +94,12 @@ public class HecPerf {
         log.info("done");
     }
 
-    private static void perf(HecClientConfig config, CloseableHttpClient httpClient, Poller poller, int iteration) {
+    private static void perf(Hec hec, Poller poller, int iteration) {
         log.info("handle {} iterations", iteration);
-        Hec hec = new HecWithAck(config, httpClient, poller);
         for (int i = 0; i < iteration; i++) {
             EventBatch batch = createEventBatch();
             hec.send(batch);
         }
-        hec.close();
     }
 
     private static EventBatch createEventBatch() {
@@ -115,12 +134,12 @@ public class HecPerf {
                 .hasArg(true)
                 .desc("Number of concurrent HEC posters")
                 .build();
-        Option ackPollerThreads = Option.builder()
-                .argName(pollerThreadArg)
-                .longOpt(pollerThreadArg)
+        Option totalChannelNumber = Option.builder()
+                .argName(channelNumberArg)
+                .longOpt(channelNumberArg)
                 .type(PatternOptionBuilder.NUMBER_VALUE)
                 .hasArg(true)
-                .desc("number of ACK poller threads")
+                .desc("Number of channels")
                 .build();
         Option ackPollInterval = Option.builder()
                 .argName(pollIntervalArg)
@@ -150,12 +169,12 @@ public class HecPerf {
                 .hasArg(true)
                 .desc("Number of clients to share among http post")
                 .build();
-        Option connectionPerIndexer = Option.builder()
+        Option connectionPerChannel = Option.builder()
                 .argName(connectionArg)
                 .longOpt(connectionArg)
                 .type(PatternOptionBuilder.NUMBER_VALUE)
                 .hasArg(true)
-                .desc("Max HTTP connection per indexer")
+                .desc("Max HTTP connection per channel")
                 .build();
         Option disableCertVerification = Option.builder()
                 .argName(verificationArg)
@@ -180,10 +199,10 @@ public class HecPerf {
         // optional options
         options.addOption(concurrency);
         options.addOption(totalIterations);
-        options.addOption(ackPollerThreads);
+        options.addOption(totalChannelNumber);
         options.addOption(ackPollInterval);
         options.addOption(eventBatchTimeout);
-        options.addOption(connectionPerIndexer);
+        options.addOption(connectionPerChannel);
         options.addOption(clientPool);
         options.addOption(disableCertVerification);
         options.addOption(keepAlive);
@@ -203,12 +222,6 @@ public class HecPerf {
 
         HecClientConfig config = new HecClientConfig(Arrays.asList(uris.split(",")), token);
 
-        if (cmd.hasOption(pollerThreadArg)) {
-            config.setAckPollerThreads((int) (long) cmd.getParsedOptionValue(pollerThreadArg));
-        } else {
-            config.setAckPollerThreads(4);
-        }
-
         if (cmd.hasOption(pollIntervalArg)) {
             config.setAckPollInterval((int) (long) cmd.getParsedOptionValue(pollIntervalArg));
         } else {
@@ -222,9 +235,9 @@ public class HecPerf {
         }
 
         if (cmd.hasOption(connectionArg)) {
-            config.setMaxHttpConnectionPerIndexer((int) (long) cmd.getParsedOptionValue(connectionArg));
+            config.setMaxHttpConnectionPerChannel((int) (long) cmd.getParsedOptionValue(connectionArg));
         } else {
-            config.setMaxHttpConnectionPerIndexer(4);
+            config.setMaxHttpConnectionPerChannel(4);
         }
 
         int iterations = 1000000;

@@ -24,7 +24,7 @@ public class IndexerExample {
         Poller poller = new ResponsePoller(new PrintIt());
 
         CloseableHttpClient ackClient = createHttpClient();
-        Poller ackPoller = new HecAckPoller(ackClient, new PrintIt());
+        Poller ackPoller = new HecAckPoller(new PrintIt());
         ackPoller.start();
 
         CloseableHttpClient client = createHttpClient();

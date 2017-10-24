@@ -3,12 +3,17 @@ package com.splunk.hecclient;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by kchen on 10/18/17.
@@ -17,6 +22,7 @@ public class Indexer {
     private static final Logger log = LoggerFactory.getLogger(Indexer.class);
 
     private CloseableHttpClient httpClient;
+    private HttpContext context;
     private String baseUrl;
     private String hecToken;
     private boolean keepAlive;
@@ -30,6 +36,7 @@ public class Indexer {
         this.baseUrl = baseUrl;
         this.hecToken = hecToken;
         this.poller = poller;
+        this.context = HttpClientContext.create();
 
         channel = new HecChannel(this);
 
@@ -72,6 +79,11 @@ public class Indexer {
         return baseUrl;
     }
 
+    public HecChannel getChannel() {
+        return channel;
+    }
+
+    // this method is multi-thread safe
     public void send(EventBatch batch) {
         String endpoint = batch.getRestEndpoint();
         String url = baseUrl + endpoint;
@@ -79,41 +91,53 @@ public class Indexer {
         httpPost.setHeaders(headers);
         httpPost.setEntity(batch.getHttpEntity());
 
-        CloseableHttpResponse resp = null;
+        String resp;
         try {
-            resp = httpClient.execute(httpPost);
+            resp = executeHttpRequest(httpPost);
+        } catch (HecClientException ex) {
+            poller.fail(channel, batch, ex);
+            return;
+        }
+
+        // we are all good
+        poller.add(channel, batch, resp);
+    }
+
+    // doSend is synchronized since there are multi-threads to access the context
+    synchronized public String executeHttpRequest(final HttpUriRequest req) {
+        try {
+            CloseableHttpResponse resp = httpClient.execute(req, context);
+            return readAndCloseResponse(resp);
         } catch (Exception ex) {
             log.error("encountered io exception:", ex);
             throw new HecClientException("encountered exception when post data", ex);
         }
+    }
 
-        // read the response payload
+    private static String readAndCloseResponse(CloseableHttpResponse resp) {
         String respPayload;
         HttpEntity entity = resp.getEntity();
         try {
             respPayload = EntityUtils.toString(entity, "utf-8");
         } catch (Exception ex) {
             log.error("failed to process http response", ex);
-            poller.fail(channel, batch);
             throw new HecClientException("failed to process http response", ex);
         } finally {
             try {
                 resp.close();
             } catch (Exception ex) {
+                throw new HecClientException("failed to close http response", ex);
             }
         }
 
         // log.info("event posting, channel={}, cookies={}", channel, resp.getHeaders("Set-Cookie"));
-
         int status = resp.getStatusLine().getStatusCode();
         if (status != 200 && status != 201) {
-            poller.fail(channel, batch);
-            log.error("failed to post events", respPayload, "status=" + status);
-            return;
+            log.error("failed to post events resp={}, status={}", respPayload, status);
+            throw new HecClientException(String.format("failed to post events resp=%s, status=%d", respPayload, status));
         }
 
-        // we are all good
-        poller.add(channel, batch, respPayload);
+        return respPayload;
     }
 
     @Override

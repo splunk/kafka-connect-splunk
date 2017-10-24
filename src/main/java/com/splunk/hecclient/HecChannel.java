@@ -1,5 +1,7 @@
 package com.splunk.hecclient;
 
+import org.apache.http.client.methods.HttpUriRequest;
+
 /**
  * Created by kchen on 10/18/17.
  */
@@ -18,6 +20,16 @@ public class HecChannel {
 
     public String getId() {
         return id;
+    }
+
+    // for convenience
+    public void send(EventBatch batch) {
+        indexer.send(batch);
+    }
+
+    // for convenience
+    public String executeHttpRequest(final HttpUriRequest req) {
+        return indexer.executeHttpRequest(req);
     }
 
     @Override
