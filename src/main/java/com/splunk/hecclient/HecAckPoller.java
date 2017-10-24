@@ -154,6 +154,10 @@ public class HecAckPoller implements Poller {
     }
 
     private void poll() {
+        if (totalOutstandingEventBatches.get() <= 0 || outstandingEventBatches.size() <= 0) {
+            return;
+        }
+
         log.info("start polling {} outstanding acks for {} channels", totalOutstandingEventBatches.get(), outstandingEventBatches.size());
 
         List<EventBatch> timeouts = new ArrayList<>();
