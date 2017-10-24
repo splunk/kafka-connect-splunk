@@ -106,7 +106,7 @@ public class HecAckPoller implements Poller {
             resp = jsonMapper.readValue(response, PostResponse.class);
         } catch (Exception ex) {
             log.error("failed to parse response", ex);
-            fail(channel, batch);
+            fail(channel, batch, ex);
             return;
         }
 
@@ -129,9 +129,9 @@ public class HecAckPoller implements Poller {
     }
 
     @Override
-    public void fail(HecChannel channel, EventBatch batch) {
+    public void fail(HecChannel channel, EventBatch batch, Exception ex) {
         if (pollerCallback != null) {
-            pollerCallback.onEventFailure(Arrays.asList(batch));
+            pollerCallback.onEventFailure(Arrays.asList(batch), ex);
         }
     }
 
@@ -174,7 +174,7 @@ public class HecAckPoller implements Poller {
         if (!timeouts.isEmpty()) {
             log.warn("detected {} event batches timedout", timeouts.size());
             totalOutstandingEventBatches.addAndGet(-timeouts.size());
-            pollerCallback.onEventFailure(timeouts);
+            pollerCallback.onEventFailure(timeouts, new HecClientException("timeouts"));
         }
     }
 
@@ -206,7 +206,7 @@ public class HecAckPoller implements Poller {
     }
 
     private void handleAckPollResponse(String resp, HecChannel channel) {
-        log.info("ackPollResponse={}", resp);
+        log.debug("ackPollResponse={}", resp);
         HecAckPollResponse ackPollResult;
         try {
             ackPollResult = jsonMapper.readValue(resp, HecAckPollResponse.class);
@@ -292,7 +292,7 @@ public class HecAckPoller implements Poller {
             throw new HecClientException("failed to create ack poll request", ex);
         }
 
-        log.info("acks={} channel={} indexer={}", ackIds, ch, ch.getIndexer());
+        log.debug("acks={} channel={} indexer={}", ackIds, ch, ch.getIndexer());
 
         StringEntity entity = null;
         try {

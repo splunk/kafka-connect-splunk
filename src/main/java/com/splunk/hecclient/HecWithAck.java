@@ -9,7 +9,6 @@ import java.io.IOException;
  */
 public final class HecWithAck extends Hec {
 
-
     public HecWithAck(HecClientConfig config, PollerCallback callback) {
         this(config, HecClient.createHttpClient(config), callback);
         ownHttpClient = true;

@@ -95,7 +95,7 @@ public class Indexer {
         try {
             resp = executeHttpRequest(httpPost);
         } catch (HecClientException ex) {
-            poller.fail(channel, batch);
+            poller.fail(channel, batch, ex);
             return;
         }
 

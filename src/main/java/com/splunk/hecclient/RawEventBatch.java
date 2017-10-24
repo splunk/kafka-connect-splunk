@@ -21,6 +21,47 @@ public class RawEventBatch extends EventBatch {
         this.time = time;
     }
 
+    public static Builder factory() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private String index;
+        private String source;
+        private String sourcetype;
+        private String host;
+        private long time = -1;
+
+        public Builder setIndex(final String index) {
+            this.index = index;
+            return this;
+        }
+
+        public Builder setSource(final String source) {
+            this.source = source;
+            return this;
+        }
+
+        public Builder setSourcetype(final String sourcetype) {
+            this.sourcetype = sourcetype;
+            return this;
+        }
+
+        public Builder setHost(final String host) {
+            this.host = host;
+            return this;
+        }
+
+        public Builder setTime(final int time) {
+            this.time = time;
+            return this;
+        }
+
+        public RawEventBatch build() {
+            return new RawEventBatch(index, source, sourcetype, host, time);
+        }
+    }
+
     @Override
     public void add(Event event) throws HecClientException {
         if (event instanceof RawEvent) {

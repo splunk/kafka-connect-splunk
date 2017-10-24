@@ -14,7 +14,7 @@ class PrintIt implements PollerCallback {
     private AtomicLong events = new AtomicLong(0);
 
     @Override
-    public void onEventFailure(List<EventBatch> batches) {
+    public void onEventFailure(List<EventBatch> batches, Exception ex) {
         eventsFailed.addAndGet(batches.size());
         System.out.println("Failed: " + eventsFailed.get());
     }

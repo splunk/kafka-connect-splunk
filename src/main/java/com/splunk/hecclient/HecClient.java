@@ -15,7 +15,7 @@ public class HecClient {
         this.config = config;
 
         loadBalancer = new LoadBalancer();
-        for (int i = 0; i < config.getTotalChannelNumber();) {
+        for (int i = 0; i < config.getTotalChannels();) {
             for (String uri: config.getUris()) {
                 Indexer indexer = new Indexer(uri, config.getToken(), client, poller);
                 indexer.setKeepAlive(config.getHttpKeepAlive());

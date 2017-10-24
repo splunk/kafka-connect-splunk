@@ -19,8 +19,11 @@ public abstract class Hec {
         this.httpClient = httpClient;
     }
 
-    public void send(EventBatch event) {
-        client.send(event);
+    public void send(EventBatch batch) {
+        if (batch.isEmpty()) {
+            return;
+        }
+        client.send(batch);
     }
 
     public void close() {

@@ -11,7 +11,7 @@ final public class HecClientConfig {
     private boolean disableSSLCertVerification = false;
     private boolean httpKeepAlive = true;
     private int maxHttpConnectionPerChannel = 2;
-    private int totalChannelNumber = 2;
+    private int totalChannels = 2;
     private int eventBatchTimeout = 60 * 2; // in seconds
     private int ackPollInterval = 10; // in seconds
     private int socketTimeout = 60; // in seconds
@@ -58,8 +58,8 @@ final public class HecClientConfig {
         return ackPollInterval;
     }
 
-    public int getTotalChannelNumber() {
-        return totalChannelNumber;
+    public int getTotalChannels() {
+        return totalChannels;
     }
 
     public HecClientConfig setDisableSSLCertVerification(boolean disableVerfication) {
@@ -97,8 +97,8 @@ final public class HecClientConfig {
         return this;
     }
 
-    public HecClientConfig setTotalChannelNumber(int channelNumber) {
-        totalChannelNumber = channelNumber;
+    public HecClientConfig setTotalChannels(int channels) {
+        totalChannels = channels;
         return this;
     }
 }
