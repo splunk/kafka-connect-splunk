@@ -2,12 +2,9 @@ package com.splunk.hecclient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,10 +31,9 @@ public class HecAckPoller implements Poller {
     private int pollThreads;
     private PollerCallback pollerCallback;
     private ScheduledThreadPoolExecutor scheduler;
-    private ExecutorService exectorService;
+    private ExecutorService executorService;
     private AtomicBoolean started;
 
-    // HecAckPoller owns client
     public HecAckPoller(PollerCallback cb) {
         outstandingEventBatches = new ConcurrentHashMap<>();
         totalOutstandingEventBatches = new AtomicLong(0);
@@ -63,7 +59,7 @@ public class HecAckPoller implements Poller {
             scheduler.scheduleWithFixedDelay(poller, ackPollInterval, ackPollInterval, TimeUnit.SECONDS);
 
             ThreadFactory e = (Runnable r) -> new Thread(r, "HEC-ACK-poller");
-            exectorService = Executors.newFixedThreadPool(pollThreads, e);
+            executorService = Executors.newFixedThreadPool(pollThreads, e);
         }
     }
 
@@ -72,7 +68,7 @@ public class HecAckPoller implements Poller {
         if (started.compareAndSet(true, false)) {
             scheduler.shutdownNow();
             log.info("HecAckPoller stopped with {} outstanding un-ACKed events", totalOutstandingEventBatches.get());
-            exectorService.shutdownNow();
+            executorService.shutdownNow();
         }
     }
 
@@ -130,6 +126,7 @@ public class HecAckPoller implements Poller {
 
     @Override
     public void fail(HecChannel channel, EventBatch batch, Exception ex) {
+        batch.fail();
         if (pollerCallback != null) {
             pollerCallback.onEventFailure(Arrays.asList(batch), ex);
         }
@@ -172,7 +169,7 @@ public class HecAckPoller implements Poller {
             HecChannel channel = entry.getKey();
             log.info("polling {} acks for channel={} on indexer={}", ids.size(), channel, channel.getIndexer());
             HttpUriRequest ackReq = createAckPollHttpRequest(entry.getKey(), ids);
-            exectorService.submit(new RunAckQuery(ackReq, channel));
+            executorService.submit(new RunAckQuery(ackReq, channel));
         }
 
         if (!timeouts.isEmpty()) {
@@ -221,43 +218,6 @@ public class HecAckPoller implements Poller {
         handleAckPollResult(channel, ackPollResult);
     }
 
-    private final class AckResponseHandler implements ResponseHandler<Boolean> {
-        private HecChannel channel;
-
-        public AckResponseHandler(HecChannel ch) {
-            channel = ch;
-        }
-
-        @Override
-        public Boolean handleResponse(final HttpResponse resp) {
-            String payload;
-            try {
-                payload = EntityUtils.toString(resp.getEntity());
-            } catch (Exception ex) {
-                log.error("failed to handle ack poll response", ex);
-                return false;
-            }
-
-            int code = resp.getStatusLine().getStatusCode();
-            if (code != 200 && code != 201) {
-                log.error("failed to poll ack", payload);
-                return false;
-            }
-
-            HecAckPollResponse ackPollResult;
-            try {
-                ackPollResult = jsonMapper.readValue(payload, HecAckPollResponse.class);
-            } catch (Exception ex) {
-                log.error("failed to handle ack polled result", ex);
-                return false;
-            }
-
-            // log.info("ack polling, channel={}, cookies={}", channel, resp.getHeaders("Set-Cookie"));
-            handleAckPollResult(channel, ackPollResult);
-            return true;
-        }
-    }
-
     private void handleAckPollResult(HecChannel channel, HecAckPollResponse result) {
         Collection<Long> ids = result.getSuccessIds();
         if (ids.isEmpty()) {
@@ -267,7 +227,7 @@ public class HecAckPoller implements Poller {
 
         log.info("polled {} acks for channel={} on indexer={}", ids.size(), channel, channel.getIndexer());
 
-        List<EventBatch> batches = new ArrayList<>();
+        List<EventBatch> committedBatches = new ArrayList<>();
         ConcurrentHashMap<Long, EventBatch> channelBatches = outstandingEventBatches.get(channel);
         for (Long id: ids) {
             EventBatch batch = channelBatches.remove(id);
@@ -276,11 +236,12 @@ public class HecAckPoller implements Poller {
                 continue;
             }
             totalOutstandingEventBatches.decrementAndGet();
-            batches.add(batch);
+            batch.commit();
+            committedBatches.add(batch);
         }
 
-        if (!batches.isEmpty() && pollerCallback != null) {
-            pollerCallback.onEventCommitted(batches);
+        if (!committedBatches.isEmpty() && pollerCallback != null) {
+            pollerCallback.onEventCommitted(committedBatches);
         }
     }
 

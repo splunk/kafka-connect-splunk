@@ -19,7 +19,13 @@ import java.util.List;
 public abstract class EventBatch {
     private static Logger log = LoggerFactory.getLogger(EventBatch.class);
 
-    private long sendTimestamp = System.currentTimeMillis() / 1000; // in seconds
+    private static final int INIT = 0;
+    private static final int COMMITTED = 1;
+    private static final int FAILED = 2;
+
+    private int status = INIT;
+    private int failureCount = 0;
+    private long sendTimestamp; // in seconds
     protected int len;
     protected List<Event> events = new ArrayList();
 
@@ -35,6 +41,38 @@ public abstract class EventBatch {
 
         log.warn("timed out event batch after {} seconds not acked", ttl);
         return true;
+    }
+
+    public void resetSendTimestamp() {
+        sendTimestamp = System.currentTimeMillis() / 1000;
+    }
+
+    public boolean isFailed() {
+        return status == FAILED;
+    }
+
+    public boolean isCommitted() {
+        return status == COMMITTED;
+    }
+
+    public EventBatch init() {
+        status = INIT;
+        return this;
+    }
+
+    public EventBatch fail() {
+        status = FAILED;
+        failureCount += 1;
+        return this;
+    }
+
+    public EventBatch commit() {
+        status = COMMITTED;
+        return this;
+    }
+
+    public int getFailureCount() {
+        return failureCount;
     }
 
     public final List<Event> getEvents() {

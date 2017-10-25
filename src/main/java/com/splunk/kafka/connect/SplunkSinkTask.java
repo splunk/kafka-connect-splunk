@@ -8,7 +8,6 @@ import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTask;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,14 +20,12 @@ public class SplunkSinkTask extends SinkTask {
 
     private Hec hec;
     private SplunkSinkConnectorConfig connectorConfig;
-    private ConcurrentHashMap<TopicPartition, OffsetAndMetadata> committedOffsets;
     private KafkaRecordTracker tracker;
 
     @Override
     public void start(Map<String, String> taskConfig) {
         connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
         hec = buildHec(connectorConfig.getHecClientConfig());
-        committedOffsets = new ConcurrentHashMap();
         tracker = new KafkaRecordTracker();
 
         log.info("kafka-connect-splunk task starts with config={}", connectorConfig);
@@ -44,14 +41,8 @@ public class SplunkSinkTask extends SinkTask {
 
     @Override
     public void put(Collection<SinkRecord> records) {
-        // FIXEME back pressure detection
-
-        Map<TopicPartition, Collection<SinkRecord>> failed = tracker.getAndRemoveFailedRecords();
-        if (failed != null && !failed.isEmpty()) {
-            // if there are failed ones, first deal with them
-            handlePartitionedRecords(failed);
-            // throw new RetriableException(new HecClientException("need handle failed records first"));
-        }
+        // FIXME back pressure detection
+        handleFailedBatches();
 
         if (records.isEmpty()) {
             return;
@@ -63,6 +54,17 @@ public class SplunkSinkTask extends SinkTask {
         } else {
             /* /event endpoint */
             handleEvent(records);
+        }
+    }
+
+    private void handleFailedBatches() {
+        Collection<EventBatch> failed = tracker.getAndRemoveFailedRecords();
+        if (!failed.isEmpty()) {
+            // if there are failed ones, first deal with them
+            for (final EventBatch batch: failed) {
+                send(batch);
+            }
+            // throw new RetriableException(new HecClientException("need handle failed records first"));
         }
     }
 
@@ -105,11 +107,16 @@ public class SplunkSinkTask extends SinkTask {
     }
 
     private void send(final EventBatch batch) {
+        batch.resetSendTimestamp();
+        tracker.addEventBatch(batch);
+
         try {
             hec.send(batch);
         } catch (Exception ex) {
             log.error("sending batch to splunk encountered error", ex);
-
+            batch.fail();
+            tracker.addFailedEventBatch(batch);
+            return;
         }
         log.info("Sent {} events to Splunk", batch.size());
     }
@@ -126,11 +133,9 @@ public class SplunkSinkTask extends SinkTask {
 
     @Override
     public Map<TopicPartition, OffsetAndMetadata> preCommit(Map<TopicPartition, OffsetAndMetadata> meta) {
-        // tell Kafka Connect framework what kind of offsets we can safely commit to Kafka now
-        // Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap(committedOffsets);
-        // log.info("commits offsets {}", offsets);
-        // return offsets;
-        // FIXME for computing the offsets
+        // tell Kafka Connect framework what are offsets we can safely commit to Kafka now
+        Map<TopicPartition, OffsetAndMetadata> offsets = tracker.computeOffsets();
+        log.debug("commits offsets offered={}, pushed={}", offsets, meta);
         return meta;
     }
 
@@ -145,30 +150,15 @@ public class SplunkSinkTask extends SinkTask {
         return "1.0.0";
     }
 
-    public void commitOffset(TopicPartition key, long offset) {
-        committedOffsets.put(key, new OffsetAndMetadata(offset + 1));
-    }
-
     public void onEventCommitted(final List<EventBatch> batches) {
-        trackRecords(batches, false);
+        for (final EventBatch batch: batches) {
+            assert batch.isCommitted();
+        }
     }
 
     public void onEventFailure(final List<EventBatch> batches, Exception ex) {
-        trackRecords(batches, true);
-    }
-
-    private void trackRecords(final List<EventBatch> batches, boolean failed) {
-        for (final EventBatch batch: batches) {
-            for (final Event event: batch.getEvents()) {
-                if (event.getTiedObject() instanceof SinkRecord) {
-                    final SinkRecord rec = (SinkRecord) event.getTiedObject();
-                    if (failed) {
-                        tracker.addFailedRecord(rec);
-                    } else {
-                        tracker.addCommittedRecord(rec);
-                    }
-                }
-            }
+        for (EventBatch batch: batches) {
+            tracker.addFailedEventBatch(batch);
         }
     }
 

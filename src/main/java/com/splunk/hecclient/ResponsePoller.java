@@ -29,6 +29,7 @@ public class ResponsePoller implements Poller {
 
     @Override
     public void fail(HecChannel channel, EventBatch batch, Exception ex) {
+        batch.fail();
         if (callback != null) {
             callback.onEventFailure(Arrays.asList(batch), ex);
         }
@@ -58,6 +59,7 @@ public class ResponsePoller implements Poller {
         }
 
         if (callback != null) {
+            batch.commit();
             callback.onEventCommitted(Arrays.asList(batch));
         }
     }
