@@ -1,75 +1,77 @@
 package com.splunk.kafka.connect;
 
+import com.splunk.hecclient.Event;
+import com.splunk.hecclient.EventBatch;
+import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.connect.sink.SinkRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * Created by kchen on 10/24/17.
  */
-public class KafkaRecordTracker {
-    private static Logger log = LoggerFactory.getLogger(KafkaRecordTracker.class);
 
-    private ConcurrentHashMap<TopicPartition, ConcurrentSkipListMap<Long, SinkRecord>> committed;
-    private ConcurrentHashMap<TopicPartition, ConcurrentLinkedQueue<SinkRecord>> failed;
+public class KafkaRecordTracker {
+    private Map<TopicPartition, TreeMap<Long, EventBatch>> all; // TopicPartition + Long offset represents the SinkRecord
+    private ConcurrentLinkedQueue<EventBatch> failed;
 
     public KafkaRecordTracker() {
-        committed = new ConcurrentHashMap<>();
-        failed = new ConcurrentHashMap<>();
+        all = new HashMap<>();
+        failed = new ConcurrentLinkedQueue<>();
     }
 
-    public void addFailedRecord(final SinkRecord record) {
-        TopicPartition tp = new TopicPartition(record.topic(), record.kafkaPartition());
-        ConcurrentLinkedQueue<SinkRecord> tpFailed = failed.get(tp);
-        if (tpFailed == null) {
-            failed.putIfAbsent(tp, new ConcurrentLinkedQueue<>());
-            tpFailed = failed.get(tp);
-        }
-        tpFailed.add(record);
+    public void addFailedEventBatch(final EventBatch batch) {
+        assert batch.isFailed();
+        failed.add(batch);
     }
 
-    public void addCommittedRecord(final SinkRecord record) {
-        TopicPartition tp = new TopicPartition(record.topic(), record.kafkaPartition());
-        ConcurrentSkipListMap<Long, SinkRecord> tpCommitted = committed.get(tp);
-        if (tpCommitted == null) {
-            committed.putIfAbsent(tp, new ConcurrentSkipListMap<Long, SinkRecord>());
-            tpCommitted = committed.get(tp);
-        }
-        SinkRecord rec = tpCommitted.putIfAbsent(record.kafkaOffset(), record);
-        if (rec != null) {
-            log.warn("record with offset={} from topicPartition={} has already committed", record.kafkaOffset(), tp);
-        }
-    }
-
-    public Map<TopicPartition, Collection<SinkRecord>> getAndRemoveFailedRecords() {
-        if (failed.isEmpty()) {
-            return null;
-        }
-
-        Map<TopicPartition, Collection<SinkRecord>> failedRecords = new HashMap<>();
-        for (Map.Entry<TopicPartition, ConcurrentLinkedQueue<SinkRecord>> entry: failed.entrySet()) {
-            ConcurrentLinkedQueue<SinkRecord> recordQueue = entry.getValue();
-            if (recordQueue.isEmpty()) {
-                continue;
-            }
-
-            Collection<SinkRecord> records = new ArrayList<>();
-            while (!recordQueue.isEmpty()) {
-                final SinkRecord record = recordQueue.poll();
-                if (record == null) {
-                    continue;
+    public void addEventBatch(final EventBatch batch) {
+        for (final Event event: batch.getEvents()) {
+            if (event.getTiedObject() instanceof SinkRecord) {
+                final SinkRecord record = (SinkRecord) event.getTiedObject();
+                TopicPartition tp = new TopicPartition(record.topic(), record.kafkaPartition());
+                TreeMap<Long, EventBatch> tpRecords = all.get(tp);
+                if (tpRecords == null) {
+                    tpRecords = new TreeMap<>();
+                    all.put(tp, tpRecords);
                 }
-                records.add(record);
+                tpRecords.put(record.kafkaOffset(), batch);
             }
-            failedRecords.put(entry.getKey(), records);
         }
+    }
 
-        return failedRecords;
+    public Collection<EventBatch> getAndRemoveFailedRecords() {
+        Collection<EventBatch> records = new ArrayList<>();
+        while (!failed.isEmpty()) {
+            final EventBatch batch = failed.poll();
+            if (batch != null) {
+                records.add(batch);
+            }
+        }
+        return records;
+    }
+
+    // Loop through all SinkRecords for all topic partitions
+    // find all consecutive committed offsets
+    public Map<TopicPartition, OffsetAndMetadata> computeOffsets() {
+        Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>();
+        for (Map.Entry<TopicPartition, TreeMap<Long, EventBatch>> entry: all.entrySet()) {
+            long offset = -1;
+            Iterator<Map.Entry<Long, EventBatch>> iter = entry.getValue().entrySet().iterator();
+            for (; iter.hasNext();) {
+                Map.Entry<Long, EventBatch> e = iter.next();
+                if (e.getValue().isCommitted()) {
+                    offset = e.getKey();
+                    iter.remove();
+                }
+            }
+
+            if (offset >= 0) {
+                offsets.put(entry.getKey(), new OffsetAndMetadata(offset + 1));
+            }
+        }
+        return offsets;
     }
 }
