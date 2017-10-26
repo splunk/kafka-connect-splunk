@@ -1,6 +1,5 @@
 package com.splunk.hecclient;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.*;
 
@@ -8,6 +7,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 
 /**
  * Created by kchen on 10/17/17.
@@ -30,7 +30,6 @@ public abstract class Event {
     protected final Object data;
     protected byte[] bytes; // populated once, use forever
 
-    @JsonIgnore
     private Object tied; // attached comparable object
 
     public Event(Object data, Object tied) {
@@ -109,4 +108,6 @@ public abstract class Event {
     public abstract byte[] getBytes();
 
     public abstract String toString();
+
+    public abstract Event addExtraFields(final Map<String, String> fields);
 }

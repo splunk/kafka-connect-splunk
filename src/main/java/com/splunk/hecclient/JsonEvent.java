@@ -2,6 +2,7 @@ package com.splunk.hecclient;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -11,6 +12,9 @@ import java.util.Map;
 
 public class JsonEvent extends Event {
     private static final String EVENT = "event";
+    private static final String FIELDS = "fields";
+
+    private Map<String, String> extraFields;
 
 
     public JsonEvent(Object data, Object tied) {
@@ -21,6 +25,19 @@ public class JsonEvent extends Event {
                 throw new HecClientException("Empty data json event");
             }
         }
+    }
+
+    @Override
+    public JsonEvent addExtraFields(final Map<String, String> fields) {
+        if (fields == null || fields.isEmpty()) {
+            return this;
+        }
+
+        if (extraFields == null) {
+            extraFields = new HashMap<>();
+        }
+        extraFields.putAll(fields);
+        return this;
     }
 
     @Override
@@ -56,6 +73,10 @@ public class JsonEvent extends Event {
         putIfPresent(eventJSON, HOST, host);
         putIfPresent(eventJSON, SOURCETYPE, sourcetype);
         putIfPresent(eventJSON, SOURCE, source);
+
+        if (extraFields != null && !extraFields.isEmpty()) {
+            eventJSON.put(FIELDS, extraFields);
+        }
         eventJSON.put(EVENT, data);
 
         ObjectNode eventNode = (ObjectNode) jsonMapper.valueToTree(eventJSON);

@@ -13,8 +13,6 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 /**
  * Created by kchen on 10/18/17.
  */
@@ -105,13 +103,15 @@ public class Indexer {
 
     // doSend is synchronized since there are multi-threads to access the context
     synchronized public String executeHttpRequest(final HttpUriRequest req) {
+        CloseableHttpResponse resp;
         try {
-            CloseableHttpResponse resp = httpClient.execute(req, context);
-            return readAndCloseResponse(resp);
+            resp = httpClient.execute(req, context);
         } catch (Exception ex) {
             log.error("encountered io exception:", ex);
             throw new HecClientException("encountered exception when post data", ex);
         }
+
+        return readAndCloseResponse(resp);
     }
 
     private static String readAndCloseResponse(CloseableHttpResponse resp) {
@@ -132,6 +132,7 @@ public class Indexer {
 
         // log.info("event posting, channel={}, cookies={}", channel, resp.getHeaders("Set-Cookie"));
         int status = resp.getStatusLine().getStatusCode();
+        // FIXME 503 server is busy backpressure
         if (status != 200 && status != 201) {
             log.error("failed to post events resp={}, status={}", respPayload, status);
             throw new HecClientException(String.format("failed to post events resp=%s, status=%d", respPayload, status));

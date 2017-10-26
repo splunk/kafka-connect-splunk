@@ -24,4 +24,9 @@ public class JsonEventBatch extends EventBatch {
     public String getContentType() {
         return "application/json; profile=urn:splunk:event:1.0; charset=utf-8";
     }
+
+    @Override
+    public EventBatch createFromThis() {
+        return new JsonEventBatch();
+    }
 }
