@@ -69,18 +69,16 @@ public class SplunkSinkTask extends SinkTask {
     }
 
     private void handleRaw(final Collection<SinkRecord> records) {
-        handlePartitionedRecords(partitionRecords(records));
-    }
-
-    private void handlePartitionedRecords(Map<TopicPartition, Collection<SinkRecord>> partitionedRecords) {
-        for (Map.Entry<TopicPartition, Collection<SinkRecord>> entry: partitionedRecords.entrySet()) {
-            EventBatch batch;
-            if (connectorConfig.raw) {
-                batch = createRawEventBatch(entry.getKey());
-            } else {
-                batch = new JsonEventBatch();
+        if (connectorConfig.hasMetaDataConfigured()) {
+            // when setup metadata - index, source, sourcetype, we need partition records for /raw
+            Map<TopicPartition, Collection<SinkRecord>> partitionedRecords = partitionRecords(records);
+            for (Map.Entry<TopicPartition, Collection<SinkRecord>> entry: partitionedRecords.entrySet()) {
+                EventBatch batch = createRawEventBatch(entry.getKey());
+                sendEvents(entry.getValue(), batch);
             }
-            sendEvents(entry.getValue(), batch);
+        } else {
+            EventBatch batch = createRawEventBatch(null);
+            sendEvents(records, batch);
         }
     }
 
@@ -90,7 +88,7 @@ public class SplunkSinkTask extends SinkTask {
     }
 
     private void sendEvents(final Collection<SinkRecord> records, EventBatch batch) {
-        for (SinkRecord record: records) {
+        for (final SinkRecord record: records) {
             Event event;
             try {
                 event = createHecEventFrom(record);
@@ -99,11 +97,18 @@ public class SplunkSinkTask extends SinkTask {
                 continue;
             }
 
-            // FIXME, batch size support
             batch.add(event);
+            if (batch.size() >= connectorConfig.maxBatchSize) {
+                send(batch);
+                // start a new batch after send
+                batch = batch.createFromThis();
+            }
         }
 
-        send(batch);
+        // Last batch
+        if (!batch.isEmpty()) {
+            send(batch);
+        }
     }
 
     private void send(final EventBatch batch) {
@@ -123,7 +128,15 @@ public class SplunkSinkTask extends SinkTask {
 
     // setup metadata on RawEventBatch
     private EventBatch createRawEventBatch(final TopicPartition tp) {
+        if (tp == null) {
+            return RawEventBatch.factory().build();
+        }
+
         Map<String, String> metas = connectorConfig.topicMetas.get(tp.topic());
+        if (metas == null) {
+            return RawEventBatch.factory().build();
+        }
+
         return RawEventBatch.factory()
                 .setIndex(metas.get(connectorConfig.INDEX))
                 .setSourcetype(metas.get(connectorConfig.SOURCETYPE))
@@ -141,7 +154,9 @@ public class SplunkSinkTask extends SinkTask {
 
     @Override
     public void stop() {
-        hec.close();
+        if (hec != null) {
+            hec.close();
+        }
         log.info("kafka-connect-splunk task ends with config={}", connectorConfig);
     }
 
@@ -165,15 +180,19 @@ public class SplunkSinkTask extends SinkTask {
     private Event createHecEventFrom(SinkRecord record) {
         if (connectorConfig.raw) {
             return new RawEvent(record.value(), record);
-       } else {
-            // meta data for /event endpoint is per event basis
-            Event event = new JsonEvent(record.value(), record);
-            Map<String, String> metas = connectorConfig.topicMetas.get(record.topic());
+        }
+
+        // meta data for /event endpoint is per event basis
+        JsonEvent event = new JsonEvent(record.value(), record);
+        Map<String, String> metas = connectorConfig.topicMetas.get(record.topic());
+        if (metas != null) {
             event.setIndex(metas.get(connectorConfig.INDEX));
             event.setSourcetype(metas.get(connectorConfig.SOURCETYPE));
             event.setSource(metas.get(connectorConfig.SOURCE));
-            return event;
+            event.addExtraFields(connectorConfig.enrichements);
         }
+
+        return event;
     }
 
     // partition records according to topic-partition key

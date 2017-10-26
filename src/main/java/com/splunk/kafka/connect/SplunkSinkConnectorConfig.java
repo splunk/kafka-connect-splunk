@@ -31,6 +31,8 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
     public static final String MAX_HTTP_CONNECTION_PER_CHANNEL_CONF = "splunk.hec.http.connection.per.channel";
     public static final String TOTAL_HEC_CHANNEL_CONF = "splunk.hec.total.channels";
     public static final String ENRICHEMENT_CONF = "splunk.hec.json.event.enrichment";
+    public static final String MAX_BATCH_SIZE_CONF = "splunk.hec.max.batch.size"; // record count
+    public static final String TRACK_CHANNEL_CONF = "splunk.hec.track.channel";
 
      // Kafka configuration description strings
     static final String TOKEN_DOC = "The authorization token to use when writing data to splunk.";
@@ -53,7 +55,9 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
             + "setting to the same or 2X number of indexers is generally good.";
     static final String SOCKET_TIMEOUT_DOC = "Max duration in seconds to read / write data to network before its timeout.";
     static final String ENRICHMENT_DOC = "Enrich the JSON events by specifying key value pairs separated by comma. "
-           + "Only applicable to splunk.hec.raw=false case";
+            + "Is only applicable to splunk.hec.raw=false case";
+    static final String MAX_BATCH_SIZE_DOC = "Max number of Kafka record to be sent to Splunk HEC for one POST";
+    static final String TRACK_CHANNEL_DOC = "Track HEC channel or not. Is only applicable to splunk.hec.raw=false case";
 
     public final String splunkToken;
     public final String splunkURI;
@@ -72,30 +76,34 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
     public final int maxHttpConnPerChannel;
     public final int totalHecChannels;
     public final int socketTimeout;
-    public final String enrichement;
+    public final boolean trackChannel;
+    public final int maxBatchSize;
+    public final Map<String, String> enrichements;
 
     public final Map<String, Map<String, String>> topicMetas;
 
     public SplunkSinkConnectorConfig(Map<String, String> taskConfig) {
         super(conf(), taskConfig);
-        splunkToken = this.getPassword(TOKEN_CONF).value();
-        splunkURI = this.getString(URI_CONF);
-        raw = this.getBoolean(RAW_CONF);
-        ack = this.getBoolean(ACK_CONF);
-        indexes = this.getString(INDEX_CONF);
-        sourcetypes = this.getString(SOURCETYPE_CONF);
-        sources = this.getString(SOURCE_CONF);
-        httpKeepAlive = this.getBoolean(HTTP_KEEPALIVE_CONF);
-        validateCertificates = this.getBoolean(SSL_VALIDATE_CERTIFICATES_CONF);
-        trustStorePath = this.getString(SSL_TRUSTSTORE_PATH_CONF);
+        splunkToken = getPassword(TOKEN_CONF).value();
+        splunkURI = getString(URI_CONF);
+        raw = getBoolean(RAW_CONF);
+        ack = getBoolean(ACK_CONF);
+        indexes = getString(INDEX_CONF);
+        sourcetypes = getString(SOURCETYPE_CONF);
+        sources = getString(SOURCE_CONF);
+        httpKeepAlive = getBoolean(HTTP_KEEPALIVE_CONF);
+        validateCertificates = getBoolean(SSL_VALIDATE_CERTIFICATES_CONF);
+        trustStorePath = getString(SSL_TRUSTSTORE_PATH_CONF);
         hasTrustStorePath = trustStorePath != null || trustStorePath.isEmpty();
-        trustStorePassword = this.getPassword(SSL_TRUSTSTORE_PASSWORD_CONF).toString();
-        eventBatchTimeout = this.getInt(EVENT_TIMEOUT_CONF);
-        ackPollInterval = this.getInt(ACK_POLL_INTERVAL_CONF);
-        maxHttpConnPerChannel = this.getInt(MAX_HTTP_CONNECTION_PER_CHANNEL_CONF);
-        totalHecChannels = this.getInt(TOTAL_HEC_CHANNEL_CONF);
-        socketTimeout = this.getInt(SOCKET_TIMEOUT_CONF);
-        enrichement = this.getString(ENRICHEMENT_CONF);
+        trustStorePassword = getPassword(SSL_TRUSTSTORE_PASSWORD_CONF).toString();
+        eventBatchTimeout = getInt(EVENT_TIMEOUT_CONF);
+        ackPollInterval = getInt(ACK_POLL_INTERVAL_CONF);
+        maxHttpConnPerChannel = getInt(MAX_HTTP_CONNECTION_PER_CHANNEL_CONF);
+        totalHecChannels = getInt(TOTAL_HEC_CHANNEL_CONF);
+        socketTimeout = getInt(SOCKET_TIMEOUT_CONF);
+        enrichements = parseEnrichements(getString(ENRICHEMENT_CONF));
+        trackChannel = getBoolean(TRACK_CHANNEL_CONF);
+        maxBatchSize = getInt(MAX_BATCH_SIZE_CONF);
         topicMetas = initMetaMap(taskConfig);
     }
 
@@ -117,7 +125,9 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
             .define(MAX_HTTP_CONNECTION_PER_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.MEDIUM, MAX_HTTP_CONNECTION_PER_CHANNEL_DOC)
             .define(TOTAL_HEC_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.HIGH, TOTAL_HEC_CHANNEL_DOC)
             .define(SOCKET_TIMEOUT_CONF, ConfigDef.Type.INT, 60, ConfigDef.Importance.LOW, SOCKET_TIMEOUT_DOC)
-            .define(ENRICHEMENT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.LOW, ENRICHMENT_DOC);
+            .define(ENRICHEMENT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.LOW, ENRICHMENT_DOC)
+            .define(TRACK_CHANNEL_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.LOW, TRACK_CHANNEL_DOC)
+            .define(MAX_BATCH_SIZE_CONF, ConfigDef.Type.INT, 100, ConfigDef.Importance.MEDIUM, MAX_BATCH_SIZE_DOC);
     }
 
     /**
@@ -132,8 +142,15 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
                 .setEventBatchTimeout(eventBatchTimeout)
                 .setAckPollInterval(ackPollInterval)
                 .setHttpKeepAlive(httpKeepAlive)
-                .setAckPollInterval(ackPollInterval);
+                .setAckPollInterval(ackPollInterval)
+                .setEnableChannelTracking(trackChannel);
         return config;
+    }
+
+    public boolean hasMetaDataConfigured() {
+        return (indexes != null && !indexes.isEmpty()
+                || (sources != null && !sources.isEmpty())
+                || (sourcetypes != null && !sourcetypes.isEmpty()));
     }
 
     public String toString() {
@@ -151,14 +168,34 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
             "eventBatchTimeout:" + eventBatchTimeout + ", " +
             "ackPollInterval:" + ackPollInterval + ", " +
             "maxHttpConnectionPerChannel:" + maxHttpConnPerChannel + ", " +
-            "totalHecChannels:" + totalHecChannels;
+            "totalHecChannels:" + totalHecChannels + ", " +
+            "enrichement: " + getString(ENRICHEMENT_CONF) + ", " +
+            "maxBatchSize: " + maxBatchSize + ", " +
+            "trackChannel: " + trackChannel;
     }
 
-    private static String[] split(String data) {
+    private static String[] split(String data, String sep) {
         if (data != null && !data.trim().isEmpty()) {
-            return data.trim().split(",");
+            return data.trim().split(sep);
         }
         return null;
+    }
+
+    private static Map<String, String> parseEnrichements(String enrichement) {
+        String[] kvs = split(enrichement, ",");
+        if (kvs == null) {
+            return null;
+        }
+
+        Map<String, String> enrichmentKvs = new HashMap<>();
+        for (final String kv: kvs) {
+            String[] kvPairs = split(kv, "=");
+            if (kvPairs.length != 2) {
+                throw new ConfigException("Invalid enrichement: " + enrichement + ". Expect key value pairs and separated by comma");
+            }
+            enrichmentKvs.put(kvPairs[0], kvPairs[1]);
+        }
+        return enrichmentKvs;
     }
 
     private String getMetaForTopic(String[] metas, int expectedLength, int curIdx, String confKey) {
@@ -176,10 +213,10 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
     }
 
     private Map<String, Map<String, String>> initMetaMap(Map<String, String> taskConfig) {
-        String[] topics = split(taskConfig.get(SinkConnector.TOPICS_CONFIG));
-        String[] topicIndexes = split(indexes);
-        String[] topicSourcetypes = split(sourcetypes);
-        String[] topicSources = split(sources);
+        String[] topics = split(taskConfig.get(SinkConnector.TOPICS_CONFIG), ",");
+        String[] topicIndexes = split(indexes, ",");
+        String[] topicSourcetypes = split(sourcetypes, ",");
+        String[] topicSources = split(sources, ",");
 
         Map<String, Map<String, String>> metaMap = new HashMap<>();
         int idx = 0;

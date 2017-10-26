@@ -16,6 +16,7 @@ final public class HecClientConfig {
     private int ackPollInterval = 10; // in seconds
     private int socketTimeout = 60; // in seconds
     private int socketSendBufferSize = 8 * 1024 * 1024; // in byte
+    private boolean enableChannelTracking = false;
 
     public HecClientConfig(List<String> uris, String token) {
         this.uris = uris;
@@ -62,6 +63,10 @@ final public class HecClientConfig {
         return totalChannels;
     }
 
+    public boolean getEnableChannelTracking() {
+        return enableChannelTracking;
+    }
+
     public HecClientConfig setDisableSSLCertVerification(boolean disableVerfication) {
         disableSSLCertVerification = disableVerfication;
         return this;
@@ -99,6 +104,11 @@ final public class HecClientConfig {
 
     public HecClientConfig setTotalChannels(int channels) {
         totalChannels = channels;
+        return this;
+    }
+
+    public HecClientConfig setEnableChannelTracking(boolean trackChannel) {
+        enableChannelTracking = trackChannel;
         return this;
     }
 }

@@ -1,6 +1,7 @@
 package com.splunk.hecclient;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
 /**
  * Created by kchen on 10/17/17.
@@ -36,6 +37,11 @@ public class RawEvent extends Event {
             }
         }
         return bytes;
+    }
+
+    @Override
+    public RawEvent addExtraFields(final Map<String, String> fields) {
+        return this;
     }
 
     @Override

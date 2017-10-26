@@ -12,6 +12,7 @@ import java.io.SequenceInputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by kchen on 10/18/17.
@@ -23,7 +24,7 @@ public abstract class EventBatch {
     private static final int COMMITTED = 1;
     private static final int FAILED = 2;
 
-    private int status = INIT;
+    private volatile int status = INIT;
     private int failureCount = 0;
     private long sendTimestamp; // in seconds
     protected int len;
@@ -32,6 +33,13 @@ public abstract class EventBatch {
     public abstract String getRestEndpoint();
     public abstract String getContentType();
     public abstract void add(Event event);
+    public abstract EventBatch createFromThis();
+
+    public void addExtraFields(final Map<String, String> fields) {
+        for (final Event event: events) {
+            event.addExtraFields(fields);
+        }
+    }
 
     public boolean isTimedout(long ttl) {
         long flightTime = System.currentTimeMillis() / 1000 - sendTimestamp;

@@ -82,6 +82,16 @@ public class RawEventBatch extends EventBatch {
         return "text/plain; profile=urn:splunk:event:1.0; charset=utf-8";
     }
 
+    @Override
+    public EventBatch createFromThis() {
+        return new Builder()
+                .setIndex(index)
+                .setSource(source)
+                .setSourcetype(sourcetype)
+                .setHost(host)
+                .build();
+    }
+
     private String getMetadataParams() {
         URIBuilder params = new URIBuilder();
         putIfPresent(index, "index", params);

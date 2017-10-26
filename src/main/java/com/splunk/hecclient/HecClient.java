@@ -19,7 +19,7 @@ public class HecClient {
             for (String uri: config.getUris()) {
                 Indexer indexer = new Indexer(uri, config.getToken(), client, poller);
                 indexer.setKeepAlive(config.getHttpKeepAlive());
-                loadBalancer.add(indexer.getChannel());
+                loadBalancer.add(indexer.getChannel().setTracking(config.getEnableChannelTracking()));
                 i++;
             }
         }
