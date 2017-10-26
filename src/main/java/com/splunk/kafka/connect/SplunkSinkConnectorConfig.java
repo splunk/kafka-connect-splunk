@@ -1,17 +1,14 @@
 package com.splunk.kafka.connect;
 
+import com.splunk.hecclient.HecClientConfig;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.sink.SinkConnector;
-import com.splunk.cloudfwd.PropertyKeys;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 
 import java.util.*;
 
-/**
-* Configuration Class which houses all configuration strings and variables for implementing Kakfa Connect Splunk
-* using Kafka Connect and Splunk Cloud Forwarder.
-*/
+
 public class SplunkSinkConnectorConfig extends AbstractConfig {
     public static final String INDEX = "index";
     public static final String SOURCETYPE = "sourcetype";
@@ -24,11 +21,18 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
     public static final String INDEX_CONF = "splunk.indexes";
     public static final String SOURCETYPE_CONF = "splunk.sourcetypes";
     public static final String SOURCE_CONF = "splunk.sources";
+    public static final String HTTP_KEEPALIVE_CONF = "splunk.hec.http.keepalive";
     public static final String SSL_VALIDATE_CERTIFICATES_CONF = "splunk.hec.ssl.validate.certs";
     public static final String SSL_TRUSTSTORE_PATH_CONF = "splunk.hec.ssl.trust.store.path";
     public static final String SSL_TRUSTSTORE_PASSWORD_CONF = "splunk.hec.ssl.trust.store.password";
-    public static final String CONNECT_TIMEOUT_CONF = "splunk.hec.connect.timeout.ms";
-    public static final String READ_TIMEOUT_CONF = "splunk.hec.read.timeout.ms";
+    public static final String SOCKET_TIMEOUT_CONF = "splunk.hec.socket.timeout"; // seconds
+    public static final String EVENT_TIMEOUT_CONF = "splunk.hec.event.timeout"; // seconds
+    public static final String ACK_POLL_INTERVAL_CONF = "splunk.hec.ack.poll.interval"; // seconds
+    public static final String MAX_HTTP_CONNECTION_PER_CHANNEL_CONF = "splunk.hec.http.connection.per.channel";
+    public static final String TOTAL_HEC_CHANNEL_CONF = "splunk.hec.total.channels";
+    public static final String ENRICHEMENT_CONF = "splunk.hec.json.event.enrichment";
+    public static final String MAX_BATCH_SIZE_CONF = "splunk.hec.max.batch.size"; // record count
+    public static final String TRACK_CHANNEL_CONF = "splunk.hec.track.channel";
 
      // Kafka configuration description strings
     static final String TOKEN_DOC = "The authorization token to use when writing data to splunk.";
@@ -38,13 +42,22 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String INDEX_DOC = "Splunk index names for Kafka topic data, separated by comma";
     static final String SOURCETYPE_DOC = "Splunk sourcetype names for Kafka topic data, separated by comma";
     static final String SOURCE_DOC = "Splunk source names for Kafka topic data, separated by comma";
-    static final String SSL_VALIDATE_CERTIFICATES_DOC = "Flag to determine if ssl connections should validate the certificate" +
-                "of the remote host.";
+    static final String HTTP_KEEPALIVE_DOC = "Keepalive HTTP Connection to HEC server";
+    static final String SSL_VALIDATE_CERTIFICATES_DOC = "Flag to determine if ssl connections should validate the "
+            + "certificate of the remote host.";
     static final String SSL_TRUSTSTORE_PATH_DOC = "Path on the local disk to the certificate trust store.";
     static final String SSL_TRUSTSTORE_PASSWORD_DOC = "Password for the trust store.";
-    static final String CONNECT_TIMEOUT_DOC = "The maximum amount of time for a connection to be established.";
-    static final String READ_TIMEOUT_DOC = "Sets the timeout in milliseconds to read data from an established connection " +
-                "or 0 for an infinite timeout.";
+    static final String EVENT_TIMEOUT_DOC = "Max duration in seconds to wait commit response after sending to Splunk.";
+    static final String ACK_POLL_INTERVAL_DOC = "Interval in seconds to poll event ACKs from Splunk.";
+    static final String MAX_HTTP_CONNECTION_PER_CHANNEL_DOC = "Max HTTP connections pooled for one HEC Channel "
+            + "when posting events to Splunk.";
+    static final String TOTAL_HEC_CHANNEL_DOC = "Total HEC Channels used to post events to Splunk. When enabling HEC ACK, "
+            + "setting to the same or 2X number of indexers is generally good.";
+    static final String SOCKET_TIMEOUT_DOC = "Max duration in seconds to read / write data to network before its timeout.";
+    static final String ENRICHMENT_DOC = "Enrich the JSON events by specifying key value pairs separated by comma. "
+            + "Is only applicable to splunk.hec.raw=false case";
+    static final String MAX_BATCH_SIZE_DOC = "Max number of Kafka record to be sent to Splunk HEC for one POST";
+    static final String TRACK_CHANNEL_DOC = "Track HEC channel or not. Is only applicable to splunk.hec.raw=false case";
 
     public final String splunkToken;
     public final String splunkURI;
@@ -54,29 +67,43 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
     public final String sourcetypes;
     public final String sources;
     public final boolean validateCertificates;
+    public final boolean httpKeepAlive;
     public final String trustStorePath;
     public final boolean hasTrustStorePath;
     public final String trustStorePassword;
-    public final int connectTimeout;
-    public final int readTimeout;
+    public final int eventBatchTimeout;
+    public final int ackPollInterval;
+    public final int maxHttpConnPerChannel;
+    public final int totalHecChannels;
+    public final int socketTimeout;
+    public final boolean trackChannel;
+    public final int maxBatchSize;
+    public final Map<String, String> enrichements;
 
     public final Map<String, Map<String, String>> topicMetas;
 
     public SplunkSinkConnectorConfig(Map<String, String> taskConfig) {
         super(conf(), taskConfig);
-        splunkToken = this.getPassword(TOKEN_CONF).value();
-        splunkURI = this.getString(URI_CONF);
-        raw = this.getBoolean(RAW_CONF);
-        ack = this.getBoolean(ACK_CONF);
-        indexes = this.getString(INDEX_CONF);
-        sourcetypes = this.getString(SOURCETYPE_CONF);
-        sources = this.getString(SOURCE_CONF);
-        validateCertificates = this.getBoolean(SSL_VALIDATE_CERTIFICATES_CONF);
-        trustStorePath = this.getString(SSL_TRUSTSTORE_PATH_CONF);
+        splunkToken = getPassword(TOKEN_CONF).value();
+        splunkURI = getString(URI_CONF);
+        raw = getBoolean(RAW_CONF);
+        ack = getBoolean(ACK_CONF);
+        indexes = getString(INDEX_CONF);
+        sourcetypes = getString(SOURCETYPE_CONF);
+        sources = getString(SOURCE_CONF);
+        httpKeepAlive = getBoolean(HTTP_KEEPALIVE_CONF);
+        validateCertificates = getBoolean(SSL_VALIDATE_CERTIFICATES_CONF);
+        trustStorePath = getString(SSL_TRUSTSTORE_PATH_CONF);
         hasTrustStorePath = trustStorePath != null || trustStorePath.isEmpty();
-        trustStorePassword = this.getPassword(SSL_TRUSTSTORE_PASSWORD_CONF).toString();
-        connectTimeout = this.getInt(CONNECT_TIMEOUT_CONF);
-        readTimeout = this.getInt(READ_TIMEOUT_CONF);
+        trustStorePassword = getPassword(SSL_TRUSTSTORE_PASSWORD_CONF).toString();
+        eventBatchTimeout = getInt(EVENT_TIMEOUT_CONF);
+        ackPollInterval = getInt(ACK_POLL_INTERVAL_CONF);
+        maxHttpConnPerChannel = getInt(MAX_HTTP_CONNECTION_PER_CHANNEL_CONF);
+        totalHecChannels = getInt(TOTAL_HEC_CHANNEL_CONF);
+        socketTimeout = getInt(SOCKET_TIMEOUT_CONF);
+        enrichements = parseEnrichements(getString(ENRICHEMENT_CONF));
+        trackChannel = getBoolean(TRACK_CHANNEL_CONF);
+        maxBatchSize = getInt(MAX_BATCH_SIZE_CONF);
         topicMetas = initMetaMap(taskConfig);
     }
 
@@ -89,58 +116,41 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
             .define(INDEX_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, INDEX_DOC)
             .define(SOURCETYPE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, SOURCETYPE_DOC)
             .define(SOURCE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, SOURCE_DOC)
+            .define(HTTP_KEEPALIVE_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, HTTP_KEEPALIVE_DOC)
             .define(SSL_VALIDATE_CERTIFICATES_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, SSL_VALIDATE_CERTIFICATES_DOC)
             .define(SSL_TRUSTSTORE_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PATH_DOC)
             .define(SSL_TRUSTSTORE_PASSWORD_CONF, ConfigDef.Type.PASSWORD, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PASSWORD_DOC)
-            .define(CONNECT_TIMEOUT_CONF, ConfigDef.Type.INT, 20000, ConfigDef.Importance.LOW, CONNECT_TIMEOUT_DOC)
-            .define(READ_TIMEOUT_CONF, ConfigDef.Type.INT, 30000, ConfigDef.Importance.LOW, READ_TIMEOUT_DOC);
+            .define(EVENT_TIMEOUT_CONF, ConfigDef.Type.INT, 120, ConfigDef.Importance.MEDIUM, EVENT_TIMEOUT_DOC)
+            .define(ACK_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 10, ConfigDef.Importance.MEDIUM, ACK_POLL_INTERVAL_DOC)
+            .define(MAX_HTTP_CONNECTION_PER_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.MEDIUM, MAX_HTTP_CONNECTION_PER_CHANNEL_DOC)
+            .define(TOTAL_HEC_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.HIGH, TOTAL_HEC_CHANNEL_DOC)
+            .define(SOCKET_TIMEOUT_CONF, ConfigDef.Type.INT, 60, ConfigDef.Importance.LOW, SOCKET_TIMEOUT_DOC)
+            .define(ENRICHEMENT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.LOW, ENRICHMENT_DOC)
+            .define(TRACK_CHANNEL_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.LOW, TRACK_CHANNEL_DOC)
+            .define(MAX_BATCH_SIZE_CONF, ConfigDef.Type.INT, 100, ConfigDef.Importance.MEDIUM, MAX_BATCH_SIZE_DOC);
     }
 
     /**
-    * Configuration Method to setup all settings related to Splunks Cloud Forwarder
+    * Configuration Method to setup all settings related to Splunk HEC Client
     */
-    public Properties cloudfwdConnectionSettings() {
-        //FIXME - List of variables available at https://splunk.github.io/cloudfwd/apidocs/constant-values.html
-        Properties props = new Properties();
-        props.setProperty(PropertyKeys.TOKEN, splunkToken);
-        props.setProperty(PropertyKeys.COLLECTOR_URI, splunkURI);
+    public HecClientConfig getHecClientConfig() {
+        HecClientConfig config = new HecClientConfig(Arrays.asList(splunkURI.split(",")), splunkToken);
+        config.setDisableSSLCertVerification(!validateCertificates)
+                .setSocketTimeout(socketTimeout)
+                .setMaxHttpConnectionPerChannel(maxHttpConnPerChannel)
+                .setTotalChannels(totalHecChannels)
+                .setEventBatchTimeout(eventBatchTimeout)
+                .setAckPollInterval(ackPollInterval)
+                .setHttpKeepAlive(httpKeepAlive)
+                .setAckPollInterval(ackPollInterval)
+                .setEnableChannelTracking(trackChannel);
+        return config;
+    }
 
-        if (raw) {
-            props.setProperty(PropertyKeys.HEC_ENDPOINT_TYPE, "raw");
-        } else {
-            props.setProperty(PropertyKeys.HEC_ENDPOINT_TYPE, "event");
-        }
-
-        props.setProperty(PropertyKeys.ENABLE_CHECKPOINTS, "true");
-
-        if (validateCertificates) {
-            props.setProperty(PropertyKeys.DISABLE_CERT_VALIDATION, "false");
-        } else {
-            props.setProperty(PropertyKeys.DISABLE_CERT_VALIDATION, "true");
-        }
-
-        props.setProperty(PropertyKeys.CHANNELS_PER_DESTINATION, "");
-
-        // FIXME
-        props.setProperty(PropertyKeys.SSL_CERT_CONTENT, "");
-
-        // FIXME, Added relevant Cloudforwarder settings, importing default values for start
-        props.setProperty(PropertyKeys.EVENT_BATCH_SIZE, PropertyKeys.DEFAULT_EVENT_BATCH_SIZE);
-        props.setProperty(PropertyKeys.CHANNELS_PER_DESTINATION, PropertyKeys.DEFAULT_CHANNELS_PER_DESTINATION);
-        props.setProperty(PropertyKeys.ENABLE_HTTP_DEBUG, "false");
-        props.setProperty(PropertyKeys.HEALTH_POLL_MS, PropertyKeys.DEFAULT_HEALTH_POLL_MS);
-        props.setProperty(PropertyKeys.RETRIES, PropertyKeys.DEFAULT_RETRIES);
-        props.setProperty(PropertyKeys.UNRESPONSIVE_MS, PropertyKeys.DEFAULT_UNRESPONSIVE_MS);
-
-        /*FIXME, may not need these
-        props.setProperty(PropertyKeys.ACK_POLL_MS, PropertyKeys.DEFAULT_ACK_POLL_MS);
-        props.setProperty(PropertyKeys.ACK_TIMEOUT_MS, PropertyKeys.DEFAULT_ACK_TIMEOUT_MS);
-        props.setProperty(PropertyKeys.BLOCKING_TIMEOUT_MS, PropertyKeys.DEFAULT_BLOCKING_TIMEOUT_MS)
-        props.setProperty(PropertyKeys.MAX_TOTAL_CHANNELS, PropertyKeys.DEFAULT_MAX_TOTAL_CHANNELS)
-        props.setProperty(PropertyKeys.MAX_UNACKED_EVENT_BATCHES_PER_CHANNEL, PropertyKeys.DEFAULT_MAX_UNACKED_EVENT_BATCHES_PER_CHANNEL	)
-        */
-
-        return props;
+    public boolean hasMetaDataConfigured() {
+        return (indexes != null && !indexes.isEmpty()
+                || (sources != null && !sources.isEmpty())
+                || (sourcetypes != null && !sourcetypes.isEmpty()));
     }
 
     public String toString() {
@@ -150,18 +160,42 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
             "indexes:" + indexes + ", " +
             "sourcetypes:" + sourcetypes + ", " +
             "sources:" + sources + ", " +
+            "httpKeepAlive:" + httpKeepAlive + ", " +
             "validateCertificates:" + validateCertificates + ", " +
             "trustStorePath:" + trustStorePath + ", " +
             "hasTrustStorePath:" + hasTrustStorePath + ", " +
-            "connectTimeout:" + connectTimeout + ", " +
-            "readTimeout:" + readTimeout;
+            "socketTimeout:" + socketTimeout + ", " +
+            "eventBatchTimeout:" + eventBatchTimeout + ", " +
+            "ackPollInterval:" + ackPollInterval + ", " +
+            "maxHttpConnectionPerChannel:" + maxHttpConnPerChannel + ", " +
+            "totalHecChannels:" + totalHecChannels + ", " +
+            "enrichement: " + getString(ENRICHEMENT_CONF) + ", " +
+            "maxBatchSize: " + maxBatchSize + ", " +
+            "trackChannel: " + trackChannel;
     }
 
-    private static String[] split(String data) {
+    private static String[] split(String data, String sep) {
         if (data != null && !data.trim().isEmpty()) {
-            return data.trim().split(",");
+            return data.trim().split(sep);
         }
         return null;
+    }
+
+    private static Map<String, String> parseEnrichements(String enrichement) {
+        String[] kvs = split(enrichement, ",");
+        if (kvs == null) {
+            return null;
+        }
+
+        Map<String, String> enrichmentKvs = new HashMap<>();
+        for (final String kv: kvs) {
+            String[] kvPairs = split(kv, "=");
+            if (kvPairs.length != 2) {
+                throw new ConfigException("Invalid enrichement: " + enrichement + ". Expect key value pairs and separated by comma");
+            }
+            enrichmentKvs.put(kvPairs[0], kvPairs[1]);
+        }
+        return enrichmentKvs;
     }
 
     private String getMetaForTopic(String[] metas, int expectedLength, int curIdx, String confKey) {
@@ -179,10 +213,10 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
     }
 
     private Map<String, Map<String, String>> initMetaMap(Map<String, String> taskConfig) {
-        String[] topics = split(taskConfig.get(SinkConnector.TOPICS_CONFIG));
-        String[] topicIndexes = split(indexes);
-        String[] topicSourcetypes = split(sourcetypes);
-        String[] topicSources = split(sources);
+        String[] topics = split(taskConfig.get(SinkConnector.TOPICS_CONFIG), ",");
+        String[] topicIndexes = split(indexes, ",");
+        String[] topicSourcetypes = split(sourcetypes, ",");
+        String[] topicSources = split(sources, ",");
 
         Map<String, Map<String, String>> metaMap = new HashMap<>();
         int idx = 0;
