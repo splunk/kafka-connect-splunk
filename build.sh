@@ -38,7 +38,7 @@ cp kafka_2.11-${kafkaversion}/libs/*.jar ${builddir}/libs
 
 # Download commons-logging jar
 echo "Downloading commons-logging jar"
-wget --quiet http://central.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar ${builddir}/libs
+wget --quiet http://central.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar -P ${builddir}/libs/
 
 # Clean up
 echo "Clean up ..."

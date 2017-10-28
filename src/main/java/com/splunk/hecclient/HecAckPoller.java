@@ -67,8 +67,8 @@ public class HecAckPoller implements Poller {
     public void stop() {
         if (started.compareAndSet(true, false)) {
             scheduler.shutdownNow();
-            log.info("HecAckPoller stopped with {} outstanding un-ACKed events", totalOutstandingEventBatches.get());
             executorService.shutdownNow();
+            log.info("HecAckPoller stopped with {} outstanding un-ACKed events", totalOutstandingEventBatches.get());
         }
     }
 

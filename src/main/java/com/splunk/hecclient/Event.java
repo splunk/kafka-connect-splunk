@@ -94,7 +94,11 @@ public abstract class Event {
     }
 
     public int length() {
-        return getBytes().length;
+        byte[] data = getBytes();
+        if (endswith(data, (byte) '\n')) {
+            return data.length;
+        }
+        return data.length + 1;
     }
 
     public InputStream getInputStream() {
@@ -102,7 +106,12 @@ public abstract class Event {
     }
 
     public void writeTo(OutputStream out) throws IOException {
-        out.write(getBytes());
+        byte[] data = getBytes();
+        out.write(data);
+        if (!endswith(data, (byte) '\n')) {
+            // insert '\n'
+            out.write('\n');
+        }
     }
 
     public abstract byte[] getBytes();
@@ -110,4 +119,8 @@ public abstract class Event {
     public abstract String toString();
 
     public abstract Event addExtraFields(final Map<String, String> fields);
+
+    private static boolean endswith(byte[] data, byte b) {
+        return data.length >= 1 && data[data.length - 1] == b;
+    }
 }

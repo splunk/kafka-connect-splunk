@@ -56,11 +56,13 @@ public class JsonEvent extends Event {
         }
 
         try {
-            return jsonMapper.writeValueAsBytes(getJsonNode());
+            bytes = jsonMapper.writeValueAsBytes(getJsonNode());
         } catch (Exception ex) {
-            log.error("Invalid json event:" + ex);
-            throw new HecClientException("Failed to json marshal the event: " + ex.getMessage());
+            log.error("Invalid json event", ex);
+            throw new HecClientException("Failed to json marshal the event", ex);
         }
+
+        return bytes;
     }
 
     private ObjectNode getJsonNode() {

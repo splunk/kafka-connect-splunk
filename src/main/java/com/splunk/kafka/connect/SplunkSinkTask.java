@@ -3,7 +3,7 @@ package com.splunk.kafka.connect;
 import com.splunk.hecclient.*;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
-// import org.apache.kafka.connect.errors.RetriableException;
+import org.apache.kafka.connect.errors.RetriableException;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTask;
 
@@ -18,30 +18,29 @@ import org.slf4j.LoggerFactory;
 public class SplunkSinkTask extends SinkTask {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class);
 
-    private Hec hec;
-    private SplunkSinkConnectorConfig connectorConfig;
+    private ConcurrentHec hec;
     private KafkaRecordTracker tracker;
+    private long backpressure = 0;
+    private SplunkSinkConnectorConfig connectorConfig;
 
     @Override
     public void start(Map<String, String> taskConfig) {
         connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
-        hec = buildHec(connectorConfig.getHecClientConfig());
+        hec = new ConcurrentHec(connectorConfig.numberOfThreads, connectorConfig.ack,
+                connectorConfig.getHecClientConfig(), new HecPollerCallback(this));
         tracker = new KafkaRecordTracker();
 
         log.info("kafka-connect-splunk task starts with config={}", connectorConfig);
     }
 
-    private Hec buildHec(final HecClientConfig config) {
-        if (connectorConfig.ack) {
-            return new HecWithAck(config, new HecPollerCallback(this));
-        } else {
-            return new HecWithoutAck(config, new HecPollerCallback(this));
-        }
-    }
-
     @Override
     public void put(Collection<SinkRecord> records) {
-        // FIXME back pressure detection
+        log.debug("received {} records with backpressure={}", records.size(), backpressure);
+        if (backpressure > 0) {
+            backpressure = 0;
+            throw new RetriableException(new HecClientException("detected backpressure, pause the pull for a while"));
+        }
+
         handleFailedBatches();
 
         if (records.isEmpty()) {
@@ -59,12 +58,10 @@ public class SplunkSinkTask extends SinkTask {
 
     private void handleFailedBatches() {
         Collection<EventBatch> failed = tracker.getAndRemoveFailedRecords();
-        if (!failed.isEmpty()) {
-            // if there are failed ones, first deal with them
-            for (final EventBatch batch: failed) {
-                send(batch);
-            }
-            // throw new RetriableException(new HecClientException("need handle failed records first"));
+        log.info("handle {} failed batches", failed.size());
+        // if there are failed ones, first deal with them
+        for (final EventBatch batch: failed) {
+            send(batch);
         }
     }
 
@@ -112,18 +109,19 @@ public class SplunkSinkTask extends SinkTask {
     }
 
     private void send(final EventBatch batch) {
-        batch.resetSendTimestamp();
         tracker.addEventBatch(batch);
-
-        try {
-            hec.send(batch);
-        } catch (Exception ex) {
-            log.error("sending batch to splunk encountered error", ex);
-            batch.fail();
-            tracker.addFailedEventBatch(batch);
+        boolean success = hec.send(batch);
+        if (success) {
+            backpressure -= 1;
             return;
         }
-        log.info("Sent {} events to Splunk", batch.size());
+
+        while (!success) {
+            success = hec.send(batch);
+            if (!success) {
+                backpressure += 1;
+            }
+        }
     }
 
     // setup metadata on RawEventBatch
