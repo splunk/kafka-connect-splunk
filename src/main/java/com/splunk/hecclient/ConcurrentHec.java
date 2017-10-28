@@ -6,10 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Created by kchen on 10/27/17.
@@ -25,7 +22,8 @@ public class ConcurrentHec {
 
     public ConcurrentHec(int numberOfThreads, boolean useAck, HecClientConfig config, PollerCallback cb) {
         batches = new LinkedBlockingQueue<>(100);
-        executorService = Executors.newFixedThreadPool(numberOfThreads);
+        ThreadFactory e = (Runnable r) -> new Thread(r, "Concurrent-HEC-worker");
+        executorService = Executors.newFixedThreadPool(numberOfThreads, e);
         initHec(numberOfThreads, useAck, config, cb);
         pollerCallback = cb;
         stopped = false;
@@ -54,6 +52,7 @@ public class ConcurrentHec {
     }
 
     private void run(int id) {
+        // Note, never exit this function unless a shutdown, otherwise the worker thread will be gone.
         final Hec hec = hecs.get(id);
         while (!stopped) {
             EventBatch batch;
@@ -63,7 +62,9 @@ public class ConcurrentHec {
                 continue;
             }
 
-            send(hec, batch);
+            if (batch != null) {
+                send(hec, batch);
+            }
         }
         hec.close();
     }
