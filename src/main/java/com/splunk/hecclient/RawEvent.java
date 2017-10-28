@@ -1,5 +1,6 @@
 package com.splunk.hecclient;
 
+
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
@@ -36,6 +37,7 @@ public class RawEvent extends Event {
                 throw new HecClientException("Failed to json marshal the data", ex);
             }
         }
+
         return bytes;
     }
 

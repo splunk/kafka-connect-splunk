@@ -32,6 +32,7 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
     public static final String TOTAL_HEC_CHANNEL_CONF = "splunk.hec.total.channels";
     public static final String ENRICHEMENT_CONF = "splunk.hec.json.event.enrichment";
     public static final String MAX_BATCH_SIZE_CONF = "splunk.hec.max.batch.size"; // record count
+    public static final String HEC_THREDS_CONF = "splunk.hec.threads";
     public static final String TRACK_CHANNEL_CONF = "splunk.hec.track.channel";
 
      // Kafka configuration description strings
@@ -57,6 +58,7 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String ENRICHMENT_DOC = "Enrich the JSON events by specifying key value pairs separated by comma. "
             + "Is only applicable to splunk.hec.raw=false case";
     static final String MAX_BATCH_SIZE_DOC = "Max number of Kafka record to be sent to Splunk HEC for one POST";
+    static final String HEC_THREADS_DOC = "Number of threads used to POST events to Splunk HEC";
     static final String TRACK_CHANNEL_DOC = "Track HEC channel or not. Is only applicable to splunk.hec.raw=false case";
 
     public final String splunkToken;
@@ -78,6 +80,7 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
     public final int socketTimeout;
     public final boolean trackChannel;
     public final int maxBatchSize;
+    public final int numberOfThreads;
     public final Map<String, String> enrichements;
 
     public final Map<String, Map<String, String>> topicMetas;
@@ -104,6 +107,7 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
         enrichements = parseEnrichements(getString(ENRICHEMENT_CONF));
         trackChannel = getBoolean(TRACK_CHANNEL_CONF);
         maxBatchSize = getInt(MAX_BATCH_SIZE_CONF);
+        numberOfThreads = getInt(HEC_THREDS_CONF);
         topicMetas = initMetaMap(taskConfig);
     }
 
@@ -127,6 +131,7 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
             .define(SOCKET_TIMEOUT_CONF, ConfigDef.Type.INT, 60, ConfigDef.Importance.LOW, SOCKET_TIMEOUT_DOC)
             .define(ENRICHEMENT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.LOW, ENRICHMENT_DOC)
             .define(TRACK_CHANNEL_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.LOW, TRACK_CHANNEL_DOC)
+            .define(HEC_THREDS_CONF, ConfigDef.Type.INT, 1, ConfigDef.Importance.LOW, HEC_THREADS_DOC)
             .define(MAX_BATCH_SIZE_CONF, ConfigDef.Type.INT, 100, ConfigDef.Importance.MEDIUM, MAX_BATCH_SIZE_DOC);
     }
 
@@ -171,6 +176,7 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
             "totalHecChannels:" + totalHecChannels + ", " +
             "enrichement: " + getString(ENRICHEMENT_CONF) + ", " +
             "maxBatchSize: " + maxBatchSize + ", " +
+            "numberOfThreads: " + numberOfThreads + ", " +
             "trackChannel: " + trackChannel;
     }
 
