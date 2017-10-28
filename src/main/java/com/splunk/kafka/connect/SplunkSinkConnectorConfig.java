@@ -28,7 +28,8 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
     public static final String SOCKET_TIMEOUT_CONF = "splunk.hec.socket.timeout"; // seconds
     public static final String EVENT_TIMEOUT_CONF = "splunk.hec.event.timeout"; // seconds
     public static final String ACK_POLL_INTERVAL_CONF = "splunk.hec.ack.poll.interval"; // seconds
-    public static final String MAX_HTTP_CONNECTION_PER_CHANNEL_CONF = "splunk.hec.http.connection.per.channel";
+    public static final String ACK_POLL_THREADS_CONF = "splunk.hec.ack.poll.threads";
+    public static final String MAX_HTTP_CONNECTION_PER_CHANNEL_CONF = "splunk.hec.max.http.connection.per.channel";
     public static final String TOTAL_HEC_CHANNEL_CONF = "splunk.hec.total.channels";
     public static final String ENRICHEMENT_CONF = "splunk.hec.json.event.enrichment";
     public static final String MAX_BATCH_SIZE_CONF = "splunk.hec.max.batch.size"; // record count
@@ -50,6 +51,7 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String SSL_TRUSTSTORE_PASSWORD_DOC = "Password for the trust store.";
     static final String EVENT_TIMEOUT_DOC = "Max duration in seconds to wait commit response after sending to Splunk.";
     static final String ACK_POLL_INTERVAL_DOC = "Interval in seconds to poll event ACKs from Splunk.";
+    static final String ACK_POLL_THREADS_DOC = "Number of threads used to query ACK for single task.";
     static final String MAX_HTTP_CONNECTION_PER_CHANNEL_DOC = "Max HTTP connections pooled for one HEC Channel "
             + "when posting events to Splunk.";
     static final String TOTAL_HEC_CHANNEL_DOC = "Total HEC Channels used to post events to Splunk. When enabling HEC ACK, "
@@ -58,7 +60,7 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String ENRICHMENT_DOC = "Enrich the JSON events by specifying key value pairs separated by comma. "
             + "Is only applicable to splunk.hec.raw=false case";
     static final String MAX_BATCH_SIZE_DOC = "Max number of Kafka record to be sent to Splunk HEC for one POST";
-    static final String HEC_THREADS_DOC = "Number of threads used to POST events to Splunk HEC";
+    static final String HEC_THREADS_DOC = "Number of threads used to POST events to Splunk HEC in single task";
     static final String TRACK_CHANNEL_DOC = "Track HEC channel or not. Is only applicable to splunk.hec.raw=false case";
 
     public final String splunkToken;
@@ -75,6 +77,7 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
     public final String trustStorePassword;
     public final int eventBatchTimeout;
     public final int ackPollInterval;
+    public final int ackPollThreads;
     public final int maxHttpConnPerChannel;
     public final int totalHecChannels;
     public final int socketTimeout;
@@ -101,6 +104,7 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
         trustStorePassword = getPassword(SSL_TRUSTSTORE_PASSWORD_CONF).toString();
         eventBatchTimeout = getInt(EVENT_TIMEOUT_CONF);
         ackPollInterval = getInt(ACK_POLL_INTERVAL_CONF);
+        ackPollThreads = getInt(ACK_POLL_THREADS_CONF);
         maxHttpConnPerChannel = getInt(MAX_HTTP_CONNECTION_PER_CHANNEL_CONF);
         totalHecChannels = getInt(TOTAL_HEC_CHANNEL_CONF);
         socketTimeout = getInt(SOCKET_TIMEOUT_CONF);
@@ -126,6 +130,7 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
             .define(SSL_TRUSTSTORE_PASSWORD_CONF, ConfigDef.Type.PASSWORD, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PASSWORD_DOC)
             .define(EVENT_TIMEOUT_CONF, ConfigDef.Type.INT, 120, ConfigDef.Importance.MEDIUM, EVENT_TIMEOUT_DOC)
             .define(ACK_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 10, ConfigDef.Importance.MEDIUM, ACK_POLL_INTERVAL_DOC)
+            .define(ACK_POLL_THREADS_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.MEDIUM, ACK_POLL_THREADS_DOC)
             .define(MAX_HTTP_CONNECTION_PER_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.MEDIUM, MAX_HTTP_CONNECTION_PER_CHANNEL_DOC)
             .define(TOTAL_HEC_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.HIGH, TOTAL_HEC_CHANNEL_DOC)
             .define(SOCKET_TIMEOUT_CONF, ConfigDef.Type.INT, 60, ConfigDef.Importance.LOW, SOCKET_TIMEOUT_DOC)
@@ -145,9 +150,9 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
                 .setMaxHttpConnectionPerChannel(maxHttpConnPerChannel)
                 .setTotalChannels(totalHecChannels)
                 .setEventBatchTimeout(eventBatchTimeout)
-                .setAckPollInterval(ackPollInterval)
                 .setHttpKeepAlive(httpKeepAlive)
                 .setAckPollInterval(ackPollInterval)
+                .setAckPollThreads(ackPollThreads)
                 .setEnableChannelTracking(trackChannel);
         return config;
     }
@@ -172,6 +177,7 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
             "socketTimeout:" + socketTimeout + ", " +
             "eventBatchTimeout:" + eventBatchTimeout + ", " +
             "ackPollInterval:" + ackPollInterval + ", " +
+            "ackPollThreads:" + ackPollThreads + ", " +
             "maxHttpConnectionPerChannel:" + maxHttpConnPerChannel + ", " +
             "totalHecChannels:" + totalHecChannels + ", " +
             "enrichement: " + getString(ENRICHEMENT_CONF) + ", " +

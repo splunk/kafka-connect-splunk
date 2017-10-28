@@ -14,6 +14,7 @@ final public class HecClientConfig {
     private int totalChannels = 2;
     private int eventBatchTimeout = 60 * 2; // in seconds
     private int ackPollInterval = 10; // in seconds
+    private int ackPollThreads = 2;
     private int socketTimeout = 60; // in seconds
     private int socketSendBufferSize = 8 * 1024 * 1024; // in byte
     private boolean enableChannelTracking = false;
@@ -59,6 +60,10 @@ final public class HecClientConfig {
         return ackPollInterval;
     }
 
+    public int getAckPollThreads() {
+        return ackPollThreads;
+    }
+
     public int getTotalChannels() {
         return totalChannels;
     }
@@ -99,6 +104,11 @@ final public class HecClientConfig {
 
     public HecClientConfig setAckPollInterval(int interval /*seconds*/) {
         ackPollInterval = interval;
+        return this;
+    }
+
+    public HecClientConfig  setAckPollThreads(int num) {
+        ackPollThreads = num;
         return this;
     }
 

@@ -39,7 +39,7 @@ public class HecAckPoller implements Poller {
         totalOutstandingEventBatches = new AtomicLong(0);
         ackPollInterval = 10; // 10 seconds
         eventBatchTimeout = 2 * 60; // 2 mins
-        pollThreads = 4;
+        pollThreads = 2;
         pollerCallback = cb;
         started = new AtomicBoolean(false);
     }
@@ -132,8 +132,8 @@ public class HecAckPoller implements Poller {
         }
     }
 
-    // setPollThreads before calling start
-    public HecAckPoller setPollThreads(int num) {
+    // setAckPollThreads before calling start
+    public HecAckPoller setAckPollThreads(int num) {
         pollThreads = num;
         return this;
     }
