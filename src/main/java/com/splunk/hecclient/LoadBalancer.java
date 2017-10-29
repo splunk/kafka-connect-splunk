@@ -33,9 +33,9 @@ public class LoadBalancer {
         }
     }
 
-    public void send(EventBatch batch) {
+    public boolean send(final EventBatch batch) {
         HecChannel channel = channels.get(index);
         index = (index + 1) % channels.size();
-        channel.send(batch);
+        return channel.send(batch);
     }
 }

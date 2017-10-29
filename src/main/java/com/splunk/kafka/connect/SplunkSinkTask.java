@@ -17,17 +17,18 @@ import org.slf4j.LoggerFactory;
  */
 public class SplunkSinkTask extends SinkTask {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class);
+    private static final int backPressureResetWindow = 10 * 60 * 1000; // 10 mins
 
-    private ConcurrentHec hec;
+    private HecInf hec;
     private KafkaRecordTracker tracker;
-    private long backpressure = 0;
+    private long backPressure = 0;
+    private long lastResetTime = System.currentTimeMillis();
     private SplunkSinkConnectorConfig connectorConfig;
 
     @Override
     public void start(Map<String, String> taskConfig) {
         connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
-        hec = new ConcurrentHec(connectorConfig.numberOfThreads, connectorConfig.ack,
-                connectorConfig.getHecClientConfig(), new HecPollerCallback(this));
+        hec = createHec();
         tracker = new KafkaRecordTracker();
 
         log.info("kafka-connect-splunk task starts with config={}", connectorConfig);
@@ -35,12 +36,9 @@ public class SplunkSinkTask extends SinkTask {
 
     @Override
     public void put(Collection<SinkRecord> records) {
-        log.debug("received {} records with backpressure={}", records.size(), backpressure);
-        if (backpressure > 0) {
-            backpressure = 0;
-            throw new RetriableException(new HecClientException("detected backpressure, pause the pull for a while"));
-        }
+        log.debug("received {} records with backPressure={}", records.size(), backPressure);
 
+        handleBackPressure();
         handleFailedBatches();
 
         if (records.isEmpty()) {
@@ -56,12 +54,32 @@ public class SplunkSinkTask extends SinkTask {
         }
     }
 
+    private void handleBackPressure() {
+        long curTime = System.currentTimeMillis();
+
+        if (backPressure > 0) {
+            backPressure = 0;
+            lastResetTime = curTime;
+            throw new RetriableException(new HecClientException("detected backPressure, pause the pull for a while"));
+        }
+
+        if (curTime - lastResetTime > backPressureResetWindow) {
+            // 10 mins
+            backPressure = 0;
+            lastResetTime = curTime;
+        }
+    }
+
     private void handleFailedBatches() {
         Collection<EventBatch> failed = tracker.getAndRemoveFailedRecords();
         log.info("handle {} failed batches", failed.size());
         // if there are failed ones, first deal with them
         for (final EventBatch batch: failed) {
             send(batch);
+        }
+
+        if (!failed.isEmpty()) {
+            throw new RetriableException(new HecClientException("need handle failed batches first, pause the pull for a while"));
         }
     }
 
@@ -109,18 +127,13 @@ public class SplunkSinkTask extends SinkTask {
     }
 
     private void send(final EventBatch batch) {
+        batch.resetSendTimestamp();
         tracker.addEventBatch(batch);
         boolean success = hec.send(batch);
         if (success) {
-            backpressure -= 1;
-            return;
-        }
-
-        while (!success) {
-            success = hec.send(batch);
-            if (!success) {
-                backpressure += 1;
-            }
+            backPressure -= 1;
+        } else {
+            backPressure += 1;
         }
     }
 
@@ -207,5 +220,18 @@ public class SplunkSinkTask extends SinkTask {
             partitioned.add(record);
         }
         return partitionedRecords;
+    }
+
+    private HecInf createHec() {
+        if (connectorConfig.numberOfThreads > 1) {
+            return new ConcurrentHec(connectorConfig.numberOfThreads, connectorConfig.ack,
+                    connectorConfig.getHecClientConfig(), new HecPollerCallback(this));
+        } else {
+            if (connectorConfig.ack) {
+                return new HecWithAck(connectorConfig.getHecClientConfig(), new HecPollerCallback(this));
+            } else {
+                return new HecWithoutAck(connectorConfig.getHecClientConfig(), new HecPollerCallback(this));
+            }
+        }
     }
 }

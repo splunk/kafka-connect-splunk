@@ -11,7 +11,7 @@ import java.util.concurrent.*;
 /**
  * Created by kchen on 10/27/17.
  */
-public class ConcurrentHec {
+public class ConcurrentHec implements HecInf {
     private static final Logger log = LoggerFactory.getLogger(ConcurrentHec.class);
 
     private LinkedBlockingQueue<EventBatch> batches;
@@ -39,13 +39,17 @@ public class ConcurrentHec {
 
     public boolean send(final EventBatch batch) {
         try {
-            return batches.offer(batch, 500, TimeUnit.MILLISECONDS);
+            return batches.offer(batch, 1000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException ex) {
             return false;
         }
     }
 
     public void close() {
+        if (stopped) {
+            return;
+        }
+
         stopped = true;
         // executorService.shutdownNow();
         executorService.shutdown();
@@ -70,10 +74,8 @@ public class ConcurrentHec {
     }
 
     private void send(final Hec hec, final EventBatch batch) {
-        batch.resetSendTimestamp();
         try {
             hec.send(batch);
-            log.debug("Sent {} events to Splunk", batch.size());
         } catch (Exception ex) {
             batch.fail();
             log.error("sending batch to splunk encountered error", ex);
