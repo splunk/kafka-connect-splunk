@@ -46,30 +46,34 @@ public class HecAckPoller implements Poller {
 
     @Override
     public void start() {
-        if (started.compareAndSet(false, true)) {
-            ThreadFactory f = (Runnable r) -> new Thread(r, "HEC-ACK-poller-scheduler");
-            scheduler = new ScheduledThreadPoolExecutor(1, f);
-            scheduler.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
-            scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
-            scheduler.setRemoveOnCancelPolicy(true);
-
-            Runnable poller = () -> {
-                poll();
-            };
-            scheduler.scheduleWithFixedDelay(poller, ackPollInterval, ackPollInterval, TimeUnit.SECONDS);
-
-            ThreadFactory e = (Runnable r) -> new Thread(r, "HEC-ACK-poller");
-            executorService = Executors.newFixedThreadPool(pollThreads, e);
+        if (!started.compareAndSet(false, true)) {
+            return;
         }
+
+        ThreadFactory f = (Runnable r) -> new Thread(r, "HEC-ACK-poller-scheduler");
+        scheduler = new ScheduledThreadPoolExecutor(1, f);
+        scheduler.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+        scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
+        scheduler.setRemoveOnCancelPolicy(true);
+
+        Runnable poller = () -> {
+            poll();
+        };
+        scheduler.scheduleWithFixedDelay(poller, ackPollInterval, ackPollInterval, TimeUnit.SECONDS);
+
+        ThreadFactory e = (Runnable r) -> new Thread(r, "HEC-ACK-poller");
+        executorService = Executors.newFixedThreadPool(pollThreads, e);
     }
 
     @Override
     public void stop() {
-        if (started.compareAndSet(true, false)) {
-            scheduler.shutdownNow();
-            executorService.shutdownNow();
-            log.info("HecAckPoller stopped with {} outstanding un-ACKed events", totalOutstandingEventBatches.get());
+        if (!started.compareAndSet(true, false)) {
+            return;
         }
+
+        scheduler.shutdownNow();
+        executorService.shutdownNow();
+        log.info("HecAckPoller stopped with {} outstanding un-ACKed events", totalOutstandingEventBatches.get());
     }
 
     @Override
