@@ -6,7 +6,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
  * Created by kchen on 10/20/17.
  */
 // Hec class owns poller, httpClient etc resource
-public abstract class Hec {
+public abstract class Hec implements HecInf {
     private HecClient client;
     private Poller poller;
     private CloseableHttpClient httpClient;
@@ -19,11 +19,11 @@ public abstract class Hec {
         this.httpClient = httpClient;
     }
 
-    public void send(EventBatch batch) {
+    public boolean send (EventBatch batch) {
         if (batch.isEmpty()) {
-            return;
+            return false;
         }
-        client.send(batch);
+        return client.send(batch);
     }
 
     public void close() {

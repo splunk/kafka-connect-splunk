@@ -51,11 +51,11 @@ public class HecChannel {
         return this;
     }
 
-    public void send(EventBatch batch) {
+    public boolean send(EventBatch batch) {
         if (chField != null) {
             batch.addExtraFields(chField);
         }
-        indexer.send(batch);
+        return indexer.send(batch);
     }
 
     // for convenience

@@ -34,7 +34,7 @@ public class HecClient {
                 .build();
     }
 
-    public void send(EventBatch batch) {
-        loadBalancer.send(batch);
+    public boolean send(final EventBatch batch) {
+        return loadBalancer.send(batch);
     }
 }

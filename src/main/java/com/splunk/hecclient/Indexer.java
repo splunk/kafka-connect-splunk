@@ -82,7 +82,7 @@ public class Indexer {
     }
 
     // this method is multi-thread safe
-    public void send(EventBatch batch) {
+    public boolean send(final EventBatch batch) {
         String endpoint = batch.getRestEndpoint();
         String url = baseUrl + endpoint;
         final HttpPost httpPost = new HttpPost(url);
@@ -94,11 +94,14 @@ public class Indexer {
             resp = executeHttpRequest(httpPost);
         } catch (HecClientException ex) {
             poller.fail(channel, batch, ex);
-            return;
+            return false;
         }
 
         // we are all good
         poller.add(channel, batch, resp);
+        log.debug("sent {} events to splunk through channel={} indexer={}",
+                batch.size(), channel.getId(), getBaseUrl());
+        return true;
     }
 
     // doSend is synchronized since there are multi-threads to access the context
