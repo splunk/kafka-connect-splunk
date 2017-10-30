@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * Created by kchen on 10/17/17.
  */
-public class RawEvent extends Event {
+public final class RawEvent extends Event {
     public RawEvent(Object data, Object tied) {
         super(data, tied);
     }

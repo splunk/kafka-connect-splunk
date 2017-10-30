@@ -37,7 +37,8 @@ public class ConcurrentHec implements HecInf {
         }
     }
 
-    public boolean send(final EventBatch batch) {
+    @Override
+    public final boolean send(final EventBatch batch) {
         try {
             return batches.offer(batch, 1000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException ex) {
@@ -45,7 +46,8 @@ public class ConcurrentHec implements HecInf {
         }
     }
 
-    public void close() {
+    @Override
+    public final void close() {
         if (stopped) {
             return;
         }

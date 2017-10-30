@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by kchen on 9/24/17.
  */
-public class SplunkSinkConnector extends SinkConnector {
+public final class SplunkSinkConnector extends SinkConnector {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkConnector.class);
     private Map<String, String> taskConfig;
 

@@ -5,7 +5,7 @@ import org.apache.http.client.utils.URIBuilder;
 /**
  * Created by kchen on 10/18/17.
  */
-public class RawEventBatch extends EventBatch {
+public final class RawEventBatch extends EventBatch {
     private String index;
     private String source;
     private String sourcetype;
@@ -25,7 +25,7 @@ public class RawEventBatch extends EventBatch {
         return new Builder();
     }
 
-    public static class Builder {
+    public static final class Builder {
         private String index;
         private String source;
         private String sourcetype;
@@ -95,9 +95,9 @@ public class RawEventBatch extends EventBatch {
     private String getMetadataParams() {
         URIBuilder params = new URIBuilder();
         putIfPresent(index, "index", params);
-        putIfPresent(sourcetype,"sourcetype", params);
-        putIfPresent(source,"source", params);
-        putIfPresent(host,"host", params);
+        putIfPresent(sourcetype, "sourcetype", params);
+        putIfPresent(source, "source", params);
+        putIfPresent(host, "host", params);
 
         if (time != -1) {
             params.addParameter("time",  String.valueOf(time));

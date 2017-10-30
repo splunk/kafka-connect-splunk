@@ -28,20 +28,20 @@ public abstract class EventBatch {
     private int failureCount = 0;
     private long sendTimestamp; // in seconds
     protected int len;
-    protected List<Event> events = new ArrayList();
+    protected List<Event> events = new ArrayList<>();
 
     public abstract String getRestEndpoint();
     public abstract String getContentType();
     public abstract void add(Event event);
     public abstract EventBatch createFromThis();
 
-    public void addExtraFields(final Map<String, String> fields) {
+    public final void addExtraFields(final Map<String, String> fields) {
         for (final Event event: events) {
             event.addExtraFields(fields);
         }
     }
 
-    public boolean isTimedout(long ttl) {
+    public final boolean isTimedout(long ttl) {
         long flightTime = System.currentTimeMillis() / 1000 - sendTimestamp;
         if (flightTime < ttl) {
             return false;
@@ -51,35 +51,35 @@ public abstract class EventBatch {
         return true;
     }
 
-    public void resetSendTimestamp() {
+    public final void resetSendTimestamp() {
         sendTimestamp = System.currentTimeMillis() / 1000;
     }
 
-    public boolean isFailed() {
+    public final boolean isFailed() {
         return status == FAILED;
     }
 
-    public boolean isCommitted() {
+    public final boolean isCommitted() {
         return status == COMMITTED;
     }
 
-    public EventBatch init() {
+    public final EventBatch init() {
         status = INIT;
         return this;
     }
 
-    public EventBatch fail() {
+    public final EventBatch fail() {
         status = FAILED;
         failureCount += 1;
         return this;
     }
 
-    public EventBatch commit() {
+    public final EventBatch commit() {
         status = COMMITTED;
         return this;
     }
 
-    public int getFailureCount() {
+    public final int getFailureCount() {
         return failureCount;
     }
 
@@ -88,27 +88,27 @@ public abstract class EventBatch {
     }
 
     // Total length of data for all events
-    public int length() {
+    public final int length() {
         return len;
     }
 
     // Total number of events
-    public int size() {
+    public final int size() {
         return events.size();
     }
 
-    public boolean isEmpty() {
+    public final boolean isEmpty() {
         return events.isEmpty();
     }
 
-    public HttpEntity getHttpEntity() {
+    public final HttpEntity getHttpEntity() {
         AbstractHttpEntity e = new HttpEventBatchEntity();
         e.setContentType(getContentType());
         return e;
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         StringBuilder builder = new StringBuilder();
         for (Event e: events) {
             builder.append(e.toString());

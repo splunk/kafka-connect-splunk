@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Created by kchen on 10/18/17.
  */
-public class LoadBalancer {
+public final class LoadBalancer {
     private List<HecChannel> channels;
     private int index;
 
@@ -21,10 +21,6 @@ public class LoadBalancer {
     }
 
     public void remove(HecChannel channel) {
-        doRemove(channel);
-    }
-
-    private void doRemove(HecChannel channel) {
         for (Iterator<HecChannel> iter = channels.listIterator(); iter.hasNext();) {
             HecChannel ch = iter.next();
             if (ch.equals(channel)) {

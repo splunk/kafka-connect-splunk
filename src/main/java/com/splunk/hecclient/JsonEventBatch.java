@@ -4,7 +4,7 @@ package com.splunk.hecclient;
 /**
  * Created by kchen on 10/17/17.
  */
-public class JsonEventBatch extends EventBatch {
+public final class JsonEventBatch extends EventBatch {
     @Override
     public void add(Event event) {
         if (event instanceof JsonEvent) {

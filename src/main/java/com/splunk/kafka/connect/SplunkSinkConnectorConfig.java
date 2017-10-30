@@ -9,7 +9,7 @@ import org.apache.kafka.common.config.ConfigDef;
 import java.util.*;
 
 
-public class SplunkSinkConnectorConfig extends AbstractConfig {
+public final class SplunkSinkConnectorConfig extends AbstractConfig {
     public static final String INDEX = "index";
     public static final String SOURCETYPE = "sourcetype";
     public static final String SOURCE = "source";
@@ -164,26 +164,26 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
     }
 
     public String toString() {
-        return "splunkURI:" + splunkURI + ", " +
-            "raw:" + raw + ", " +
-            "ack:" + ack + ", " +
-            "indexes:" + indexes + ", " +
-            "sourcetypes:" + sourcetypes + ", " +
-            "sources:" + sources + ", " +
-            "httpKeepAlive:" + httpKeepAlive + ", " +
-            "validateCertificates:" + validateCertificates + ", " +
-            "trustStorePath:" + trustStorePath + ", " +
-            "hasTrustStorePath:" + hasTrustStorePath + ", " +
-            "socketTimeout:" + socketTimeout + ", " +
-            "eventBatchTimeout:" + eventBatchTimeout + ", " +
-            "ackPollInterval:" + ackPollInterval + ", " +
-            "ackPollThreads:" + ackPollThreads + ", " +
-            "maxHttpConnectionPerChannel:" + maxHttpConnPerChannel + ", " +
-            "totalHecChannels:" + totalHecChannels + ", " +
-            "enrichement: " + getString(ENRICHEMENT_CONF) + ", " +
-            "maxBatchSize: " + maxBatchSize + ", " +
-            "numberOfThreads: " + numberOfThreads + ", " +
-            "trackChannel: " + trackChannel;
+        return "splunkURI:" + splunkURI + ", "
+                + "raw:" + raw + ", "
+                + "ack:" + ack + ", "
+                + "indexes:" + indexes + ", "
+                + "sourcetypes:" + sourcetypes + ", "
+                + "sources:" + sources + ", "
+                + "httpKeepAlive:" + httpKeepAlive + ", "
+                + "validateCertificates:" + validateCertificates + ", "
+                + "trustStorePath:" + trustStorePath + ", "
+                + "hasTrustStorePath:" + hasTrustStorePath + ", "
+                + "socketTimeout:" + socketTimeout + ", "
+                + "eventBatchTimeout:" + eventBatchTimeout + ", "
+                + "ackPollInterval:" + ackPollInterval + ", "
+                + "ackPollThreads:" + ackPollThreads + ", "
+                + "maxHttpConnectionPerChannel:" + maxHttpConnPerChannel + ", "
+                + "totalHecChannels:" + totalHecChannels + ", "
+                + "enrichement: " + getString(ENRICHEMENT_CONF) + ", "
+                + "maxBatchSize: " + maxBatchSize + ", "
+                + "numberOfThreads: " + numberOfThreads + ", "
+                + "trackChannel: " + trackChannel;
     }
 
     private static String[] split(String data, String sep) {

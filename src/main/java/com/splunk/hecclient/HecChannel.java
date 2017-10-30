@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * Created by kchen on 10/18/17.
  */
-public class HecChannel {
+public final class HecChannel {
     private String id;
     private Map<String, String> chField;
     private Indexer indexer;
@@ -74,6 +74,11 @@ public class HecChannel {
             return id.equals(ch.getId());
         }
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 
     @Override

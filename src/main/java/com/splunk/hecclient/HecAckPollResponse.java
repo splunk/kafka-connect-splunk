@@ -10,10 +10,10 @@ public final class HecAckPollResponse {
     // {"acks":[0,1,2,3]}
     private final SortedMap<String, Boolean> acks = new TreeMap<>();
 
-    Collection<Long> getSuccessIds() {
+    public Collection<Long> getSuccessIds() {
         Set<Long> successful = new HashSet<>();
-        for(Map.Entry<String,Boolean> e: acks.entrySet()){
-            if(e.getValue()) { // was 'true' in json, meaning it succeeded
+        for (Map.Entry<String,Boolean> e: acks.entrySet()) {
+            if (e.getValue()) { // was 'true' in json, meaning it succeeded
                 successful.add(Long.parseLong(e.getKey()));
             }
         }

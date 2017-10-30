@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Created by kchen on 9/24/17.
  */
-public class HecPollerCallback implements PollerCallback {
+public final class HecPollerCallback implements PollerCallback {
     private SplunkSinkTask task;
 
     public HecPollerCallback(SplunkSinkTask task) {

@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Created by kchen on 10/20/17.
  */
-class PrintIt implements PollerCallback {
+public final class PrintIt implements PollerCallback {
     private AtomicLong eventsFailed = new AtomicLong(0);
     private AtomicLong events = new AtomicLong(0);
 

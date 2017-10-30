@@ -15,11 +15,12 @@ import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 
 
-public class IndexerExample {
+public final class IndexerExample{
     public static void main(String[] args) {
         String uri = "https://localhost:8088";
         String token = "1CB57F19-DC23-419A-8EDA-BA545DD3674D";
         String ackToken = "1B901D2B-576D-40CD-AF1E-98141B499534";
+        String ackToken2 = "1B901D2B-576D-40CD-AF1E-98141B499534xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
 
         Poller poller = new ResponsePoller(new PrintIt());
 

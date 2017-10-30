@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by kchen on 10/18/17.
  */
-public class Indexer {
+public final class Indexer {
     private static final Logger log = LoggerFactory.getLogger(Indexer.class);
 
     private CloseableHttpClient httpClient;
@@ -105,7 +105,7 @@ public class Indexer {
     }
 
     // doSend is synchronized since there are multi-threads to access the context
-    synchronized public String executeHttpRequest(final HttpUriRequest req) {
+    public synchronized String executeHttpRequest(final HttpUriRequest req) {
         CloseableHttpResponse resp;
         try {
             resp = httpClient.execute(req, context);
