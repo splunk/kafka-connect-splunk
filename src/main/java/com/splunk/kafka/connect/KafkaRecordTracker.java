@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * Created by kchen on 10/24/17.
  */
 
-public class KafkaRecordTracker {
+public final class KafkaRecordTracker {
     private Map<TopicPartition, TreeMap<Long, EventBatch>> all; // TopicPartition + Long offset represents the SinkRecord
     private ConcurrentLinkedQueue<EventBatch> failed;
 

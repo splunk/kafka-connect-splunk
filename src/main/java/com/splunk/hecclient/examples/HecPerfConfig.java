@@ -5,7 +5,7 @@ import com.splunk.hecclient.HecClientConfig;
 /**
  * Created by kchen on 10/20/17.
  */
-public class HecPerfConfig {
+public final class HecPerfConfig {
     private HecClientConfig config;
     private int concurrency;
     private int clientPoolSize;

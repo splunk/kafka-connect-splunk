@@ -6,8 +6,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
  * Created by kchen on 10/17/17.
  */
 
-// HecClient is not multi-thread safe
-public class HecClient {
+// HecClient is no multi-thread safe
+public final class HecClient {
     private HecClientConfig config;
     private LoadBalancer loadBalancer;
 

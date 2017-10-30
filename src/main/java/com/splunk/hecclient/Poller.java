@@ -1,7 +1,5 @@
 package com.splunk.hecclient;
 
-import java.util.List;
-
 /**
  * Created by kchen on 10/18/17.
  */

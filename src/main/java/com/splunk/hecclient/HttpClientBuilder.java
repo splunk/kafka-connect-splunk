@@ -17,7 +17,7 @@ import java.security.cert.X509Certificate;
 /**
  * Created by kchen on 10/20/17.
  */
-final public class HttpClientBuilder {
+public final class HttpClientBuilder {
     private int maxConnectionPoolSizePerDestination = 4;
     private int maxConnectionPoolSize = 4 * 2;
     private int socketTimeout = 60; // in seconds

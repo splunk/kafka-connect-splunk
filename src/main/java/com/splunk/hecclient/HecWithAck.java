@@ -2,8 +2,6 @@ package com.splunk.hecclient;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 
-import java.io.IOException;
-
 /**
  * Created by kchen on 10/20/17.
  */

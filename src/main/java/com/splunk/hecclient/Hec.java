@@ -19,14 +19,16 @@ public abstract class Hec implements HecInf {
         this.httpClient = httpClient;
     }
 
-    public boolean send (EventBatch batch) {
+    @Override
+    public final boolean send (EventBatch batch) {
         if (batch.isEmpty()) {
             return false;
         }
         return client.send(batch);
     }
 
-    public void close() {
+    @Override
+    public final void close() {
         poller.stop();
         if (ownHttpClient) {
             try {

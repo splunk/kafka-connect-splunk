@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by kchen on 10/20/17.
  */
-public class HecExample {
+public final class HecExample {
     public static void main(String[] args) {
         Logger log = LoggerFactory.getLogger(IndexerExample.class);
 

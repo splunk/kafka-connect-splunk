@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Created by kchen on 10/20/17.
  */
-final public class HecClientConfig {
+public final class HecClientConfig {
     private List<String> uris;
     private String token;
     private boolean disableSSLCertVerification = false;

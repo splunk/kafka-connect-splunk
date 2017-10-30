@@ -9,9 +9,9 @@ import java.util.Arrays;
 /**
  * Created by kchen on 10/18/17.
  */
-public class ResponsePoller implements Poller {
-    private final static Logger log = LoggerFactory.getLogger(ResponsePoller.class);
-    private final static ObjectMapper jsonMapper = new ObjectMapper();
+public final class ResponsePoller implements Poller {
+    private static final Logger log = LoggerFactory.getLogger(ResponsePoller.class);
+    private static final ObjectMapper jsonMapper = new ObjectMapper();
 
     private PollerCallback callback;
 

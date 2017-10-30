@@ -9,32 +9,32 @@ import org.apache.kafka.common.config.ConfigDef;
 import java.util.*;
 
 
-public class SplunkSinkConnectorConfig extends AbstractConfig {
-    public static final String INDEX = "index";
-    public static final String SOURCETYPE = "sourcetype";
-    public static final String SOURCE = "source";
+public final class SplunkSinkConnectorConfig extends AbstractConfig {
+    static final String INDEX = "index";
+    static final String SOURCETYPE = "sourcetype";
+    static final String SOURCE = "source";
 
-    public static final String TOKEN_CONF = "splunk.hec.token";
-    public static final String URI_CONF = "splunk.hec.uri";
-    public static final String RAW_CONF = "splunk.hec.raw";
-    public static final String ACK_CONF = "splunk.hec.ack.enabled";
-    public static final String INDEX_CONF = "splunk.indexes";
-    public static final String SOURCETYPE_CONF = "splunk.sourcetypes";
-    public static final String SOURCE_CONF = "splunk.sources";
-    public static final String HTTP_KEEPALIVE_CONF = "splunk.hec.http.keepalive";
-    public static final String SSL_VALIDATE_CERTIFICATES_CONF = "splunk.hec.ssl.validate.certs";
-    public static final String SSL_TRUSTSTORE_PATH_CONF = "splunk.hec.ssl.trust.store.path";
-    public static final String SSL_TRUSTSTORE_PASSWORD_CONF = "splunk.hec.ssl.trust.store.password";
-    public static final String SOCKET_TIMEOUT_CONF = "splunk.hec.socket.timeout"; // seconds
-    public static final String EVENT_TIMEOUT_CONF = "splunk.hec.event.timeout"; // seconds
-    public static final String ACK_POLL_INTERVAL_CONF = "splunk.hec.ack.poll.interval"; // seconds
-    public static final String ACK_POLL_THREADS_CONF = "splunk.hec.ack.poll.threads";
-    public static final String MAX_HTTP_CONNECTION_PER_CHANNEL_CONF = "splunk.hec.max.http.connection.per.channel";
-    public static final String TOTAL_HEC_CHANNEL_CONF = "splunk.hec.total.channels";
-    public static final String ENRICHEMENT_CONF = "splunk.hec.json.event.enrichment";
-    public static final String MAX_BATCH_SIZE_CONF = "splunk.hec.max.batch.size"; // record count
-    public static final String HEC_THREDS_CONF = "splunk.hec.threads";
-    public static final String TRACK_CHANNEL_CONF = "splunk.hec.track.channel";
+    static final String TOKEN_CONF = "splunk.hec.token";
+    static final String URI_CONF = "splunk.hec.uri";
+    static final String RAW_CONF = "splunk.hec.raw";
+    static final String ACK_CONF = "splunk.hec.ack.enabled";
+    static final String INDEX_CONF = "splunk.indexes";
+    static final String SOURCETYPE_CONF = "splunk.sourcetypes";
+    static final String SOURCE_CONF = "splunk.sources";
+    static final String HTTP_KEEPALIVE_CONF = "splunk.hec.http.keepalive";
+    static final String SSL_VALIDATE_CERTIFICATES_CONF = "splunk.hec.ssl.validate.certs";
+    static final String SSL_TRUSTSTORE_PATH_CONF = "splunk.hec.ssl.trust.store.path";
+    static final String SSL_TRUSTSTORE_PASSWORD_CONF = "splunk.hec.ssl.trust.store.password";
+    static final String SOCKET_TIMEOUT_CONF = "splunk.hec.socket.timeout"; // seconds
+    static final String EVENT_TIMEOUT_CONF = "splunk.hec.event.timeout"; // seconds
+    static final String ACK_POLL_INTERVAL_CONF = "splunk.hec.ack.poll.interval"; // seconds
+    static final String ACK_POLL_THREADS_CONF = "splunk.hec.ack.poll.threads";
+    static final String MAX_HTTP_CONNECTION_PER_CHANNEL_CONF = "splunk.hec.max.http.connection.per.channel";
+    static final String TOTAL_HEC_CHANNEL_CONF = "splunk.hec.total.channels";
+    static final String ENRICHEMENT_CONF = "splunk.hec.json.event.enrichment";
+    static final String MAX_BATCH_SIZE_CONF = "splunk.hec.max.batch.size"; // record count
+    static final String HEC_THREDS_CONF = "splunk.hec.threads";
+    static final String TRACK_CHANNEL_CONF = "splunk.hec.track.channel";
 
      // Kafka configuration description strings
     static final String TOKEN_DOC = "The authorization token to use when writing data to splunk.";
@@ -63,32 +63,32 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String HEC_THREADS_DOC = "Number of threads used to POST events to Splunk HEC in single task";
     static final String TRACK_CHANNEL_DOC = "Track HEC channel or not. Is only applicable to splunk.hec.raw=false case";
 
-    public final String splunkToken;
-    public final String splunkURI;
-    public final boolean raw; // /raw or /event HEC
-    public final boolean ack; // use HEC ACK ?
-    public final String indexes;
-    public final String sourcetypes;
-    public final String sources;
-    public final boolean validateCertificates;
-    public final boolean httpKeepAlive;
-    public final String trustStorePath;
-    public final boolean hasTrustStorePath;
-    public final String trustStorePassword;
-    public final int eventBatchTimeout;
-    public final int ackPollInterval;
-    public final int ackPollThreads;
-    public final int maxHttpConnPerChannel;
-    public final int totalHecChannels;
-    public final int socketTimeout;
-    public final boolean trackChannel;
-    public final int maxBatchSize;
-    public final int numberOfThreads;
-    public final Map<String, String> enrichements;
+    final String splunkToken;
+    final String splunkURI;
+    final boolean raw; // /raw or /event HEC
+    final boolean ack; // use HEC ACK ?
+    final String indexes;
+    final String sourcetypes;
+    final String sources;
+    final boolean validateCertificates;
+    final boolean httpKeepAlive;
+    final String trustStorePath;
+    final boolean hasTrustStorePath;
+    final String trustStorePassword;
+    final int eventBatchTimeout;
+    final int ackPollInterval;
+    final int ackPollThreads;
+    final int maxHttpConnPerChannel;
+    final int totalHecChannels;
+    final int socketTimeout;
+    final boolean trackChannel;
+    final int maxBatchSize;
+    final int numberOfThreads;
+    final Map<String, String> enrichements;
 
-    public final Map<String, Map<String, String>> topicMetas;
+    final Map<String, Map<String, String>> topicMetas;
 
-    public SplunkSinkConnectorConfig(Map<String, String> taskConfig) {
+    SplunkSinkConnectorConfig(Map<String, String> taskConfig) {
         super(conf(), taskConfig);
         splunkToken = getPassword(TOKEN_CONF).value();
         splunkURI = getString(URI_CONF);
@@ -164,26 +164,26 @@ public class SplunkSinkConnectorConfig extends AbstractConfig {
     }
 
     public String toString() {
-        return "splunkURI:" + splunkURI + ", " +
-            "raw:" + raw + ", " +
-            "ack:" + ack + ", " +
-            "indexes:" + indexes + ", " +
-            "sourcetypes:" + sourcetypes + ", " +
-            "sources:" + sources + ", " +
-            "httpKeepAlive:" + httpKeepAlive + ", " +
-            "validateCertificates:" + validateCertificates + ", " +
-            "trustStorePath:" + trustStorePath + ", " +
-            "hasTrustStorePath:" + hasTrustStorePath + ", " +
-            "socketTimeout:" + socketTimeout + ", " +
-            "eventBatchTimeout:" + eventBatchTimeout + ", " +
-            "ackPollInterval:" + ackPollInterval + ", " +
-            "ackPollThreads:" + ackPollThreads + ", " +
-            "maxHttpConnectionPerChannel:" + maxHttpConnPerChannel + ", " +
-            "totalHecChannels:" + totalHecChannels + ", " +
-            "enrichement: " + getString(ENRICHEMENT_CONF) + ", " +
-            "maxBatchSize: " + maxBatchSize + ", " +
-            "numberOfThreads: " + numberOfThreads + ", " +
-            "trackChannel: " + trackChannel;
+        return "splunkURI:" + splunkURI + ", "
+                + "raw:" + raw + ", "
+                + "ack:" + ack + ", "
+                + "indexes:" + indexes + ", "
+                + "sourcetypes:" + sourcetypes + ", "
+                + "sources:" + sources + ", "
+                + "httpKeepAlive:" + httpKeepAlive + ", "
+                + "validateCertificates:" + validateCertificates + ", "
+                + "trustStorePath:" + trustStorePath + ", "
+                + "hasTrustStorePath:" + hasTrustStorePath + ", "
+                + "socketTimeout:" + socketTimeout + ", "
+                + "eventBatchTimeout:" + eventBatchTimeout + ", "
+                + "ackPollInterval:" + ackPollInterval + ", "
+                + "ackPollThreads:" + ackPollThreads + ", "
+                + "maxHttpConnectionPerChannel:" + maxHttpConnPerChannel + ", "
+                + "totalHecChannels:" + totalHecChannels + ", "
+                + "enrichement: " + getString(ENRICHEMENT_CONF) + ", "
+                + "maxBatchSize: " + maxBatchSize + ", "
+                + "numberOfThreads: " + numberOfThreads + ", "
+                + "trackChannel: " + trackChannel;
     }
 
     private static String[] split(String data, String sep) {

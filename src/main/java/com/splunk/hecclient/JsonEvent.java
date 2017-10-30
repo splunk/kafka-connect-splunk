@@ -10,7 +10,7 @@ import java.util.Map;
  * Created by kchen on 10/17/17.
  */
 
-public class JsonEvent extends Event {
+public final class JsonEvent extends Event {
     private static final String EVENT = "event";
     private static final String FIELDS = "fields";
 
@@ -50,6 +50,7 @@ public class JsonEvent extends Event {
         }
     }
 
+    @Override
     public byte[] getBytes() {
         if (bytes != null) {
             return bytes;
@@ -66,7 +67,7 @@ public class JsonEvent extends Event {
     }
 
     private ObjectNode getJsonNode() {
-        Map eventJSON = new LinkedHashMap();
+        Map<String, Object> eventJSON = new LinkedHashMap<>();
 
         if (time > 0) {
             eventJSON.put(TIME, String.valueOf(time));
@@ -85,7 +86,7 @@ public class JsonEvent extends Event {
         return eventNode;
     }
 
-    private static void putIfPresent(Map collection, String tag, String value) {
+    private static void putIfPresent(Map<String, Object> collection, String tag, String value) {
         if (value != null && !value.isEmpty()) {
             collection.put(tag, value);
         }

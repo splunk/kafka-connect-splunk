@@ -13,13 +13,13 @@ import java.util.Map;
  * Created by kchen on 10/17/17.
  */
 public abstract class Event {
-    public static final String TIME = "time";
-    public static final String HOST = "host";
-    public static final String INDEX = "index";
-    public static final String SOURCE = "source";
-    public static final String SOURCETYPE = "sourcetype";
+    static final String TIME = "time";
+    static final String HOST = "host";
+    static final String INDEX = "index";
+    static final String SOURCE = "source";
+    static final String SOURCETYPE = "sourcetype";
 
-    protected static final ObjectMapper jsonMapper = new ObjectMapper();
+    static final ObjectMapper jsonMapper = new ObjectMapper();
     protected static final Logger log = LoggerFactory.getLogger(Event.class);
 
     protected long time = -1; // epochMillis
@@ -32,68 +32,69 @@ public abstract class Event {
 
     private Object tied; // attached comparable object
 
-    public Event(Object data, Object tied) {
-        if (data == null) {
+    public Event(Object eventData, Object tiedObj) {
+        if (eventData == null) {
             throw new HecClientException("Null data for event");
         }
 
-        this.data = data;
-        this.tied = tied;
+        data = eventData;
+        tied = tiedObj;
     }
 
-    public void setTime(long epochMillis) {
+    public final Event setTime(long epochMillis) {
         this.time = epochMillis;
+        return this;
     }
 
-    public Event setSource(String source) {
+    public final Event setSource(String source) {
         this.source = source;
         return this;
     }
 
-    public Event setSourcetype(String sourcetype) {
+    public final Event setSourcetype(String sourcetype) {
         this.sourcetype = sourcetype;
         return this;
     }
 
-    public Event setHost(String host) {
+    public final Event setHost(String host) {
         this.host = host;
         return this;
     }
 
-    public Event setIndex(String index) {
+    public final Event setIndex(String index) {
         this.index = index;
         return this;
     }
 
-    public long getTime() {
+    public final long getTime() {
         return time;
     }
 
-    public String getSource() {
+    public final String getSource() {
         return source;
     }
 
-    public String getSourcetype() {
+    public final String getSourcetype() {
         return sourcetype;
     }
 
-    public String getHost() {
+    public final String getHost() {
         return host;
     }
 
-    public String getIndex() {
+    public final String getIndex() {
         return index;
     }
 
-    public Object getData() {
+    public final Object getData() {
         return data;
     }
 
-    public Object getTiedObject() {
+    public final Object getTiedObject() {
         return tied;
     }
 
-    public int length() {
+    public final int length() {
         byte[] data = getBytes();
         if (endswith(data, (byte) '\n')) {
             return data.length;
@@ -101,11 +102,11 @@ public abstract class Event {
         return data.length + 1;
     }
 
-    public InputStream getInputStream() {
+    public final InputStream getInputStream() {
         return new ByteArrayInputStream(getBytes());
     }
 
-    public void writeTo(OutputStream out) throws IOException {
+    public final void writeTo(OutputStream out) throws IOException {
         byte[] data = getBytes();
         out.write(data);
         if (!endswith(data, (byte) '\n')) {

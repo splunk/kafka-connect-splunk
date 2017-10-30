@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by kchen on 9/21/17.
  */
-public class SplunkSinkTask extends SinkTask {
+public final class SplunkSinkTask extends SinkTask {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class);
     private static final int backPressureResetWindow = 10 * 60 * 1000; // 10 mins
 
@@ -149,9 +149,9 @@ public class SplunkSinkTask extends SinkTask {
         }
 
         return RawEventBatch.factory()
-                .setIndex(metas.get(connectorConfig.INDEX))
-                .setSourcetype(metas.get(connectorConfig.SOURCETYPE))
-                .setSource(metas.get(connectorConfig.SOURCE))
+                .setIndex(metas.get(SplunkSinkConnectorConfig.INDEX))
+                .setSourcetype(metas.get(SplunkSinkConnectorConfig.SOURCETYPE))
+                .setSource(metas.get(SplunkSinkConnectorConfig.SOURCE))
                 .build();
     }
 
@@ -197,9 +197,9 @@ public class SplunkSinkTask extends SinkTask {
         JsonEvent event = new JsonEvent(record.value(), record);
         Map<String, String> metas = connectorConfig.topicMetas.get(record.topic());
         if (metas != null) {
-            event.setIndex(metas.get(connectorConfig.INDEX));
-            event.setSourcetype(metas.get(connectorConfig.SOURCETYPE));
-            event.setSource(metas.get(connectorConfig.SOURCE));
+            event.setIndex(metas.get(SplunkSinkConnectorConfig.INDEX));
+            event.setSourcetype(metas.get(SplunkSinkConnectorConfig.SOURCETYPE));
+            event.setSource(metas.get(SplunkSinkConnectorConfig.SOURCE));
             event.addExtraFields(connectorConfig.enrichements);
         }
 
@@ -208,7 +208,7 @@ public class SplunkSinkTask extends SinkTask {
 
     // partition records according to topic-partition key
     private Map<TopicPartition, Collection<SinkRecord>> partitionRecords(Collection<SinkRecord> records) {
-        Map<TopicPartition, Collection<SinkRecord>> partitionedRecords = new HashMap();
+        Map<TopicPartition, Collection<SinkRecord>> partitionedRecords = new HashMap<>();
 
         for (SinkRecord record: records) {
             TopicPartition key = new TopicPartition(record.topic(), record.kafkaPartition());

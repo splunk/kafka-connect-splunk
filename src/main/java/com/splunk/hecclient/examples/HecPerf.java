@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
  * Created by kchen on 10/17/17.
  */
 
-public class HecPerf {
+public final class HecPerf {
     private static Logger log = LoggerFactory.getLogger(HecPerf.class);
     private static String uriArg = "uris";
     private static String tokenArg = "token";

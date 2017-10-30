@@ -18,11 +18,11 @@ import java.util.concurrent.atomic.*;
  */
 
 // HecAckPoller, it is multi-thread safe class
-public class HecAckPoller implements Poller {
-    private final static Logger log = LoggerFactory.getLogger(HecAckPoller.class);
-    private final static ObjectMapper jsonMapper = new ObjectMapper();
+public final class HecAckPoller implements Poller {
+    private static final Logger log = LoggerFactory.getLogger(HecAckPoller.class);
+    private static final ObjectMapper jsonMapper = new ObjectMapper();
 
-    private final static String ackEndpoint = "/services/collector/ack";
+    private static final String ackEndpoint = "/services/collector/ack";
 
     private ConcurrentHashMap<HecChannel, ConcurrentHashMap<Long, EventBatch>> outstandingEventBatches;
     private AtomicLong totalOutstandingEventBatches;
@@ -187,7 +187,7 @@ public class HecAckPoller implements Poller {
         private HecChannel channel;
         private HttpUriRequest request;
 
-        public RunAckQuery(HttpUriRequest req, HecChannel ch) {
+        RunAckQuery(HttpUriRequest req, HecChannel ch) {
             channel = ch;
             request = req;
         }
@@ -201,7 +201,7 @@ public class HecAckPoller implements Poller {
 
     private void findAndRemoveTimedoutBatches(Map<Long, EventBatch> batches, List<EventBatch> timeouts) {
         Iterator<Map.Entry<Long, EventBatch>> iterator = batches.entrySet().iterator();
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             EventBatch batch = iterator.next().getValue();
             if (batch.isTimedout(eventBatchTimeout)) {
                 timeouts.add(batch);
@@ -252,7 +252,7 @@ public class HecAckPoller implements Poller {
     private static HttpUriRequest createAckPollHttpRequest(HecChannel ch, Set<Long> ids) {
         // Prepare the payload
         String ackIds;
-        Map json = new HashMap();
+        Map<String, Object> json = new HashMap<>();
         try {
             json.put("acks", ids);
             ackIds = jsonMapper.writeValueAsString(json);
