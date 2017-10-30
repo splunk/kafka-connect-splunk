@@ -13,13 +13,13 @@ import java.util.Map;
  * Created by kchen on 10/17/17.
  */
 public abstract class Event {
-    public static final String TIME = "time";
-    public static final String HOST = "host";
-    public static final String INDEX = "index";
-    public static final String SOURCE = "source";
-    public static final String SOURCETYPE = "sourcetype";
+    static final String TIME = "time";
+    static final String HOST = "host";
+    static final String INDEX = "index";
+    static final String SOURCE = "source";
+    static final String SOURCETYPE = "sourcetype";
 
-    protected static final ObjectMapper jsonMapper = new ObjectMapper();
+    static final ObjectMapper jsonMapper = new ObjectMapper();
     protected static final Logger log = LoggerFactory.getLogger(Event.class);
 
     protected long time = -1; // epochMillis
