@@ -29,8 +29,8 @@ public final class KafkaRecordTracker {
 
     public void addEventBatch(final EventBatch batch) {
         for (final Event event: batch.getEvents()) {
-            if (event.getTiedObject() instanceof SinkRecord) {
-                final SinkRecord record = (SinkRecord) event.getTiedObject();
+            if (event.getTied() instanceof SinkRecord) {
+                final SinkRecord record = (SinkRecord) event.getTied();
                 TopicPartition tp = new TopicPartition(record.topic(), record.kafkaPartition());
                 TreeMap<Long, EventBatch> tpRecords = all.get(tp);
                 if (tpRecords == null) {

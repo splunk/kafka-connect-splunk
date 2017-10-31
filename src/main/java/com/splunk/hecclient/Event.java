@@ -1,5 +1,8 @@
 package com.splunk.hecclient;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.*;
 
@@ -12,6 +15,8 @@ import java.util.Map;
 /**
  * Created by kchen on 10/17/17.
  */
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class Event {
     static final String TIME = "time";
     static final String HOST = "host";
@@ -27,18 +32,41 @@ public abstract class Event {
     protected String sourcetype;
     protected String host;
     protected String index;
-    protected final Object data;
+    protected Object event;
+
+    @JsonIgnore
     protected byte[] bytes; // populated once, use forever
 
-    private Object tied; // attached comparable object
+    @JsonIgnore
+    private Object tied; // attached object
 
     public Event(Object eventData, Object tiedObj) {
         if (eventData == null) {
             throw new HecClientException("Null data for event");
         }
 
-        data = eventData;
+        if (eventData instanceof String) {
+            if (((String) eventData).isEmpty()) {
+                throw new HecClientException("Empty event");
+            }
+        }
+
+        event = eventData;
         tied = tiedObj;
+    }
+
+    // for JSON deserialization
+    Event() {
+    }
+
+    public final Event setEvent(Object data) {
+        event = data;
+        return this;
+    }
+
+    public final Event setTied(Object tied) {
+        this.tied = tied;
+        return this;
     }
 
     public final Event setTime(long epochMillis) {
@@ -86,12 +114,24 @@ public abstract class Event {
         return index;
     }
 
-    public final Object getData() {
-        return data;
+    public final Object getEvent() {
+        return event;
     }
 
-    public final Object getTiedObject() {
+    public final Object getTied() {
         return tied;
+    }
+
+    public Event addFields(final Map<String, String> fields) {
+        return this;
+    }
+
+    public Event setFields(final Map<String, String> fields) {
+        return this;
+    }
+
+    public Map<String, String> getFields() {
+        return null;
     }
 
     public final int length() {
@@ -102,6 +142,7 @@ public abstract class Event {
         return data.length + 1;
     }
 
+    @JsonIgnore
     public final InputStream getInputStream() {
         return new ByteArrayInputStream(getBytes());
     }
@@ -116,10 +157,6 @@ public abstract class Event {
     }
 
     public abstract byte[] getBytes();
-
-    public abstract String toString();
-
-    public abstract Event addExtraFields(final Map<String, String> fields);
 
     private static boolean endswith(byte[] data, byte b) {
         return data.length >= 1 && data[data.length - 1] == b;
