@@ -151,6 +151,20 @@ public class JsonEventTest {
 
         event.setTied("hao");
         Assert.assertEquals(event.getTied(), "hao");
+
+        Map<String, String> fields = new HashMap<>();
+        fields.put("hello", "world");
+        event.setFields(fields);
+        Assert.assertEquals(event.getFields(), fields);
+
+        Map<String, String> moreFields = new HashMap<>();
+        moreFields.put("ni", "hao");
+        event.addFields(moreFields);
+        Map<String, String> got = event.getFields();
+        Assert.assertNotNull(got);
+        Assert.assertEquals(got.size(), 2);
+        Assert.assertEquals(got.get("hello"), "world");
+        Assert.assertEquals(got.get("ni"), "hao");
     }
 
     private interface SerialAndDeserial {

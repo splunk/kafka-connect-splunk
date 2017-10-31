@@ -41,25 +41,20 @@ public abstract class Event {
     private Object tied; // attached object
 
     public Event(Object eventData, Object tiedObj) {
-        if (eventData == null) {
-            throw new HecClientException("Null data for event");
-        }
-
-        if (eventData instanceof String) {
-            if (((String) eventData).isEmpty()) {
-                throw new HecClientException("Empty event");
-            }
-        }
+        checkEventData(eventData);
 
         event = eventData;
         tied = tiedObj;
     }
+
 
     // for JSON deserialization
     Event() {
     }
 
     public final Event setEvent(Object data) {
+        checkEventData(data);
+
         event = data;
         return this;
     }
@@ -158,7 +153,19 @@ public abstract class Event {
 
     public abstract byte[] getBytes();
 
-    private static boolean endswith(byte[] data, byte b) {
+    public static boolean endswith(byte[] data, byte b) {
         return data.length >= 1 && data[data.length - 1] == b;
+    }
+
+    private static void checkEventData(Object eventData) {
+        if (eventData == null) {
+            throw new HecClientException("Null data for event");
+        }
+
+        if (eventData instanceof String) {
+            if (((String) eventData).isEmpty()) {
+                throw new HecClientException("Empty event");
+            }
+        }
     }
 }

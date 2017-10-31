@@ -114,4 +114,44 @@ public class RawEventTest {
             throw new HecClientException("failed to parse raw event", ex);
         }
     }
+
+    @Test
+    public void getterSetter() {
+        Event event = new RawEvent("ni", null);
+        Map<String, String> m = new HashMap<String, String>();
+        m.put("hello", "world");
+        event.setFields(m);
+        Assert.assertNull(event.getFields()); // we ignore extra fields for raw event
+
+        event.addFields(m);
+        Assert.assertNull(event.getFields()); // we ignore extra fields for raw event
+    }
+
+    @Test
+    public void length() {
+        String data = "ni";
+        Event event = new RawEvent(data, null);
+        Assert.assertEquals(event.length(), data.length() + 1); // if we don't have trailing "\n", we add it
+
+        data = "ni\n";
+        event = new RawEvent(data, null);
+        Assert.assertEquals(event.length(), data.length()); // if we have trailing "\n", we don't add "\n"
+    }
+
+    @Test
+    public void endswith() {
+        byte[] data = new byte[2];
+        data[0] = 'n';
+        data[1] = 'i';
+
+        boolean r = Event.endswith(data, (byte) 'i');
+        Assert.assertTrue(r);
+
+        r = Event.endswith(data, (byte) 'n');
+        Assert.assertFalse(r);
+
+        data = new byte[0];
+        r = Event.endswith(data, (byte) 'i');
+        Assert.assertFalse(r);
+    }
 }
