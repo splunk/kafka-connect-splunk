@@ -1,8 +1,6 @@
 package com.splunk.hecclient;
 
-
 import java.io.UnsupportedEncodingException;
-import java.util.Map;
 
 /**
  * Created by kchen on 10/17/17.
@@ -18,20 +16,20 @@ public final class RawEvent extends Event {
             return bytes;
         }
 
-        if (data instanceof String) {
-            String s = (String) data;
+        if (event instanceof String) {
+            String s = (String) event;
             try {
                 bytes = s.getBytes("UTF-8");
             } catch (UnsupportedEncodingException ex) {
                 log.error("failed to encode as UTF-8", ex);
                 throw new HecClientException("Not UTF-8 encodable ", ex);
             }
-        } else if (data instanceof byte[]) {
-            bytes = (byte[]) data;
+        } else if (event instanceof byte[]) {
+            bytes = (byte[]) event;
         } else {
             // JSON object
             try {
-                bytes = jsonMapper.writeValueAsBytes(data);
+                bytes = jsonMapper.writeValueAsBytes(event);
             } catch (Exception ex) {
                 log.error("Invalid json data", ex);
                 throw new HecClientException("Failed to json marshal the data", ex);
@@ -42,14 +40,9 @@ public final class RawEvent extends Event {
     }
 
     @Override
-    public RawEvent addExtraFields(final Map<String, String> fields) {
-        return this;
-    }
-
-    @Override
     public String toString() {
         try {
-            return new String(bytes, "UTF-8");
+            return new String(getBytes(), "UTF-8");
         } catch (UnsupportedEncodingException ex) {
             log.error("failed to decode as UTF-8", ex);
             throw new HecClientException("Not UTF-8 decodable", ex);

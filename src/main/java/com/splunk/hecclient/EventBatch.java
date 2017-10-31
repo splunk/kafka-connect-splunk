@@ -37,7 +37,7 @@ public abstract class EventBatch {
 
     public final void addExtraFields(final Map<String, String> fields) {
         for (final Event event: events) {
-            event.addExtraFields(fields);
+            event.addFields(fields);
         }
     }
 

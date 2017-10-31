@@ -200,7 +200,7 @@ public final class SplunkSinkTask extends SinkTask {
             event.setIndex(metas.get(SplunkSinkConnectorConfig.INDEX));
             event.setSourcetype(metas.get(SplunkSinkConnectorConfig.SOURCETYPE));
             event.setSource(metas.get(SplunkSinkConnectorConfig.SOURCE));
-            event.addExtraFields(connectorConfig.enrichements);
+            event.addFields(connectorConfig.enrichements);
         }
 
         return event;

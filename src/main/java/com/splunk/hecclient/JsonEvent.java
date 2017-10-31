@@ -1,52 +1,62 @@
 package com.splunk.hecclient;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * Created by kchen on 10/17/17.
  */
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public final class JsonEvent extends Event {
     private static final String EVENT = "event";
     private static final String FIELDS = "fields";
 
-    private Map<String, String> extraFields;
-
+    private Map<String, String> fields;
 
     public JsonEvent(Object data, Object tied) {
         super(data, tied);
 
-        if (data instanceof String) {
-            if (((String) data).isEmpty()) {
-                throw new HecClientException("Empty data json event");
-            }
-        }
+
+    }
+
+    // for JSON deserilzed
+    JsonEvent() {
     }
 
     @Override
-    public JsonEvent addExtraFields(final Map<String, String> fields) {
-        if (fields == null || fields.isEmpty()) {
+    public JsonEvent addFields(final Map<String, String> extraFields) {
+        if (extraFields == null || extraFields.isEmpty()) {
             return this;
         }
 
-        if (extraFields == null) {
-            extraFields = new HashMap<>();
+        if (fields == null) {
+            fields = new HashMap<>();
         }
-        extraFields.putAll(fields);
+        fields.putAll(extraFields);
         return this;
+    }
+
+    @Override
+    public JsonEvent setFields(final Map<String, String> extraFields) {
+        fields = extraFields;
+        return this;
+    }
+
+    @Override
+    public Map<String, String> getFields() {
+        return fields;
     }
 
     @Override
     public String toString() {
         try {
-            return jsonMapper.writeValueAsString(getJsonNode());
+            return jsonMapper.writeValueAsString(this);
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
-            throw new RuntimeException(ex.getMessage(), ex);
+            log.error("failed to json serlized JsonEvent", ex);
+            throw new HecClientException("failed to json serlized JsonEvent", ex);
         }
     }
 
@@ -57,38 +67,12 @@ public final class JsonEvent extends Event {
         }
 
         try {
-            bytes = jsonMapper.writeValueAsBytes(getJsonNode());
+            bytes = jsonMapper.writeValueAsBytes(this);
         } catch (Exception ex) {
             log.error("Invalid json event", ex);
             throw new HecClientException("Failed to json marshal the event", ex);
         }
 
         return bytes;
-    }
-
-    private ObjectNode getJsonNode() {
-        Map<String, Object> eventJSON = new LinkedHashMap<>();
-
-        if (time > 0) {
-            eventJSON.put(TIME, String.valueOf(time));
-        }
-        putIfPresent(eventJSON, INDEX, index);
-        putIfPresent(eventJSON, HOST, host);
-        putIfPresent(eventJSON, SOURCETYPE, sourcetype);
-        putIfPresent(eventJSON, SOURCE, source);
-
-        if (extraFields != null && !extraFields.isEmpty()) {
-            eventJSON.put(FIELDS, extraFields);
-        }
-        eventJSON.put(EVENT, data);
-
-        ObjectNode eventNode = (ObjectNode) jsonMapper.valueToTree(eventJSON);
-        return eventNode;
-    }
-
-    private static void putIfPresent(Map<String, Object> collection, String tag, String value) {
-        if (value != null && !value.isEmpty()) {
-            collection.put(tag, value);
-        }
     }
 }
