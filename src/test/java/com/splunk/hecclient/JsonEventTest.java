@@ -23,15 +23,15 @@ public class JsonEventTest {
 
         // without tied object
         Event event = new JsonEvent(data, null);
-        Assert.assertEquals(event.getEvent(), data);
-        Assert.assertEquals(event.getTied(), null);
+        Assert.assertEquals(data, event.getEvent());
+        Assert.assertEquals(null, event.getTied());
 
         // with tied object
         String tied = "i love you";
         event = new JsonEvent(data, tied);
 
-        Assert.assertEquals(event.getTied(), tied);
-        Assert.assertEquals(event.getEvent(), data);
+        Assert.assertEquals(tied, event.getTied());
+        Assert.assertEquals(data, event.getEvent());
 
 
     }
@@ -64,19 +64,19 @@ public class JsonEventTest {
         event.addFields(fields);
         Map<String, String> fieldsGot = event.getFields();
         Assert.assertNotNull(fieldsGot);
-        Assert.assertEquals(fieldsGot.isEmpty(), false);
-        Assert.assertEquals(fieldsGot.size(), 1);
-        Assert.assertEquals(fieldsGot.get("ni"), "hao");
+        Assert.assertEquals(false, fieldsGot.isEmpty());
+        Assert.assertEquals(1, fieldsGot.size());
+        Assert.assertEquals("hao", fieldsGot.get("ni"));
 
         // put another one
         fields.put("hello", "world");
         event.addFields(fields);
         fieldsGot = event.getFields();
         Assert.assertNotNull(fieldsGot);
-        Assert.assertEquals(fieldsGot.isEmpty(), false);
-        Assert.assertEquals(fieldsGot.size(), 2);
-        Assert.assertEquals(fieldsGot.get("ni"), "hao");
-        Assert.assertEquals(fieldsGot.get("hello"), "world");
+        Assert.assertEquals(false, fieldsGot.isEmpty());
+        Assert.assertEquals(2, fieldsGot.size());
+        Assert.assertEquals("hao", fieldsGot.get("ni"));
+        Assert.assertEquals("world", fieldsGot.get("hello"));
     }
 
     @Test
@@ -142,54 +142,54 @@ public class JsonEventTest {
             Assert.assertTrue("failed to deserialize from bytes", false);
             throw new HecClientException("failed to deserialize from bytes", ex);
         }
-        Assert.assertEquals(eventGot.getEvent(), "hello");
+        Assert.assertEquals("hello", eventGot.getEvent());
     }
 
     @Test
     public void getterSetter() {
         Event event = new JsonEvent("hello", "world");
-        Assert.assertEquals(event.getEvent(), "hello");
-        Assert.assertEquals(event.getTied(), "world");
+        Assert.assertEquals("hello", event.getEvent());
+        Assert.assertEquals("world", event.getTied());
 
         Assert.assertNull(event.getIndex());
         event.setIndex("main");
-        Assert.assertEquals(event.getIndex(), "main");
+        Assert.assertEquals("main", event.getIndex());
 
         Assert.assertNull(event.getSource());
         event.setSource("source");
-        Assert.assertEquals(event.getSource(), "source");
+        Assert.assertEquals("source", event.getSource());
 
         Assert.assertNull(event.getSourcetype());
         event.setSourcetype("sourcetype");
-        Assert.assertEquals(event.getSourcetype(), "sourcetype");
+        Assert.assertEquals("sourcetype", event.getSourcetype());
 
         Assert.assertNull(event.getHost());
         event.setHost("localhost");
-        Assert.assertEquals(event.getHost(), "localhost");
+        Assert.assertEquals("localhost", event.getHost());
 
-        Assert.assertEquals(event.getTime(), -1);
+        Assert.assertNull(event.getTime());
         event.setTime(1);
-        Assert.assertEquals(event.getTime(), 1);
+        Assert.assertEquals(new Long(1), event.getTime());
 
         event.setEvent("ni");
-        Assert.assertEquals(event.getEvent(), "ni");
+        Assert.assertEquals("ni", event.getEvent());
 
         event.setTied("hao");
-        Assert.assertEquals(event.getTied(), "hao");
+        Assert.assertEquals("hao", event.getTied());
 
         Map<String, String> fields = new HashMap<>();
         fields.put("hello", "world");
         event.setFields(fields);
-        Assert.assertEquals(event.getFields(), fields);
+        Assert.assertEquals(fields, event.getFields());
 
         Map<String, String> moreFields = new HashMap<>();
         moreFields.put("ni", "hao");
         event.addFields(moreFields);
         Map<String, String> got = event.getFields();
         Assert.assertNotNull(got);
-        Assert.assertEquals(got.size(), 2);
-        Assert.assertEquals(got.get("hello"), "world");
-        Assert.assertEquals(got.get("ni"), "hao");
+        Assert.assertEquals(2, got.size());
+        Assert.assertEquals("world", got.get("hello"));
+        Assert.assertEquals("hao", got.get("ni"));
     }
 
     private interface SerialAndDeserial {
@@ -228,16 +228,16 @@ public class JsonEventTest {
         for (int i = 0; i < 2; i++) {
             Event deserialized = sad.serializeAndDeserialize(event);
 
-            Assert.assertEquals(deserialized.getEvent(), data);
+            Assert.assertEquals(data, deserialized.getEvent());
             Assert.assertNull(deserialized.getTied()); // we ignore tied when serialize Event
-            Assert.assertEquals(deserialized.getHost(), "localhost");
-            Assert.assertEquals(deserialized.getIndex(), "main");
-            Assert.assertEquals(deserialized.getSource(), "test-source");
-            Assert.assertEquals(deserialized.getSourcetype(), "test-sourcetype");
-            Assert.assertEquals(deserialized.getTime(), 100000000);
+            Assert.assertEquals("localhost", deserialized.getHost());
+            Assert.assertEquals("main", deserialized.getIndex());
+            Assert.assertEquals("test-source", deserialized.getSource());
+            Assert.assertEquals("test-sourcetype", deserialized.getSourcetype());
+            Assert.assertEquals(new Long(100000000), deserialized.getTime());
 
             Map<String, String> fieldsGot = deserialized.getFields();
-            Assert.assertEquals(fieldsGot.get("ni"), "hao");
+            Assert.assertEquals("hao", fieldsGot.get("ni"));
         }
     }
 }

@@ -13,7 +13,7 @@ import java.util.Map;
  * Created by kchen on 10/17/17.
  */
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public abstract class Event {
     static final String TIME = "time";
     static final String HOST = "host";
@@ -24,7 +24,8 @@ public abstract class Event {
     static final ObjectMapper jsonMapper = new ObjectMapper();
     protected static final Logger log = LoggerFactory.getLogger(Event.class);
 
-    protected long time = -1; // epochMillis
+    protected Long time = null; // epochMillis
+
     protected String source;
     protected String sourcetype;
     protected String host;
@@ -85,7 +86,7 @@ public abstract class Event {
         return this;
     }
 
-    public final long getTime() {
+    public final Long getTime() {
         return time;
     }
 

@@ -26,7 +26,7 @@ public abstract class EventBatch {
 
     private volatile int status = INIT;
     private int failureCount = 0;
-    private long sendTimestamp; // in seconds
+    private long sendTimestamp = 0; // in seconds
     protected int len;
     protected List<Event> events = new ArrayList<>();
 
@@ -110,9 +110,12 @@ public abstract class EventBatch {
     @Override
     public final String toString() {
         StringBuilder builder = new StringBuilder();
+        builder.append("[");
         for (Event e: events) {
             builder.append(e.toString());
+            builder.append(",");
         }
+        builder.append("]");
         return builder.toString();
     }
 
