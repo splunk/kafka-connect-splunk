@@ -5,6 +5,9 @@ package com.splunk.hecclient;
  * Created by kchen on 10/17/17.
  */
 public final class JsonEventBatch extends EventBatch {
+    public static final String endpoint = "/services/collector/event";
+    public static final String contentType = "application/json; profile=urn:splunk:event:1.0; charset=utf-8";
+
     @Override
     public void add(Event event) {
         if (event instanceof JsonEvent) {
@@ -17,12 +20,12 @@ public final class JsonEventBatch extends EventBatch {
 
     @Override
     public final String getRestEndpoint() {
-        return "/services/collector/event";
+        return endpoint;
     }
 
     @Override
     public String getContentType() {
-        return "application/json; profile=urn:splunk:event:1.0; charset=utf-8";
+        return contentType;
     }
 
     @Override

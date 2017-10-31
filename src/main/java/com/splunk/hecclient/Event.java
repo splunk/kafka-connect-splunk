@@ -6,17 +6,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.*;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.Map;
 
 /**
  * Created by kchen on 10/17/17.
  */
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public abstract class Event {
     static final String TIME = "time";
     static final String HOST = "host";
@@ -27,7 +24,8 @@ public abstract class Event {
     static final ObjectMapper jsonMapper = new ObjectMapper();
     protected static final Logger log = LoggerFactory.getLogger(Event.class);
 
-    protected long time = -1; // epochMillis
+    protected Long time = null; // epochMillis
+
     protected String source;
     protected String sourcetype;
     protected String host;
@@ -46,7 +44,6 @@ public abstract class Event {
         event = eventData;
         tied = tiedObj;
     }
-
 
     // for JSON deserialization
     Event() {
@@ -89,7 +86,7 @@ public abstract class Event {
         return this;
     }
 
-    public final long getTime() {
+    public final Long getTime() {
         return time;
     }
 
@@ -139,19 +136,29 @@ public abstract class Event {
 
     @JsonIgnore
     public final InputStream getInputStream() {
-        return new ByteArrayInputStream(getBytes());
+        byte[] data = getBytes();
+        InputStream eventStream = new ByteArrayInputStream(data);
+        if (endswith(data, (byte) '\n')) {
+            return eventStream;
+        }
+
+        // avoid copying the event
+        byte[] carriageReturn = new byte[1];
+        carriageReturn[0] = (byte) '\n';
+        InputStream carriageReturnStream = new ByteArrayInputStream(carriageReturn);
+        return new SequenceInputStream(eventStream, carriageReturnStream);
     }
 
     public final void writeTo(OutputStream out) throws IOException {
         byte[] data = getBytes();
         out.write(data);
         if (!endswith(data, (byte) '\n')) {
-            // insert '\n'
+            // append '\n'
             out.write('\n');
         }
     }
 
-    public abstract byte[] getBytes();
+    abstract byte[] getBytes();
 
     public static boolean endswith(byte[] data, byte b) {
         return data.length >= 1 && data[data.length - 1] == b;

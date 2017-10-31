@@ -4,8 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,39 +45,42 @@ public class RawEventTest {
     public void getBytes() {
         // String payload
         Event event = new RawEvent("ni", null);
-        byte[] data = event.getBytes();
-        Assert.assertNotNull(data);
-        try {
-            String got = new String(data, "UTF-8");
-            Assert.assertEquals(got, "ni");
-        } catch (UnsupportedEncodingException ex) {
-            Assert.assertFalse("failed to get string out of byte", true);
-            throw new HecClientException("failed to get string out of byte", ex);
+        for (int i = 0; i < 2; i++) {
+            byte[] data = event.getBytes();
+            Assert.assertNotNull(data);
+            try {
+                String got = new String(data, "UTF-8");
+                Assert.assertEquals(got, "ni");
+            } catch (UnsupportedEncodingException ex) {
+                Assert.assertFalse("failed to get string out of byte", true);
+                throw new HecClientException("failed to get string out of byte", ex);
+            }
         }
 
         // byte payload
         byte[] bytes = new byte[2];
         bytes[0] = 'n';
         bytes[1] = 'i';
-
         event = new RawEvent(bytes, null);
-        data = event.getBytes();
-        Assert.assertNotNull(data);
-        Assert.assertEquals(data[0], 'n');
-        Assert.assertEquals(data[1], 'i');
+        for (int i = 0; i < 1; i++) {
+            byte[] data = event.getBytes();
+            Assert.assertArrayEquals(data, bytes);
+        }
 
-        // json object
+        // jso object
         Map<String, String> m = new HashMap<>();
         m.put("hello", "world");
         event = new RawEvent(m, null);
-        data = event.getBytes();
-        Assert.assertNotNull(data);
-        try {
-            HashMap<?, ?> map = (HashMap<?, ?>) jsonMapper.readValue(data, HashMap.class);
-            Assert.assertEquals(map.get("hello"), "world");
-        } catch (IOException ex) {
-            Assert.assertFalse("expect no exception but got exception", false);
-            throw new HecClientException("failed to parse raw event", ex);
+        for (int i = 0; i < 2; i++) {
+            byte[] data = event.getBytes();
+            Assert.assertNotNull(data);
+            try {
+                HashMap<?, ?> map = (HashMap<?, ?>) jsonMapper.readValue(data, HashMap.class);
+                Assert.assertEquals(map.get("hello"), "world");
+            } catch (IOException ex) {
+                Assert.assertFalse("expect no exception but got exception", false);
+                throw new HecClientException("failed to parse raw event", ex);
+            }
         }
     }
 
@@ -112,6 +114,86 @@ public class RawEventTest {
         } catch (IOException ex) {
             Assert.assertFalse("expect no exception but got exception", false);
             throw new HecClientException("failed to parse raw event", ex);
+        }
+    }
+
+    @Test
+    public void getInputStreamWithoutCarriageReturn() {
+        getInputStream(false);
+    }
+
+    @Test
+    public void getInputStreamWithCarriageReturn() {
+        getInputStream(true);
+    }
+
+    private void getInputStream(boolean withCarriageReturn) {
+        String e;
+        if (withCarriageReturn) {
+            e = "ni\n";
+        } else {
+            e = "ni"; // the lib will append a trailing '\n' to the event
+        }
+
+        Event event = new RawEvent(e, "hao");
+        InputStream stream = event.getInputStream();
+        byte[] data = new byte[1024];
+
+        int siz = 0;
+        while (true) {
+            try {
+                int read = stream.read(data, siz, data.length - siz);
+                if (read < 0) {
+                    break;
+                }
+                siz += read;
+            } catch (IOException ex) {
+                Assert.assertTrue("failed to read from stream", false);
+                throw new HecClientException("failed to read from stream", ex);
+            }
+        }
+
+        if (withCarriageReturn) {
+            Assert.assertEquals(siz, e.length());
+        } else {
+            Assert.assertEquals(siz, e.length() + 1);
+        }
+
+        Assert.assertEquals(data[0], 'n');
+        Assert.assertEquals(data[1], 'i');
+        Assert.assertEquals(data[2], '\n');
+    }
+
+    @Test
+    public void writeToWithoutCarriageReturn() {
+        writeTo(false);
+    }
+
+    @Test
+    public void writeToWithCarriageReturn() {
+        writeTo(true);
+    }
+
+    private void writeTo(boolean withCarriageReturn) {
+        String eventData = "ni";
+        if (withCarriageReturn) {
+            eventData += "\n";
+        }
+
+        Event e = new RawEvent(eventData, null);
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        try {
+            e.writeTo(stream);
+        } catch (IOException ex) {
+            Assert.assertTrue("failed to write to stream", false);
+            throw new HecClientException("failed to write to stream", ex);
+        }
+
+        String dataGot = stream.toString();
+        if (withCarriageReturn) {
+            Assert.assertEquals(dataGot, eventData);
+        } else {
+            Assert.assertEquals(dataGot, eventData + "\n");
         }
     }
 

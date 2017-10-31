@@ -6,6 +6,9 @@ import org.apache.http.client.utils.URIBuilder;
  * Created by kchen on 10/18/17.
  */
 public final class RawEventBatch extends EventBatch {
+    public static final String endpoint = "/services/collector/raw";
+    public static final String contentType = "text/plain; profile=urn:splunk:event:1.0; charset=utf-8";
+
     private String index;
     private String source;
     private String sourcetype;
@@ -74,12 +77,12 @@ public final class RawEventBatch extends EventBatch {
 
     @Override
     public final String getRestEndpoint() {
-        return "/services/collector/raw" + getMetadataParams();
+        return  endpoint + getMetadataParams();
     }
 
     @Override
     public String getContentType() {
-        return "text/plain; profile=urn:splunk:event:1.0; charset=utf-8";
+        return contentType;
     }
 
     @Override
