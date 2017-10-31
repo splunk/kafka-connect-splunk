@@ -5,6 +5,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -121,6 +122,30 @@ public class JsonEventTest {
     }
 
     @Test
+    public void getInputStream() {
+        Event event = new JsonEvent("hello", "world");
+        InputStream stream = event.getInputStream();
+        byte[] data = new byte[1024];
+
+        int siz;
+        try {
+            siz = stream.read(data);
+        } catch (IOException ex) {
+            Assert.assertTrue("failed to read from stream", false);
+            throw new HecClientException("failed to read from stream", ex);
+        }
+
+        Event eventGot;
+        try {
+            eventGot = jsonMapper.readValue(data, JsonEvent.class);
+        } catch (IOException ex) {
+            Assert.assertTrue("failed to deserialize from bytes", false);
+            throw new HecClientException("failed to deserialize from bytes", ex);
+        }
+        Assert.assertEquals(eventGot.getEvent(), "hello");
+    }
+
+    @Test
     public void getterSetter() {
         Event event = new JsonEvent("hello", "world");
         Assert.assertEquals(event.getEvent(), "hello");
@@ -200,17 +225,19 @@ public class JsonEventTest {
         event.setSourcetype("test-sourcetype");
         event.setTime(100000000);
 
-        Event deserialized = sad.serializeAndDeserialize(event);
+        for (int i = 0; i < 2; i++) {
+            Event deserialized = sad.serializeAndDeserialize(event);
 
-        Assert.assertEquals(deserialized.getEvent(), data);
-        Assert.assertNull(deserialized.getTied()); // we ignore tied when serialize Event
-        Assert.assertEquals(deserialized.getHost(), "localhost");
-        Assert.assertEquals(deserialized.getIndex(), "main");
-        Assert.assertEquals(deserialized.getSource(), "test-source");
-        Assert.assertEquals(deserialized.getSourcetype(), "test-sourcetype");
-        Assert.assertEquals(deserialized.getTime(), 100000000);
+            Assert.assertEquals(deserialized.getEvent(), data);
+            Assert.assertNull(deserialized.getTied()); // we ignore tied when serialize Event
+            Assert.assertEquals(deserialized.getHost(), "localhost");
+            Assert.assertEquals(deserialized.getIndex(), "main");
+            Assert.assertEquals(deserialized.getSource(), "test-source");
+            Assert.assertEquals(deserialized.getSourcetype(), "test-sourcetype");
+            Assert.assertEquals(deserialized.getTime(), 100000000);
 
-        Map<String, String> fieldsGot = deserialized.getFields();
-        Assert.assertEquals(fieldsGot.get("ni"), "hao");
+            Map<String, String> fieldsGot = deserialized.getFields();
+            Assert.assertEquals(fieldsGot.get("ni"), "hao");
+        }
     }
 }
