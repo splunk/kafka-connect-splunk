@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Created by kchen on 10/18/17.
  */
-public final class LoadBalancer {
+final class LoadBalancer {
     private List<HecChannel> channels;
     private int index;
 

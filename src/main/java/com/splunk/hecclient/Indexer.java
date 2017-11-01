@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by kchen on 10/18/17.
  */
-public final class Indexer implements IndexerInf {
+final class Indexer implements IndexerInf {
     private static final Logger log = LoggerFactory.getLogger(Indexer.class);
 
     private CloseableHttpClient httpClient;

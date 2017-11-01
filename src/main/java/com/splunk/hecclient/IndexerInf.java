@@ -6,7 +6,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 /**
  * Created by kchen on 10/31/17.
  */
-public interface IndexerInf {
+interface IndexerInf {
     boolean send(final EventBatch batch);
     String executeHttpRequest(final HttpUriRequest req);
     String getBaseUrl();

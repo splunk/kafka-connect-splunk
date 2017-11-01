@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
  */
 public final class HecExample {
     public static void main(String[] args) {
-        Logger log = LoggerFactory.getLogger(IndexerExample.class);
+        Logger log = LoggerFactory.getLogger(HecExample.class);
 
         List<String> uris = Arrays.asList(
                 "https://52.53.254.149:8088",
