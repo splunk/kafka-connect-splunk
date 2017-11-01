@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by kchen on 10/18/17.
  */
-public final class Indexer {
+final class Indexer implements IndexerInf {
     private static final Logger log = LoggerFactory.getLogger(Indexer.class);
 
     private CloseableHttpClient httpClient;
@@ -65,6 +65,7 @@ public final class Indexer {
         return keepAlive;
     }
 
+    @Override
     public Header[] getHeaders() {
         return headers;
     }
@@ -73,6 +74,7 @@ public final class Indexer {
         return hecToken;
     }
 
+    @Override
     public String getBaseUrl() {
         return baseUrl;
     }
@@ -82,6 +84,7 @@ public final class Indexer {
     }
 
     // this method is multi-thread safe
+    @Override
     public boolean send(final EventBatch batch) {
         String endpoint = batch.getRestEndpoint();
         String url = baseUrl + endpoint;
@@ -104,7 +107,8 @@ public final class Indexer {
         return true;
     }
 
-    // doSend is synchronized since there are multi-threads to access the context
+    // executeHttpRequest is synchronized since there are multi-threads to access the context
+    @Override
     public synchronized String executeHttpRequest(final HttpUriRequest req) {
         CloseableHttpResponse resp;
         try {

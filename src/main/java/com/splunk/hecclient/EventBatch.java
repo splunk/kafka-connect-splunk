@@ -154,7 +154,7 @@ public abstract class EventBatch {
 
         @Override
         public void writeTo(OutputStream outstream) throws IOException {
-            for (Event e : events) {
+            for (final Event e : events) {
                 e.writeTo(outstream);
             }
         }

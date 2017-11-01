@@ -4,6 +4,7 @@ import org.apache.http.HttpEntity;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -130,36 +131,42 @@ public class JsonEvenBatchTest {
         Assert.assertFalse(entity.isStreaming());
         Assert.assertEquals(0, entity.getContentLength());
 
+        byte[] data = new byte[1024];
+        int siz = readContent(entity, data);
+        Assert.assertEquals(0, siz);
+
         Event event = new JsonEvent("ni", "hao");
         batch.add(event);
 
         entity = batch.getHttpEntity();
         Assert.assertEquals(event.length(), entity.getContentLength());
 
-        InputStream stream;
+        siz = readContent(entity, data);
+        String expected = "{\"event\":\"ni\"}\n";
+        Assert.assertEquals(expected, new String(data, 0, siz));
+
+        // Write to a OutputStream
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
-            stream = entity.getContent();
+            entity.writeTo(out);
+        } catch (IOException ex) {
+            Assert.assertTrue("failed to write to stream", false);
+            throw new HecClientException("failed to write to stream", ex);
+        }
+        String got = out.toString();
+        Assert.assertEquals(expected, got);
+    }
+
+    private int readContent(final HttpEntity entity, byte[] data) {
+        // Read from InputStream
+        InputStream in;
+        try {
+            in = entity.getContent();
         } catch (IOException ex) {
             Assert.assertTrue("failed to getContent", false);
             throw new HecClientException("failed to getContent", ex);
         }
 
-        byte[] data = new byte[1024];
-        int siz = 0;
-        while (true) {
-            try {
-                int read = stream.read(data, siz, data.length - siz);
-                if (read < 0) {
-                    break;
-                }
-                siz += read;
-            } catch (IOException ex) {
-                Assert.assertTrue("failed to read from stream", false);
-                throw new HecClientException("failed to read from stream", ex);
-            }
-        }
-
-        String expected = "{\"event\":\"ni\"}\n";
-        Assert.assertEquals(expected, new String(data, 0, siz));
+        return StreamReader.read(in, data);
     }
 }

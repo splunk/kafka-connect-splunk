@@ -6,13 +6,13 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * Created by kchen on 10/19/17.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public final class PostResponse {
+final class PostResponse {
     // {"text":"Success","code":0,"ackId":7}
     private String text;
     private int code = -1;
     private long ackId = -1;
 
-    public PostResponse() {
+    PostResponse() {
     }
 
     public boolean isSucceed() {
