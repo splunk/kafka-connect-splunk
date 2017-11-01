@@ -32,14 +32,14 @@ public final class HecPerf {
         HecPerfConfig config;
         try {
             config = createConfigFrom(args);
-        } catch (HecClientException ex) {
+        } catch (HecException ex) {
             return;
         }
 
         // shared http client pool
         List<CloseableHttpClient> httpClients = new ArrayList<>();
         for (int i = 0; i < config.getClientPoolSize(); i++) {
-            CloseableHttpClient httpClient = HecClient.createHttpClient(config.getHecClientConfig());
+            CloseableHttpClient httpClient = Hec.createHttpClient(config.getHecClientConfig());
             httpClients.add(httpClient);
         }
 
@@ -214,13 +214,13 @@ public final class HecPerf {
             cmd = parser.parse(options, args);
         } catch (Exception ex) {
             new HelpFormatter().printHelp("java -Xmx6G -Xms2G -cp hecclient.jar com.splunk.hecclient.examples.HecPerf [options]", options);
-            throw new HecClientException("usage error");
+            throw new HecException("usage error");
         }
 
         String uris = cmd.getOptionValue(uriArg);
         String token = cmd.getOptionValue(tokenArg);
 
-        HecClientConfig config = new HecClientConfig(Arrays.asList(uris.split(",")), token);
+        HecConfig config = new HecConfig(Arrays.asList(uris.split(",")), token);
 
         if (cmd.hasOption(pollIntervalArg)) {
             config.setAckPollInterval((int) (long) cmd.getParsedOptionValue(pollIntervalArg));

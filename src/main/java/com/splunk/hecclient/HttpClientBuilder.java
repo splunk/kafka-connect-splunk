@@ -96,7 +96,7 @@ public final class HttpClientBuilder {
         try {
             context = new SSLContextBuilder().loadTrustMaterial(trustStrategy).build();
         } catch (Exception ex) {
-            throw new HecClientException("failed to create SSL connection factory", ex);
+            throw new HecException("failed to create SSL connection factory", ex);
         }
 
         return new SSLConnectionSocketFactory(context, hostnameVerifier);

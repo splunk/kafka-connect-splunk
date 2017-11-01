@@ -2,7 +2,6 @@ package com.splunk.hecclient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.*;
 
@@ -166,12 +165,12 @@ public abstract class Event {
 
     private static void checkEventData(Object eventData) {
         if (eventData == null) {
-            throw new HecClientException("Null data for event");
+            throw new HecException("Null data for event");
         }
 
         if (eventData instanceof String) {
             if (((String) eventData).isEmpty()) {
-                throw new HecClientException("Empty event");
+                throw new HecException("Empty event");
             }
         }
     }

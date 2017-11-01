@@ -1,24 +1,24 @@
 package com.splunk.hecclient.examples;
 
-import com.splunk.hecclient.HecClientConfig;
+import com.splunk.hecclient.HecConfig;
 
 /**
  * Created by kchen on 10/20/17.
  */
 public final class HecPerfConfig {
-    private HecClientConfig config;
+    private HecConfig config;
     private int concurrency;
     private int clientPoolSize;
     private int iterations;
 
-    public HecPerfConfig(HecClientConfig config, int concurrency, int clientPoolSize, int iterations) {
+    public HecPerfConfig(HecConfig config, int concurrency, int clientPoolSize, int iterations) {
         this.config = config;
         this.concurrency = concurrency;
         this.clientPoolSize = clientPoolSize;
         this.iterations = iterations;
     }
 
-    public HecClientConfig getHecClientConfig() {
+    public HecConfig getHecClientConfig() {
         return config;
     }
 

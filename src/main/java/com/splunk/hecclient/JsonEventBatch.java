@@ -14,7 +14,7 @@ public final class JsonEventBatch extends EventBatch {
             events.add(event);
             len += event.length();
         } else {
-            throw new HecClientException("only JsonEvent can be add to JsonEventBatch");
+            throw new HecException("only JsonEvent can be add to JsonEventBatch");
         }
     }
 

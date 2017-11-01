@@ -50,7 +50,8 @@ public final class ResponsePoller implements Poller {
         try {
             PostResponse response = jsonMapper.readValue(resp, PostResponse.class);
             if (!response.isSucceed()) {
-                fail(channel, batch, new HecClientException(response.getText()));
+                fail(channel, batch, new HecException(response.getText()));
+                return;
             }
         } catch (Exception ex) {
             log.error("failed to parse response", resp, ex);
@@ -58,8 +59,8 @@ public final class ResponsePoller implements Poller {
             return;
         }
 
+        batch.commit();
         if (callback != null) {
-            batch.commit();
             callback.onEventCommitted(Arrays.asList(batch));
         }
     }

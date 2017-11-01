@@ -179,7 +179,7 @@ public final class HecAckPoller implements Poller {
         if (!timeouts.isEmpty()) {
             log.warn("detected {} event batches timedout", timeouts.size());
             totalOutstandingEventBatches.addAndGet(-timeouts.size());
-            pollerCallback.onEventFailure(timeouts, new HecClientException("timeouts"));
+            pollerCallback.onEventFailure(timeouts, new HecException("timeouts"));
         }
     }
 
@@ -258,7 +258,7 @@ public final class HecAckPoller implements Poller {
             ackIds = jsonMapper.writeValueAsString(json);
         } catch (JsonProcessingException ex) {
             log.error("failed to create ack poll request", ex);
-            throw new HecClientException("failed to create ack poll request", ex);
+            throw new HecException("failed to create ack poll request", ex);
         }
 
         log.debug("acks={} channel={} indexer={}", ackIds, ch, ch.getIndexer());
@@ -268,7 +268,7 @@ public final class HecAckPoller implements Poller {
             entity = new StringEntity(ackIds);
         } catch (UnsupportedEncodingException ex) {
             log.error("failed to create ack poll request", ex);
-            throw new HecClientException("failed to create ack poll request", ex);
+            throw new HecException("failed to create ack poll request", ex);
         }
 
         entity.setContentType("application/json; profile=urn:splunk:event:1.0; charset=utf-8");

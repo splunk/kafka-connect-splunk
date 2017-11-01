@@ -58,7 +58,7 @@ public class PostResponseTest {
             return jsonMapper.readValue(resp, PostResponse.class);
         } catch (IOException ex) {
             Assert.assertTrue("failed to deserialize from acks", false);
-            throw new HecClientException("failed to deserialize from acks", ex);
+            throw new HecException("failed to deserialize from acks", ex);
         }
     }
 }

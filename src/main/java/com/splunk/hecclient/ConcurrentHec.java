@@ -20,11 +20,15 @@ public class ConcurrentHec implements HecInf {
     private PollerCallback pollerCallback;
     private volatile boolean stopped;
 
-    public ConcurrentHec(int numberOfThreads, boolean useAck, HecClientConfig config, PollerCallback cb) {
+    public ConcurrentHec(int numberOfThreads, boolean useAck, HecConfig config, PollerCallback cb) {
+        this(numberOfThreads, useAck, config, cb, new LoadBalancer());
+    }
+
+    public ConcurrentHec(int numberOfThreads, boolean useAck, HecConfig config, PollerCallback cb, LoadBalancerInf loadBalancer) {
         batches = new LinkedBlockingQueue<>(100);
         ThreadFactory e = (Runnable r) -> new Thread(r, "Concurrent-HEC-worker");
         executorService = Executors.newFixedThreadPool(numberOfThreads, e);
-        initHec(numberOfThreads, useAck, config, cb);
+        initHec(numberOfThreads, useAck, config, cb, loadBalancer);
         pollerCallback = cb;
         stopped = false;
 
@@ -85,14 +89,14 @@ public class ConcurrentHec implements HecInf {
         }
     }
 
-    private void initHec(int count, boolean useAck, HecClientConfig config, PollerCallback cb) {
+    private void initHec(int count, boolean useAck, HecConfig config, PollerCallback cb, LoadBalancerInf loadBalancer) {
         config.setTotalChannels(Math.max(config.getTotalChannels() / count, 1));
         hecs = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             if (useAck) {
-                hecs.add(new HecWithAck(config, cb));
+                hecs.add(new HecWithAck(config, cb, loadBalancer));
             } else {
-                hecs.add(new HecWithoutAck(config, cb));
+                hecs.add(new HecWithoutAck(config, cb, loadBalancer));
             }
         }
     }

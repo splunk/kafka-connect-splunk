@@ -3,14 +3,14 @@ package com.splunk.hecclient;
 /**
  * Created by kchen on 10/17/17.
  */
-public class HecClientException extends RuntimeException {
+public class HecException extends RuntimeException {
     private static final long serialVersionUID = 34L;
 
-    public HecClientException(String message) {
+    public HecException(String message) {
         super(message);
     }
 
-    public HecClientException(String message, Throwable cause) {
+    public HecException(String message, Throwable cause) {
         super(message, cause);
     }
 }

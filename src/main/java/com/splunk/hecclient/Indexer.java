@@ -95,7 +95,7 @@ final class Indexer implements IndexerInf {
         String resp;
         try {
             resp = executeHttpRequest(httpPost);
-        } catch (HecClientException ex) {
+        } catch (HecException ex) {
             poller.fail(channel, batch, ex);
             return false;
         }
@@ -115,7 +115,7 @@ final class Indexer implements IndexerInf {
             resp = httpClient.execute(req, context);
         } catch (Exception ex) {
             log.error("encountered io exception:", ex);
-            throw new HecClientException("encountered exception when post data", ex);
+            throw new HecException("encountered exception when post data", ex);
         }
 
         return readAndCloseResponse(resp);
@@ -128,12 +128,12 @@ final class Indexer implements IndexerInf {
             respPayload = EntityUtils.toString(entity, "utf-8");
         } catch (Exception ex) {
             log.error("failed to process http response", ex);
-            throw new HecClientException("failed to process http response", ex);
+            throw new HecException("failed to process http response", ex);
         } finally {
             try {
                 resp.close();
             } catch (Exception ex) {
-                throw new HecClientException("failed to close http response", ex);
+                throw new HecException("failed to close http response", ex);
             }
         }
 
@@ -142,7 +142,7 @@ final class Indexer implements IndexerInf {
         // FIXME 503 server is busy backpressure
         if (status != 200 && status != 201) {
             log.error("failed to post events resp={}, status={}", respPayload, status);
-            throw new HecClientException(String.format("failed to post events resp=%s, status=%d", respPayload, status));
+            throw new HecException(String.format("failed to post events resp=%s, status=%d", respPayload, status));
         }
 
         return respPayload;

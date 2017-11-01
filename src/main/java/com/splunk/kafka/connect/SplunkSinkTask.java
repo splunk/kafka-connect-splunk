@@ -60,7 +60,7 @@ public final class SplunkSinkTask extends SinkTask {
         if (backPressure > 0) {
             backPressure = 0;
             lastResetTime = curTime;
-            throw new RetriableException(new HecClientException("detected backPressure, pause the pull for a while"));
+            throw new RetriableException(new HecException("detected backPressure, pause the pull for a while"));
         }
 
         if (curTime - lastResetTime > backPressureResetWindow) {
@@ -79,7 +79,7 @@ public final class SplunkSinkTask extends SinkTask {
         }
 
         if (!failed.isEmpty()) {
-            throw new RetriableException(new HecClientException("need handle failed batches first, pause the pull for a while"));
+            throw new RetriableException(new HecException("need handle failed batches first, pause the pull for a while"));
         }
     }
 
@@ -107,7 +107,7 @@ public final class SplunkSinkTask extends SinkTask {
             Event event;
             try {
                 event = createHecEventFrom(record);
-            } catch (HecClientException ex) {
+            } catch (HecException ex) {
                 log.info("ignore null or empty event for topicPartition={}-{}", record.topic(), record.kafkaPartition());
                 continue;
             }

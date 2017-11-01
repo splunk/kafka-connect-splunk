@@ -22,7 +22,7 @@ public final class RawEvent extends Event {
                 bytes = s.getBytes("UTF-8");
             } catch (UnsupportedEncodingException ex) {
                 log.error("failed to encode as UTF-8", ex);
-                throw new HecClientException("Not UTF-8 encodable ", ex);
+                throw new HecException("Not UTF-8 encodable ", ex);
             }
         } else if (event instanceof byte[]) {
             bytes = (byte[]) event;
@@ -32,7 +32,7 @@ public final class RawEvent extends Event {
                 bytes = jsonMapper.writeValueAsBytes(event);
             } catch (Exception ex) {
                 log.error("Invalid json data", ex);
-                throw new HecClientException("Failed to json marshal the data", ex);
+                throw new HecException("Failed to json marshal the data", ex);
             }
         }
 
@@ -45,7 +45,7 @@ public final class RawEvent extends Event {
             return new String(getBytes(), "UTF-8");
         } catch (UnsupportedEncodingException ex) {
             log.error("failed to decode as UTF-8", ex);
-            throw new HecClientException("Not UTF-8 decodable", ex);
+            throw new HecException("Not UTF-8 decodable", ex);
         }
     }
 }
