@@ -66,12 +66,12 @@ public final class RawEventBatch extends EventBatch {
     }
 
     @Override
-    public void add(Event event) throws HecClientException {
+    public void add(Event event) throws HecException {
         if (event instanceof RawEvent) {
             events.add(event);
             len += event.length();
         } else {
-            throw new HecClientException("only RawEvent can be add to RawEventBatch");
+            throw new HecException("only RawEvent can be add to RawEventBatch");
         }
     }
 

@@ -56,7 +56,7 @@ public final class JsonEvent extends Event {
             return jsonMapper.writeValueAsString(this);
         } catch (Exception ex) {
             log.error("failed to json serlized JsonEvent", ex);
-            throw new HecClientException("failed to json serlized JsonEvent", ex);
+            throw new HecException("failed to json serlized JsonEvent", ex);
         }
     }
 
@@ -70,7 +70,7 @@ public final class JsonEvent extends Event {
             bytes = jsonMapper.writeValueAsBytes(this);
         } catch (Exception ex) {
             log.error("Invalid json event", ex);
-            throw new HecClientException("Failed to json marshal the event", ex);
+            throw new HecException("Failed to json marshal the event", ex);
         }
 
         return bytes;

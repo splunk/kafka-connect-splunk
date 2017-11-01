@@ -34,12 +34,12 @@ public class JsonEventTest {
         Assert.assertEquals(data, event.getEvent());
     }
 
-    @Test(expected = HecClientException.class)
+    @Test(expected = HecException.class)
     public void createInvalidJsonEventWithNullData() {
         Event event = new JsonEvent(null, null);
     }
 
-    @Test(expected = HecClientException.class)
+    @Test(expected = HecException.class)
     public void createInvalidJsonEventWithEmptyString() {
         Event event = new JsonEvent("", null);
     }
@@ -90,7 +90,7 @@ public class JsonEventTest {
                     deserilized = jsonMapper.readValue(stringed, JsonEvent.class);
                 } catch (IOException ex) {
                     Assert.assertFalse("expect no exception but got exception", true);
-                    throw new HecClientException("failed to parse JsonEvent", ex);
+                    throw new HecException("failed to parse JsonEvent", ex);
                 }
                 return deserilized;
             }
@@ -111,7 +111,7 @@ public class JsonEventTest {
                     deserilized = jsonMapper.readValue(bytes, JsonEvent.class);
                 } catch (IOException ex) {
                     Assert.assertFalse("expect no exception but got exception", false);
-                    throw new HecClientException("failed to parse JsonEvent", ex);
+                    throw new HecException("failed to parse JsonEvent", ex);
                 }
                 return deserilized;
             }
@@ -124,14 +124,14 @@ public class JsonEventTest {
         Event event = new JsonEvent("hello", "world");
         InputStream stream = event.getInputStream();
         byte[] data = new byte[1024];
-        int siz = StreamReader.read(stream, data);
+        int siz = UnitUtil.read(stream, data);
 
         Event eventGot;
         try {
             eventGot = jsonMapper.readValue(data, 0, siz, JsonEvent.class);
         } catch (IOException ex) {
             Assert.assertTrue("failed to deserialize from bytes", false);
-            throw new HecClientException("failed to deserialize from bytes", ex);
+            throw new HecException("failed to deserialize from bytes", ex);
         }
         Assert.assertEquals("hello", eventGot.getEvent());
     }

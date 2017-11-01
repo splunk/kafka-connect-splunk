@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Created by kchen on 10/18/17.
  */
-final class LoadBalancer {
+final class LoadBalancer implements LoadBalancerInf {
     private List<HecChannel> channels;
     private int index;
 
@@ -16,10 +16,12 @@ final class LoadBalancer {
         index = 0;
     }
 
+    @Override
     public void add(HecChannel channel) {
         channels.add(channel);
     }
 
+    @Override
     public void remove(HecChannel channel) {
         for (Iterator<HecChannel> iter = channels.listIterator(); iter.hasNext();) {
             HecChannel ch = iter.next();
@@ -29,9 +31,18 @@ final class LoadBalancer {
         }
     }
 
+    @Override
     public boolean send(final EventBatch batch) {
+        if (channels.isEmpty()) {
+            throw new HecException("No channels are available / registered with LoadBalancer");
+        }
         HecChannel channel = channels.get(index);
         index = (index + 1) % channels.size();
         return channel.send(batch);
+    }
+
+    @Override
+    public int size() {
+        return channels.size();
     }
 }

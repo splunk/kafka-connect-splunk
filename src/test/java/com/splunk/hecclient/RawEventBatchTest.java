@@ -21,7 +21,7 @@ public class RawEventBatchTest {
         Assert.assertEquals(event.getTied(), eventGot.getTied());
     }
 
-    @Test(expected = HecClientException.class)
+    @Test(expected = HecException.class)
     public void addWithFailure() {
         Event event = new JsonEvent("ni", "hao");
         EventBatch batch = RawEventBatch.factory().build();

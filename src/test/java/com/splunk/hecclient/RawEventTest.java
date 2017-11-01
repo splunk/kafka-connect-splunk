@@ -7,7 +7,6 @@ import org.junit.Test;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * Created by kchen on 10/30/17.
@@ -32,12 +31,12 @@ public class RawEventTest {
         Assert.assertEquals(event.getEvent(), data);
     }
 
-    @Test(expected = HecClientException.class)
+    @Test(expected = HecException.class)
     public void createInvalidRawEventWithNullData() {
         Event event = new RawEvent(null, null);
     }
 
-    @Test(expected = HecClientException.class)
+    @Test(expected = HecException.class)
     public void createInvalidRawEventWithEmptyString() {
         Event event = new RawEvent("", null);
     }
@@ -54,7 +53,7 @@ public class RawEventTest {
                 Assert.assertEquals(got, "ni");
             } catch (UnsupportedEncodingException ex) {
                 Assert.assertFalse("failed to get string out of byte", true);
-                throw new HecClientException("failed to get string out of byte", ex);
+                throw new HecException("failed to get string out of byte", ex);
             }
         }
 
@@ -80,7 +79,7 @@ public class RawEventTest {
                 Assert.assertEquals(map.get("hello"), "world");
             } catch (IOException ex) {
                 Assert.assertFalse("expect no exception but got exception", false);
-                throw new HecClientException("failed to parse raw event", ex);
+                throw new HecException("failed to parse raw event", ex);
             }
         }
     }
@@ -114,7 +113,7 @@ public class RawEventTest {
             Assert.assertEquals(map.get("hello"), "world");
         } catch (IOException ex) {
             Assert.assertFalse("expect no exception but got exception", false);
-            throw new HecClientException("failed to parse raw event", ex);
+            throw new HecException("failed to parse raw event", ex);
         }
     }
 
@@ -139,7 +138,7 @@ public class RawEventTest {
         Event event = new RawEvent(e, "hao");
         InputStream stream = event.getInputStream();
         byte[] data = new byte[1024];
-        int siz = StreamReader.read(stream, data);
+        int siz = UnitUtil.read(stream, data);
         if (withCarriageReturn) {
             Assert.assertEquals(siz, e.length());
         } else {
@@ -173,7 +172,7 @@ public class RawEventTest {
             e.writeTo(stream);
         } catch (IOException ex) {
             Assert.assertTrue("failed to write to stream", false);
-            throw new HecClientException("failed to write to stream", ex);
+            throw new HecException("failed to write to stream", ex);
         }
 
         String dataGot = stream.toString();

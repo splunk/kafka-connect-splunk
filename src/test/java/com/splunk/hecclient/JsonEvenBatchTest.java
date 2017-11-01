@@ -28,7 +28,7 @@ public class JsonEvenBatchTest {
         Assert.assertEquals(event.getTied(), eventGot.getTied());
     }
 
-    @Test(expected = HecClientException.class)
+    @Test(expected = HecException.class)
     public void addWithFailure() {
         Event event = new RawEvent("ni", "hao");
         EventBatch batch = new JsonEventBatch();
@@ -60,11 +60,7 @@ public class JsonEvenBatchTest {
         EventBatch batch = new JsonEventBatch();
         batch.resetSendTimestamp();
         Assert.assertFalse(batch.isTimedout(1));
-        try {
-            TimeUnit.SECONDS.sleep(1);
-        } catch (InterruptedException ex) {
-        }
-
+        UnitUtil.milliSleep(1000);
         Assert.assertTrue(batch.isTimedout(1));
 
         // reset timestamp
@@ -151,7 +147,7 @@ public class JsonEvenBatchTest {
             entity.writeTo(out);
         } catch (IOException ex) {
             Assert.assertTrue("failed to write to stream", false);
-            throw new HecClientException("failed to write to stream", ex);
+            throw new HecException("failed to write to stream", ex);
         }
         String got = out.toString();
         Assert.assertEquals(expected, got);
@@ -164,9 +160,9 @@ public class JsonEvenBatchTest {
             in = entity.getContent();
         } catch (IOException ex) {
             Assert.assertTrue("failed to getContent", false);
-            throw new HecClientException("failed to getContent", ex);
+            throw new HecException("failed to getContent", ex);
         }
 
-        return StreamReader.read(in, data);
+        return UnitUtil.read(in, data);
     }
 }

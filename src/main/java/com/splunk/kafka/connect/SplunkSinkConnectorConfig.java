@@ -1,6 +1,6 @@
 package com.splunk.kafka.connect;
 
-import com.splunk.hecclient.HecClientConfig;
+import com.splunk.hecclient.HecConfig;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.sink.SinkConnector;
 import org.apache.kafka.common.config.AbstractConfig;
@@ -143,8 +143,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     /**
     * Configuration Method to setup all settings related to Splunk HEC Client
     */
-    public HecClientConfig getHecClientConfig() {
-        HecClientConfig config = new HecClientConfig(Arrays.asList(splunkURI.split(",")), splunkToken);
+    public HecConfig getHecClientConfig() {
+        HecConfig config = new HecConfig(Arrays.asList(splunkURI.split(",")), splunkToken);
         config.setDisableSSLCertVerification(!validateCertificates)
                 .setSocketTimeout(socketTimeout)
                 .setMaxHttpConnectionPerChannel(maxHttpConnPerChannel)

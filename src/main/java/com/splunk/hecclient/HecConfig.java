@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Created by kchen on 10/20/17.
  */
-public final class HecClientConfig {
+public final class HecConfig {
     private List<String> uris;
     private String token;
     private boolean disableSSLCertVerification = false;
@@ -19,7 +19,7 @@ public final class HecClientConfig {
     private int socketSendBufferSize = 8 * 1024 * 1024; // in byte
     private boolean enableChannelTracking = false;
 
-    public HecClientConfig(List<String> uris, String token) {
+    public HecConfig(List<String> uris, String token) {
         this.uris = uris;
         this.token = token;
     }
@@ -72,52 +72,52 @@ public final class HecClientConfig {
         return enableChannelTracking;
     }
 
-    public HecClientConfig setDisableSSLCertVerification(boolean disableVerfication) {
+    public HecConfig setDisableSSLCertVerification(boolean disableVerfication) {
         disableSSLCertVerification = disableVerfication;
         return this;
     }
 
-    public HecClientConfig setHttpKeepAlive(boolean keepAlive) {
+    public HecConfig setHttpKeepAlive(boolean keepAlive) {
         httpKeepAlive = keepAlive;
         return this;
     }
 
-    public HecClientConfig setSocketTimeout(int timeout /*seconds*/) {
+    public HecConfig setSocketTimeout(int timeout /*seconds*/) {
         socketTimeout = timeout;
         return this;
     }
 
-    public HecClientConfig setSocketSendBufferSize(int bufSize /*bytes*/) {
+    public HecConfig setSocketSendBufferSize(int bufSize /*bytes*/) {
         socketSendBufferSize = bufSize;
         return this;
     }
 
-    public HecClientConfig setMaxHttpConnectionPerChannel(int poolSize) {
+    public HecConfig setMaxHttpConnectionPerChannel(int poolSize) {
         maxHttpConnectionPerChannel = poolSize;
         return this;
     }
 
-    public HecClientConfig setEventBatchTimeout(int timeout /*seconds*/) {
+    public HecConfig setEventBatchTimeout(int timeout /*seconds*/) {
         eventBatchTimeout = timeout;
         return this;
     }
 
-    public HecClientConfig setAckPollInterval(int interval /*seconds*/) {
+    public HecConfig setAckPollInterval(int interval /*seconds*/) {
         ackPollInterval = interval;
         return this;
     }
 
-    public HecClientConfig  setAckPollThreads(int num) {
+    public HecConfig setAckPollThreads(int num) {
         ackPollThreads = num;
         return this;
     }
 
-    public HecClientConfig setTotalChannels(int channels) {
+    public HecConfig setTotalChannels(int channels) {
         totalChannels = channels;
         return this;
     }
 
-    public HecClientConfig setEnableChannelTracking(boolean trackChannel) {
+    public HecConfig setEnableChannelTracking(boolean trackChannel) {
         enableChannelTracking = trackChannel;
         return this;
     }
