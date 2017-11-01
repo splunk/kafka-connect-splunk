@@ -8,17 +8,17 @@ import java.util.Map;
 /**
  * Created by kchen on 10/18/17.
  */
-public final class HecChannel {
+final class HecChannel {
     private String id;
     private Map<String, String> chField;
-    private Indexer indexer;
+    private IndexerInf indexer;
 
-    public HecChannel(Indexer idx) {
+    public HecChannel(IndexerInf idx) {
         id = newChannelId();
         indexer = idx;
     }
 
-    public Indexer getIndexer() {
+    public IndexerInf getIndexer() {
         return indexer;
     }
 
@@ -36,22 +36,7 @@ public final class HecChannel {
         return this;
     }
 
-    private HecChannel enableTracking() {
-        if (chField == null) {
-            chField = new HashMap<>();
-            chField.put("hec-channel", id);
-        }
-        return this;
-    }
-
-    private HecChannel disableTracking() {
-        if (chField != null) {
-            chField = null;
-        }
-        return this;
-    }
-
-    public boolean send(EventBatch batch) {
+    public boolean send(final EventBatch batch) {
         if (chField != null) {
             batch.addExtraFields(chField);
         }
@@ -84,6 +69,21 @@ public final class HecChannel {
     @Override
     public String toString() {
         return id;
+    }
+
+    private HecChannel enableTracking() {
+        if (chField == null) {
+            chField = new HashMap<>();
+            chField.put("hec-channel", id);
+        }
+        return this;
+    }
+
+    private HecChannel disableTracking() {
+        if (chField != null) {
+            chField = null;
+        }
+        return this;
     }
 
     private static String newChannelId() {

@@ -4,6 +4,7 @@ import org.apache.http.HttpEntity;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -136,9 +137,10 @@ public class JsonEvenBatchTest {
         entity = batch.getHttpEntity();
         Assert.assertEquals(event.length(), entity.getContentLength());
 
-        InputStream stream;
+        // Read from InputStream
+        InputStream in;
         try {
-            stream = entity.getContent();
+            in = entity.getContent();
         } catch (IOException ex) {
             Assert.assertTrue("failed to getContent", false);
             throw new HecClientException("failed to getContent", ex);
@@ -148,7 +150,7 @@ public class JsonEvenBatchTest {
         int siz = 0;
         while (true) {
             try {
-                int read = stream.read(data, siz, data.length - siz);
+                int read = in.read(data, siz, data.length - siz);
                 if (read < 0) {
                     break;
                 }
@@ -161,5 +163,16 @@ public class JsonEvenBatchTest {
 
         String expected = "{\"event\":\"ni\"}\n";
         Assert.assertEquals(expected, new String(data, 0, siz));
+
+        // Write to a OutputStream
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            entity.writeTo(out);
+        } catch (IOException ex) {
+            Assert.assertTrue("failed to write to stream", false);
+            throw new HecClientException("failed to write to stream", ex);
+        }
+        String got = out.toString();
+        Assert.assertEquals(expected, got);
     }
 }
