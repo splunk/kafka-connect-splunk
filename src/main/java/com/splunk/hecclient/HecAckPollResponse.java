@@ -7,7 +7,7 @@ import java.util.*;
  */
 
 final class HecAckPollResponse {
-    // {"acks":[0,1,2,3]}
+    // {"acks":{"1":true,"2":true,"3":true,"4":false,"5":false,"6":false}}
     private final SortedMap<String, Boolean> acks = new TreeMap<>();
 
     public Collection<Long> getSuccessIds() {
