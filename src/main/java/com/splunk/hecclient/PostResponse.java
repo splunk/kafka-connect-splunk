@@ -12,7 +12,7 @@ final class PostResponse {
     private int code = -1;
     private long ackId = -1;
 
-    public PostResponse() {
+    PostResponse() {
     }
 
     public boolean isSucceed() {

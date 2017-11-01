@@ -40,7 +40,6 @@ public class HecAckPollResponseTest {
 
     private HecAckPollResponse getResposne() {
         String acks = "{\"acks\":{\"1\":true,\"2\":true,\"3\":true,\"4\":false,\"5\":false,\"6\":false}}";
-        HecAckPollResponse resp;
         try {
             return jsonMapper.readValue(acks, HecAckPollResponse.class);
         } catch (IOException ex) {
