@@ -7,6 +7,7 @@ import org.junit.Test;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * Created by kchen on 10/30/17.
@@ -138,21 +139,7 @@ public class RawEventTest {
         Event event = new RawEvent(e, "hao");
         InputStream stream = event.getInputStream();
         byte[] data = new byte[1024];
-
-        int siz = 0;
-        while (true) {
-            try {
-                int read = stream.read(data, siz, data.length - siz);
-                if (read < 0) {
-                    break;
-                }
-                siz += read;
-            } catch (IOException ex) {
-                Assert.assertTrue("failed to read from stream", false);
-                throw new HecClientException("failed to read from stream", ex);
-            }
-        }
-
+        int siz = StreamReader.read(stream, data);
         if (withCarriageReturn) {
             Assert.assertEquals(siz, e.length());
         } else {

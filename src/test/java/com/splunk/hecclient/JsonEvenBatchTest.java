@@ -131,36 +131,17 @@ public class JsonEvenBatchTest {
         Assert.assertFalse(entity.isStreaming());
         Assert.assertEquals(0, entity.getContentLength());
 
+        byte[] data = new byte[1024];
+        int siz = readContent(entity, data);
+        Assert.assertEquals(0, siz);
+
         Event event = new JsonEvent("ni", "hao");
         batch.add(event);
 
         entity = batch.getHttpEntity();
         Assert.assertEquals(event.length(), entity.getContentLength());
 
-        // Read from InputStream
-        InputStream in;
-        try {
-            in = entity.getContent();
-        } catch (IOException ex) {
-            Assert.assertTrue("failed to getContent", false);
-            throw new HecClientException("failed to getContent", ex);
-        }
-
-        byte[] data = new byte[1024];
-        int siz = 0;
-        while (true) {
-            try {
-                int read = in.read(data, siz, data.length - siz);
-                if (read < 0) {
-                    break;
-                }
-                siz += read;
-            } catch (IOException ex) {
-                Assert.assertTrue("failed to read from stream", false);
-                throw new HecClientException("failed to read from stream", ex);
-            }
-        }
-
+        siz = readContent(entity, data);
         String expected = "{\"event\":\"ni\"}\n";
         Assert.assertEquals(expected, new String(data, 0, siz));
 
@@ -174,5 +155,18 @@ public class JsonEvenBatchTest {
         }
         String got = out.toString();
         Assert.assertEquals(expected, got);
+    }
+
+    private int readContent(final HttpEntity entity, byte[] data) {
+        // Read from InputStream
+        InputStream in;
+        try {
+            in = entity.getContent();
+        } catch (IOException ex) {
+            Assert.assertTrue("failed to getContent", false);
+            throw new HecClientException("failed to getContent", ex);
+        }
+
+        return StreamReader.read(in, data);
     }
 }

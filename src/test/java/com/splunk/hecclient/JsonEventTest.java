@@ -32,8 +32,6 @@ public class JsonEventTest {
 
         Assert.assertEquals(tied, event.getTied());
         Assert.assertEquals(data, event.getEvent());
-
-
     }
 
     @Test(expected = HecClientException.class)
@@ -126,18 +124,11 @@ public class JsonEventTest {
         Event event = new JsonEvent("hello", "world");
         InputStream stream = event.getInputStream();
         byte[] data = new byte[1024];
-
-        int siz;
-        try {
-            siz = stream.read(data);
-        } catch (IOException ex) {
-            Assert.assertTrue("failed to read from stream", false);
-            throw new HecClientException("failed to read from stream", ex);
-        }
+        int siz = StreamReader.read(stream, data);
 
         Event eventGot;
         try {
-            eventGot = jsonMapper.readValue(data, JsonEvent.class);
+            eventGot = jsonMapper.readValue(data, 0, siz, JsonEvent.class);
         } catch (IOException ex) {
             Assert.assertTrue("failed to deserialize from bytes", false);
             throw new HecClientException("failed to deserialize from bytes", ex);
