@@ -3,33 +3,30 @@ package com.splunk.hecclient;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Arrays;
-
 /**
  * Created by kchen on 10/31/17.
  */
-public class HecWithoutAckTest {
+public class HecTest {
     @Test
     public void create() {
         HecConfig config = UnitUtil.createHecConfig();
-        Hec hec = new HecWithoutAck(config, null);
+        Hec hec = Hec.newHecWithAck(config, null);
         Assert.assertNotNull(hec);
 
-        hec = new HecWithoutAck(config, Hec.createHttpClient(config), (PollerCallback) null);
+        hec = Hec.newHecWithAck(config, Hec.createHttpClient(config), (PollerCallback) null);
         Assert.assertNotNull(hec);
 
-        PollerMock pm = new PollerMock(null);
-        hec = new HecWithoutAck(config, Hec.createHttpClient(config), pm);
-        Assert.assertNotNull(hec);
-        Assert.assertTrue(pm.isStarted());
-
-        hec = new HecWithoutAck(config, null, new LoadBalancerMock());
+        hec = Hec.newHecWithAck(config, null, new LoadBalancerMock());
         Assert.assertNotNull(hec);
 
-        pm = new PollerMock(null);
-        hec = new HecWithoutAck(config, Hec.createHttpClient(config), pm, new LoadBalancerMock());
+        hec = Hec.newHecWithoutAck(config, null);
         Assert.assertNotNull(hec);
-        Assert.assertTrue(pm.isStarted());
+
+        hec = Hec.newHecWithoutAck(config, Hec.createHttpClient(config), (PollerCallback) null);
+        Assert.assertNotNull(hec);
+
+        hec = Hec.newHecWithoutAck(config, null, new LoadBalancerMock());
+        Assert.assertNotNull(hec);
     }
 
     @Test
@@ -37,7 +34,7 @@ public class HecWithoutAckTest {
         LoadBalancerMock lb = new LoadBalancerMock();
         HecConfig config = UnitUtil.createHecConfig();
         Poller pm = new PollerMock(null);
-        Hec hec = new HecWithoutAck(config, Hec.createHttpClient(config), pm, lb);
+        Hec hec = new Hec(config, Hec.createHttpClient(config), pm, lb);
         boolean result = hec.send(new JsonEventBatch());
         Assert.assertFalse(result);
         Assert.assertEquals(0, lb.getBatches().size());
@@ -48,7 +45,7 @@ public class HecWithoutAckTest {
         LoadBalancerMock lb = new LoadBalancerMock();
         HecConfig config = UnitUtil.createHecConfig();
         Poller pm = new PollerMock(null);
-        Hec hec = new HecWithoutAck(config, Hec.createHttpClient(config), pm, lb);
+        Hec hec = new Hec(config, Hec.createHttpClient(config), pm, lb);
         boolean result = hec.send(UnitUtil.createBatch());
         Assert.assertTrue(result);
         Assert.assertEquals(1, lb.getBatches().size());
@@ -59,7 +56,7 @@ public class HecWithoutAckTest {
         LoadBalancerMock lb = new LoadBalancerMock();
         HecConfig config = UnitUtil.createHecConfig();
         PollerMock pm = new PollerMock(null);
-        Hec hec = new HecWithoutAck(config, Hec.createHttpClient(config), pm, lb);
+        Hec hec = new Hec(config, Hec.createHttpClient(config), pm, lb);
         Assert.assertTrue(pm.isStarted());
 
         hec.close();

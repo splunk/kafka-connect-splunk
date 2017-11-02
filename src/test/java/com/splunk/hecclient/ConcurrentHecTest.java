@@ -3,8 +3,6 @@ package com.splunk.hecclient;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * Created by kchen on 10/31/17.
  */

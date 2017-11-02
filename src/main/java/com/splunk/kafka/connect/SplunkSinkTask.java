@@ -228,9 +228,9 @@ public final class SplunkSinkTask extends SinkTask {
                     connectorConfig.getHecClientConfig(), new HecPollerCallback(this));
         } else {
             if (connectorConfig.ack) {
-                return new HecWithAck(connectorConfig.getHecClientConfig(), new HecPollerCallback(this));
+                return Hec.newHecWithAck(connectorConfig.getHecClientConfig(), new HecPollerCallback(this));
             } else {
-                return new HecWithoutAck(connectorConfig.getHecClientConfig(), new HecPollerCallback(this));
+                return Hec.newHecWithoutAck(connectorConfig.getHecClientConfig(), new HecPollerCallback(this));
             }
         }
     }
