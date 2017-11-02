@@ -56,13 +56,23 @@ public class HecAckPollerTest {
         Assert.assertEquals(0, cb.getCommitted().size());
 
         // without callback
-        poller = new HecAckPoller(cb);
+        poller = new HecAckPoller(null);
         indexer = new IndexerMock();
         ch = new HecChannel(indexer);
         batch = UnitUtil.createBatch();
 
         poller.fail(ch, batch, new HecException("mockedup"));
         Assert.assertTrue(batch.isFailed());
+    }
+
+    @Test
+    public void emptyPoll() {
+        HecAckPoller poller = new HecAckPoller(null);
+        poller.setAckPollInterval(1);
+        poller.start();
+        UnitUtil.milliSleep(1500);
+        Assert.assertEquals(0, poller.getTotalOutstandingEventBatches());
+        poller.stop();
     }
 
     @Test
