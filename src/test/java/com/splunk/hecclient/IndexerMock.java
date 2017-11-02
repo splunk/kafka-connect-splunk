@@ -12,6 +12,7 @@ import java.util.List;
 public final class IndexerMock implements IndexerInf {
     private List<EventBatch> batches = new ArrayList<>();
     private List<HttpUriRequest> requests = new ArrayList<>();
+    private String response;
 
     @Override
     public boolean send(final EventBatch batch) {
@@ -22,7 +23,7 @@ public final class IndexerMock implements IndexerInf {
     @Override
     public String executeHttpRequest(final HttpUriRequest req) {
         requests.add(req);
-        return "";
+        return response;
     }
 
     @Override
@@ -41,5 +42,10 @@ public final class IndexerMock implements IndexerInf {
 
     public List<HttpUriRequest> getRequests() {
         return requests;
+    }
+
+    public IndexerMock setResponse(String response) {
+        this.response = response;
+        return this;
     }
 }

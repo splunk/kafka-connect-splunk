@@ -78,7 +78,7 @@ public class HecChannelTest {
         IndexerMock indexer = new IndexerMock();
         HecChannel ch = new HecChannel(indexer);
         String res = ch.executeHttpRequest(req);
-        Assert.assertEquals("", res);
+        Assert.assertEquals(null, res);
         List<HttpUriRequest> reqs = indexer.getRequests();
         Assert.assertEquals(1, reqs.size());
         Assert.assertEquals(req, reqs.get(0));
