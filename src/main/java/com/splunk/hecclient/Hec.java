@@ -5,12 +5,52 @@ import org.apache.http.impl.client.CloseableHttpClient;
 /**
  * Created by kchen on 10/20/17.
  */
-public abstract class Hec implements HecInf {
+public class Hec implements HecInf {
     private HecConfig clientConfig;
     private LoadBalancerInf loadBalancer;
     private Poller poller;
     private CloseableHttpClient httpClient;
-    protected boolean ownHttpClient = false;
+    private boolean ownHttpClient = false;
+
+    // factory methods
+    public static Hec newHecWithAck(HecConfig config, PollerCallback callback) {
+        Hec hec = newHecWithAck(config, Hec.createHttpClient(config), callback);
+        hec.setOwnHttpClient(true);
+        return hec;
+    }
+
+    public static Hec newHecWithAck(HecConfig config, CloseableHttpClient httpClient, PollerCallback callback) {
+        return new Hec(config, httpClient, createPoller(config, callback), new LoadBalancer());
+    }
+
+    public static Hec newHecWithAck(HecConfig config, PollerCallback callback, LoadBalancerInf loadBalancer) {
+        Hec hec = new Hec(config, Hec.createHttpClient(config), createPoller(config, callback), loadBalancer);
+        hec.setOwnHttpClient(true);
+        return hec;
+    }
+
+    public static Hec newHecWithoutAck(HecConfig config, PollerCallback callback) {
+        Hec hec = newHecWithoutAck(config, Hec.createHttpClient(config), callback);
+        hec.setOwnHttpClient(true);
+        return hec;
+    }
+
+    public static Hec newHecWithoutAck(HecConfig config, CloseableHttpClient httpClient, PollerCallback callback) {
+        return new Hec(config, httpClient, new ResponsePoller(callback), new LoadBalancer());
+    }
+
+    public static Hec newHecWithoutAck(HecConfig config, PollerCallback callback, LoadBalancerInf loadBalancer) {
+        Hec hec = new Hec(config, Hec.createHttpClient(config), new ResponsePoller(callback), loadBalancer);
+        hec.setOwnHttpClient(true);
+        return hec;
+    }
+
+    public static HecAckPoller createPoller(HecConfig config, PollerCallback callback) {
+        return new HecAckPoller(callback)
+                .setAckPollInterval(config.getAckPollInterval())
+                .setAckPollThreads(config.getAckPollThreads())
+                .setEventBatchTimeout(config.getEventBatchTimeout());
+    }
 
     public Hec(HecConfig config, CloseableHttpClient httpClient, Poller poller, LoadBalancerInf loadBalancer) {
         for (int i = 0; i < config.getTotalChannels();) {
@@ -26,6 +66,12 @@ public abstract class Hec implements HecInf {
         this.poller = poller;
         this.poller.start();
         this.httpClient = httpClient;
+        this.ownHttpClient = ownHttpClient;
+    }
+
+    public Hec setOwnHttpClient(boolean ownHttpClient) {
+        this.ownHttpClient = ownHttpClient;
+        return this;
     }
 
     @Override

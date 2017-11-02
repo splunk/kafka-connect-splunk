@@ -44,7 +44,7 @@ public final class HecPerf {
         }
 
         PrintIt print = new PrintIt();
-        Poller poller = HecWithAck.createPoller(config.getHecClientConfig(), print);
+        Poller poller = Hec.createPoller(config.getHecClientConfig(), print);
 
         int iterationsPerThread = (config.getIterations() + config.getConcurrency()) / config.getConcurrency();
         List<Thread> threads = new ArrayList<>();
@@ -54,7 +54,7 @@ public final class HecPerf {
         List<Hec> hecs = new ArrayList<>();
         for (int i = 0; i < config.getConcurrency(); i++) {
             final int id = i;
-            final Hec hec = new HecWithAck(config.getHecClientConfig(), httpClients.get(id % httpClients.size()), poller);
+            final Hec hec = new Hec(config.getHecClientConfig(), httpClients.get(id % httpClients.size()), poller, new LoadBalancer());
             hecs.add(hec);
 
             Runnable r = () -> {

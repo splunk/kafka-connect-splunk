@@ -94,9 +94,9 @@ public class ConcurrentHec implements HecInf {
         hecs = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             if (useAck) {
-                hecs.add(new HecWithAck(config, cb, loadBalancer));
+                hecs.add(Hec.newHecWithAck(config, cb, loadBalancer));
             } else {
-                hecs.add(new HecWithoutAck(config, cb, loadBalancer));
+                hecs.add(Hec.newHecWithoutAck(config, cb, loadBalancer));
             }
         }
     }
