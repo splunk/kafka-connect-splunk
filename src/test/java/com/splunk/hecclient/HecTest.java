@@ -33,7 +33,7 @@ public class HecTest {
     public void sendEmptyBatch() {
         LoadBalancerMock lb = new LoadBalancerMock();
         HecConfig config = UnitUtil.createHecConfig();
-        Poller pm = new PollerMock(null);
+        Poller pm = new PollerMock();
         Hec hec = new Hec(config, Hec.createHttpClient(config), pm, lb);
         boolean result = hec.send(new JsonEventBatch());
         Assert.assertFalse(result);
@@ -44,7 +44,7 @@ public class HecTest {
     public void send() {
         LoadBalancerMock lb = new LoadBalancerMock();
         HecConfig config = UnitUtil.createHecConfig();
-        Poller pm = new PollerMock(null);
+        Poller pm = new PollerMock();
         Hec hec = new Hec(config, Hec.createHttpClient(config), pm, lb);
         boolean result = hec.send(UnitUtil.createBatch());
         Assert.assertTrue(result);
@@ -55,7 +55,7 @@ public class HecTest {
     public void close() {
         LoadBalancerMock lb = new LoadBalancerMock();
         HecConfig config = UnitUtil.createHecConfig();
-        PollerMock pm = new PollerMock(null);
+        PollerMock pm = new PollerMock();
         Hec hec = new Hec(config, Hec.createHttpClient(config), pm, lb);
         Assert.assertTrue(pm.isStarted());
 
