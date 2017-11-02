@@ -118,7 +118,6 @@ public final class HecAckPoller implements Poller {
 
         if (channelEvents.get(resp.getAckId()) != null) {
             log.error("ackId already exists for channel={} index={}", channel, channel.getIndexer());
-            assert false: "ackId already exists";
             return;
         }
 
@@ -134,6 +133,10 @@ public final class HecAckPoller implements Poller {
         if (pollerCallback != null) {
             pollerCallback.onEventFailure(Arrays.asList(batch), ex);
         }
+    }
+
+    public boolean isStarted() {
+        return started.get();
     }
 
     // setAckPollThreads before calling start
@@ -152,6 +155,18 @@ public final class HecAckPoller implements Poller {
     public HecAckPoller setAckPollInterval(int interval) {
         ackPollInterval = interval;
         return this;
+    }
+
+    public int getAckPollThreads() {
+        return pollThreads;
+    }
+
+    public int getEventBatchTimeout() {
+        return eventBatchTimeout;
+    }
+
+    public int getAckPollInterval() {
+        return ackPollInterval;
     }
 
     private void poll() {
@@ -179,7 +194,9 @@ public final class HecAckPoller implements Poller {
         if (!timeouts.isEmpty()) {
             log.warn("detected {} event batches timedout", timeouts.size());
             totalOutstandingEventBatches.addAndGet(-timeouts.size());
-            pollerCallback.onEventFailure(timeouts, new HecException("timeouts"));
+            if (pollerCallback != null) {
+                pollerCallback.onEventFailure(timeouts, new HecException("timeouts"));
+            }
         }
     }
 

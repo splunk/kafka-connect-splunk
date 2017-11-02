@@ -26,7 +26,7 @@ public abstract class EventBatch {
 
     private volatile int status = INIT;
     private int failureCount = 0;
-    private long sendTimestamp = 0; // in seconds
+    private long sendTimestamp = System.currentTimeMillis() / 1000; // in seconds
     protected int len;
     protected List<Event> events = new ArrayList<>();
 
