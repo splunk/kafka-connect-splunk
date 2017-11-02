@@ -13,6 +13,8 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 /**
  * Created by kchen on 10/18/17.
  */
@@ -61,7 +63,7 @@ final class Indexer implements IndexerInf {
         return this;
     }
 
-    public boolean getKeepAlive(boolean keepAlive) {
+    public boolean getKeepAlive() {
         return keepAlive;
     }
 
@@ -132,7 +134,7 @@ final class Indexer implements IndexerInf {
         } finally {
             try {
                 resp.close();
-            } catch (Exception ex) {
+            } catch (IOException ex) {
                 throw new HecException("failed to close http response", ex);
             }
         }
