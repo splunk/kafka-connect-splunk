@@ -73,7 +73,6 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final boolean validateCertificates;
     final boolean httpKeepAlive;
     final String trustStorePath;
-    final boolean hasTrustStorePath;
     final String trustStorePassword;
     final int eventBatchTimeout;
     final int ackPollInterval;
@@ -100,8 +99,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         httpKeepAlive = getBoolean(HTTP_KEEPALIVE_CONF);
         validateCertificates = getBoolean(SSL_VALIDATE_CERTIFICATES_CONF);
         trustStorePath = getString(SSL_TRUSTSTORE_PATH_CONF);
-        hasTrustStorePath = trustStorePath != null || trustStorePath.isEmpty();
-        trustStorePassword = getPassword(SSL_TRUSTSTORE_PASSWORD_CONF).toString();
+        trustStorePassword = getPassword(SSL_TRUSTSTORE_PASSWORD_CONF).value();
         eventBatchTimeout = getInt(EVENT_TIMEOUT_CONF);
         ackPollInterval = getInt(ACK_POLL_INTERVAL_CONF);
         ackPollThreads = getInt(ACK_POLL_THREADS_CONF);
@@ -143,7 +141,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     /**
     * Configuration Method to setup all settings related to Splunk HEC Client
     */
-    public HecConfig getHecClientConfig() {
+    public HecConfig getHecConfig() {
         HecConfig config = new HecConfig(Arrays.asList(splunkURI.split(",")), splunkToken);
         config.setDisableSSLCertVerification(!validateCertificates)
                 .setSocketTimeout(socketTimeout)
@@ -173,7 +171,6 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 + "httpKeepAlive:" + httpKeepAlive + ", "
                 + "validateCertificates:" + validateCertificates + ", "
                 + "trustStorePath:" + trustStorePath + ", "
-                + "hasTrustStorePath:" + hasTrustStorePath + ", "
                 + "socketTimeout:" + socketTimeout + ", "
                 + "eventBatchTimeout:" + eventBatchTimeout + ", "
                 + "ackPollInterval:" + ackPollInterval + ", "
@@ -255,3 +252,4 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         return metaMap;
     }
 }
+
