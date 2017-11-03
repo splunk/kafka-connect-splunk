@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * Created by kchen on 10/24/17.
  */
 
-public final class KafkaRecordTracker {
+final class KafkaRecordTracker {
     private Map<TopicPartition, TreeMap<Long, EventBatch>> all; // TopicPartition + Long offset represents the SinkRecord
     private ConcurrentLinkedQueue<EventBatch> failed;
 
@@ -23,7 +23,9 @@ public final class KafkaRecordTracker {
     }
 
     public void addFailedEventBatch(final EventBatch batch) {
-        assert batch.isFailed();
+        if (!batch.isFailed()) {
+            throw new RuntimeException("event batch was not failed");
+        }
         failed.add(batch);
     }
 
@@ -53,8 +55,9 @@ public final class KafkaRecordTracker {
         return records;
     }
 
-    // Loop through all SinkRecords for all topic partitions
-    // find all consecutive committed offsets
+    // Loop through all SinkRecords for all topic partitions to
+    // find all lowest consecutive committed offsets, caculate
+    // the topic/partition offsets and then remove them
     public Map<TopicPartition, OffsetAndMetadata> computeOffsets() {
         Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>();
         for (Map.Entry<TopicPartition, TreeMap<Long, EventBatch>> entry: all.entrySet()) {
@@ -65,6 +68,8 @@ public final class KafkaRecordTracker {
                 if (e.getValue().isCommitted()) {
                     offset = e.getKey();
                     iter.remove();
+                } else {
+                    break;
                 }
             }
 

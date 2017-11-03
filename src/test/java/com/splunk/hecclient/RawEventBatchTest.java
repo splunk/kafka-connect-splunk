@@ -76,4 +76,19 @@ public class RawEventBatchTest {
         Assert.assertNotNull(rawBatch);
         Assert.assertTrue(rawBatch instanceof RawEventBatch);
     }
+
+    @Test
+    public void getter() {
+        RawEventBatch batch = RawEventBatch.factory()
+                .setSource("source")
+                .setIndex("index")
+                .setSourcetype("sourcetype")
+                .setHost("host")
+                .setTime(1)
+                .build();
+        Assert.assertEquals("source", batch.getSource());
+        Assert.assertEquals("sourcetype", batch.getSourcetype());
+        Assert.assertEquals("index", batch.getIndex());
+        Assert.assertEquals(1, batch.getTime());
+    }
 }

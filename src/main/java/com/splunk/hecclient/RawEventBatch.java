@@ -24,6 +24,26 @@ public final class RawEventBatch extends EventBatch {
         this.time = time;
     }
 
+    public String getIndex() {
+        return index;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public String getSourcetype() {
+        return sourcetype;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public long getTime() {
+        return time;
+    }
+
     public static Builder factory() {
         return new Builder();
     }
