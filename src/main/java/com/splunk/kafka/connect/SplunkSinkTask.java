@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by kchen on 9/21/17.
  */
-public final class SplunkSinkTask extends SinkTask {
+public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class);
     private static final int backPressureResetWindow = 10 * 60 * 1000; // 10 mins
 
@@ -225,12 +225,12 @@ public final class SplunkSinkTask extends SinkTask {
     private HecInf createHec() {
         if (connectorConfig.numberOfThreads > 1) {
             return new ConcurrentHec(connectorConfig.numberOfThreads, connectorConfig.ack,
-                    connectorConfig.getHecClientConfig(), new HecPollerCallback(this));
+                    connectorConfig.getHecConfig(), this);
         } else {
             if (connectorConfig.ack) {
-                return Hec.newHecWithAck(connectorConfig.getHecClientConfig(), new HecPollerCallback(this));
+                return Hec.newHecWithAck(connectorConfig.getHecConfig(), this);
             } else {
-                return Hec.newHecWithoutAck(connectorConfig.getHecClientConfig(), new HecPollerCallback(this));
+                return Hec.newHecWithoutAck(connectorConfig.getHecConfig(), this);
             }
         }
     }
