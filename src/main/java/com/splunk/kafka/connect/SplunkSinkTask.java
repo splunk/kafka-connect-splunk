@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class);
-    private static final int backPressureResetWindow = 10 * 60 * 1000; // 10 mins
+    private int backPressureResetWindow = 10 * 60 * 1000; // 10 mins
 
     private HecInf hec;
     private KafkaRecordTracker tracker;
@@ -28,7 +28,9 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     @Override
     public void start(Map<String, String> taskConfig) {
         connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
-        hec = createHec();
+        if (hec == null) {
+            hec = createHec();
+        }
         tracker = new KafkaRecordTracker();
 
         log.info("kafka-connect-splunk task starts with config={}", connectorConfig);
@@ -44,7 +46,6 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         if (records.isEmpty()) {
             return;
         }
-
         if (connectorConfig.raw) {
             /* /raw endpoint */
             handleRaw(records);
@@ -52,6 +53,21 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             /* /event endpoint */
             handleEvent(records);
         }
+    }
+
+    // for testing hook
+    SplunkSinkTask setHec(final HecInf hec) {
+        this.hec = hec;
+        return this;
+    }
+
+    KafkaRecordTracker getTracker() {
+        return tracker;
+    }
+
+    SplunkSinkTask setBackPressureResetWindow(int win) {
+        backPressureResetWindow = win;
+        return this;
     }
 
     private void handleBackPressure() {
@@ -64,7 +80,6 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         }
 
         if (curTime - lastResetTime > backPressureResetWindow) {
-            // 10 mins
             backPressure = 0;
             lastResetTime = curTime;
         }
@@ -144,7 +159,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         }
 
         Map<String, String> metas = connectorConfig.topicMetas.get(tp.topic());
-        if (metas == null) {
+        if (metas == null || metas.isEmpty()) {
             return RawEventBatch.factory().build();
         }
 
@@ -160,7 +175,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         // tell Kafka Connect framework what are offsets we can safely commit to Kafka now
         Map<TopicPartition, OffsetAndMetadata> offsets = tracker.computeOffsets();
         log.debug("commits offsets offered={}, pushed={}", offsets, meta);
-        return meta;
+        return offsets;
     }
 
     @Override
@@ -178,7 +193,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
     public void onEventCommitted(final List<EventBatch> batches) {
         for (final EventBatch batch: batches) {
-            assert batch.isCommitted();
+            // assert batch.isCommitted();
         }
     }
 
