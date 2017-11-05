@@ -29,6 +29,9 @@ final class Indexer implements IndexerInf {
     private HecChannel channel;
     private Header[] headers;
     private Poller poller;
+    private long backPressure;
+    private long lastBackPressure;
+    private long backPressureThreshhold = 60 * 1000; // 1 min
 
     // Indexer doesn't own client, ack poller
     public Indexer(String baseUrl, String hecToken, CloseableHttpClient client, Poller poller) {
@@ -37,6 +40,7 @@ final class Indexer implements IndexerInf {
         this.hecToken = hecToken;
         this.poller = poller;
         this.context = HttpClientContext.create();
+        backPressure = 0;
 
         channel = new HecChannel(this);
 
@@ -47,6 +51,11 @@ final class Indexer implements IndexerInf {
 
         keepAlive = false;
         setKeepAlive(true);
+    }
+
+    public Indexer setBackPressureThreshhold(long threshhold /* milli-seconds */) {
+        backPressureThreshhold = threshhold;
+        return this;
     }
 
     public Indexer setKeepAlive(boolean keepAlive) {
@@ -123,7 +132,7 @@ final class Indexer implements IndexerInf {
         return readAndCloseResponse(resp);
     }
 
-    private static String readAndCloseResponse(CloseableHttpResponse resp) {
+    private String readAndCloseResponse(CloseableHttpResponse resp) {
         String respPayload;
         HttpEntity entity = resp.getEntity();
         try {
@@ -143,9 +152,16 @@ final class Indexer implements IndexerInf {
         int status = resp.getStatusLine().getStatusCode();
         // FIXME 503 server is busy backpressure
         if (status != 200 && status != 201) {
+            if (status == 503) {
+                backPressure += 1;
+                lastBackPressure = System.currentTimeMillis();
+            }
+
             log.error("failed to post events resp={}, status={}", respPayload, status);
             throw new HecException(String.format("failed to post events resp=%s, status=%d", respPayload, status));
         }
+
+        backPressure = 0;
 
         return respPayload;
     }
@@ -153,5 +169,21 @@ final class Indexer implements IndexerInf {
     @Override
     public String toString() {
         return baseUrl;
+    }
+
+    @Override
+    public boolean hasBackPressure() {
+        if (backPressure > 0) {
+            if (System.currentTimeMillis() - lastBackPressure < backPressureThreshhold) {
+                // still in the backpressure window
+                return true;
+            } else {
+                // clear the backPressure
+                backPressure = 0;
+                lastBackPressure = 0;
+                return false;
+            }
+        }
+        return false;
     }
 }

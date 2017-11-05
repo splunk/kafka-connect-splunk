@@ -13,6 +13,7 @@ public final class IndexerMock implements IndexerInf {
     private List<EventBatch> batches = new ArrayList<>();
     private List<HttpUriRequest> requests = new ArrayList<>();
     private String response;
+    private boolean backPressure = false;
 
     @Override
     public boolean send(final EventBatch batch) {
@@ -34,6 +35,16 @@ public final class IndexerMock implements IndexerInf {
     @Override
     public Header[] getHeaders() {
         return null;
+    }
+
+    @Override
+    public boolean hasBackPressure() {
+        return backPressure;
+    }
+
+    public IndexerMock setBackPressure(boolean backPressure) {
+        this.backPressure = backPressure;
+        return this;
     }
 
     public List<EventBatch> getBatches() {

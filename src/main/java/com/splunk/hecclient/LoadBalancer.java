@@ -36,9 +36,17 @@ public final class LoadBalancer implements LoadBalancerInf {
         if (channels.isEmpty()) {
             throw new HecException("No channels are available / registered with LoadBalancer");
         }
-        HecChannel channel = channels.get(index);
-        index = (index + 1) % channels.size();
-        return channel.send(batch);
+
+        for (int tried = 0; tried != channels.size(); tried++) {
+            HecChannel channel = channels.get(index);
+            index = (index + 1) % channels.size();
+            if (!channel.hasBackPressure()) {
+                return channel.send(batch);
+            }
+        }
+
+        // all indexers have back pressure
+        throw new HecException("All channels have back pressure");
     }
 
     @Override

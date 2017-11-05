@@ -9,6 +9,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 interface IndexerInf {
     boolean send(final EventBatch batch);
     String executeHttpRequest(final HttpUriRequest req);
+    boolean hasBackPressure();
     String getBaseUrl();
     Header[] getHeaders();
 }

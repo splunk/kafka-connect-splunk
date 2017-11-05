@@ -48,6 +48,10 @@ final class HecChannel {
         return indexer.executeHttpRequest(req);
     }
 
+    public boolean hasBackPressure() {
+        return indexer.hasBackPressure();
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {

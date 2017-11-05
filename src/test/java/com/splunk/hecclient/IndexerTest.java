@@ -91,7 +91,14 @@ public class IndexerTest {
     public void sendWithServerBusy() {
         CloseableHttpClientMock client = new CloseableHttpClientMock();
         client.setResponse(CloseableHttpClientMock.serverBusy);
-        assertFailure(client);
+
+        Indexer indexer = assertFailure(client);
+        Assert.assertTrue(indexer.hasBackPressure());
+        indexer.setBackPressureThreshhold(2000);
+        UnitUtil.milliSleep(2500);
+        Assert.assertFalse(indexer.hasBackPressure());
+        // Assert again
+        Assert.assertFalse(indexer.hasBackPressure());
     }
 
     @Test
@@ -117,7 +124,7 @@ public class IndexerTest {
         assertFailure(client);
     }
 
-    private void assertFailure(CloseableHttpClient client) {
+    private Indexer assertFailure(CloseableHttpClient client) {
         PollerMock poller = new PollerMock();
 
         Indexer indexer = new Indexer(baseUrl, token, client, poller);
@@ -128,5 +135,6 @@ public class IndexerTest {
         Assert.assertNotNull(poller.getFailedBatch());
         Assert.assertNotNull(poller.getException());
         Assert.assertEquals(indexer.getChannel(), poller.getChannel());
+        return indexer;
     }
 }
