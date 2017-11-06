@@ -42,13 +42,11 @@ public class ConcurrentHec implements HecInf {
     }
 
     @Override
-    public final boolean send(final EventBatch batch) {
+    public final void send(final EventBatch batch) {
         try {
-            return batches.offer(batch, 1000, TimeUnit.MILLISECONDS);
+            batches.offer(batch, 1000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException ex) {
-            batch.fail();
-            pollerCallback.onEventFailure(Arrays.asList(batch), ex);
-            return false;
+            throw new HecException("failed to offer batch into queue", ex);
         }
     }
 

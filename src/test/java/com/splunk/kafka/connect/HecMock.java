@@ -30,20 +30,17 @@ public class HecMock implements HecInf {
     }
 
     @Override
-    public boolean send(final EventBatch batch) {
+    public void send(final EventBatch batch) {
         batches.add(batch);
         if (sentResult.equals(success)) {
             batch.commit();
             task.onEventCommitted(Arrays.asList(batch));
-            return true;
         } else if (sentResult.equals(failure)) {
             batch.fail();
             task.onEventFailure(Arrays.asList(batch), new HecException("mockup"));
-            return false;
         } else {
             batch.fail();
             task.onEventFailure(Arrays.asList(batch), new HecException("mockup"));
-            return true;
         }
     }
 

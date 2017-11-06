@@ -75,11 +75,11 @@ public class Hec implements HecInf {
     }
 
     @Override
-    public final boolean send (final EventBatch batch) {
+    public final void send (final EventBatch batch) {
         if (batch.isEmpty()) {
-            return false;
+            return;
         }
-        return loadBalancer.send(batch);
+        loadBalancer.send(batch);
     }
 
     @Override
