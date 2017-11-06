@@ -35,7 +35,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
     @Override
     public void put(Collection<SinkRecord> records) {
-        log.debug("received {} records", records.size());
+        log.info("received {} records", records.size());
 
         handleFailedBatches();
 
@@ -63,13 +63,14 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
     private void handleFailedBatches() {
         Collection<EventBatch> failed = tracker.getAndRemoveFailedRecords();
-        log.info("handle {} failed batches", failed.size());
+
         // if there are failed ones, first deal with them
         for (final EventBatch batch: failed) {
             send(batch);
         }
 
         if (!failed.isEmpty()) {
+            log.info("handle {} failed batches", failed.size());
             throw new RetriableException(new HecException("need handle failed batches first, pause the pull for a while"));
         }
     }
