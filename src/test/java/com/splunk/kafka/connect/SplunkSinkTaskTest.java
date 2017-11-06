@@ -58,36 +58,6 @@ public class SplunkSinkTaskTest {
     }
 
     @Test
-    public void putWithBackpressureCleared() {
-        UnitUtil uu = new UnitUtil();
-        Map<String, String> config = uu.createTaskConfig();
-        config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
-        config.put(SplunkSinkConnectorConfig.ACK_CONF, String.valueOf(true));
-        config.put(SplunkSinkConnectorConfig.MAX_BATCH_SIZE_CONF, String.valueOf(100));
-
-        SplunkSinkTask task = new SplunkSinkTask();
-        task.setBackPressureResetWindow(2);
-        HecMock hec = new HecMock(task);
-        // success
-        hec.setSendReturnResult(HecMock.success);
-        task.setHec(hec);
-        task.start(config);
-        task.put(createSinkRecords(100));
-        Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>();
-        offsets.put(new TopicPartition(uu.topics, 1), new OffsetAndMetadata(100));
-        Assert.assertEquals(offsets, task.preCommit(null));
-        Assert.assertTrue(task.getTracker().getAndRemoveFailedRecords().isEmpty());
-
-        UnitUtil.milliSleep(2500);
-        task.put(createSinkRecords(100, 100, "ni, hao"));
-
-        offsets.put(new TopicPartition(uu.topics, 1), new OffsetAndMetadata(200));
-        Assert.assertEquals(offsets, task.preCommit(null));
-        Assert.assertTrue(task.getTracker().getAndRemoveFailedRecords().isEmpty());
-        task.stop();
-    }
-
-    @Test
     public void putWithoutMaxBatchAligned() {
         UnitUtil uu = new UnitUtil();
         Map<String, String> config = uu.createTaskConfig();
