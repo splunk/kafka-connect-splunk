@@ -8,6 +8,8 @@ import java.io.UnsupportedEncodingException;
 public final class RawEvent extends Event {
     public RawEvent(Object data, Object tied) {
         super(data, tied);
+        // by default disable carriage return line breaker
+        setLineBreaker("");
     }
 
     @Override
@@ -37,6 +39,13 @@ public final class RawEvent extends Event {
         }
 
         return bytes;
+    }
+
+    public final Event setLineBreaker(final String breaker) {
+        if (breaker != null) {
+            this.lineBreaker = breaker;
+        }
+        return this;
     }
 
     @Override
