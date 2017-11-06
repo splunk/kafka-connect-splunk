@@ -6,6 +6,6 @@ package com.splunk.hecclient;
 public interface LoadBalancerInf {
     void add(HecChannel channel);
     void remove(HecChannel channel);
-    boolean send(final EventBatch batch);
+    void send(final EventBatch batch);
     int size();
 }

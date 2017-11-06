@@ -32,7 +32,7 @@ public final class LoadBalancer implements LoadBalancerInf {
     }
 
     @Override
-    public boolean send(final EventBatch batch) {
+    public void send(final EventBatch batch) {
         if (channels.isEmpty()) {
             throw new HecException("No channels are available / registered with LoadBalancer");
         }
@@ -41,7 +41,8 @@ public final class LoadBalancer implements LoadBalancerInf {
             HecChannel channel = channels.get(index);
             index = (index + 1) % channels.size();
             if (!channel.hasBackPressure()) {
-                return channel.send(batch);
+                channel.send(batch);
+                return;
             }
         }
 

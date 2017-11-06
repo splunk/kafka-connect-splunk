@@ -36,11 +36,11 @@ final class HecChannel {
         return this;
     }
 
-    public boolean send(final EventBatch batch) {
+    public void send(final EventBatch batch) {
         if (chField != null) {
             batch.addExtraFields(chField);
         }
-        return indexer.send(batch);
+        indexer.send(batch);
     }
 
     // for convenience

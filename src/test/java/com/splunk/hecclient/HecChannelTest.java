@@ -62,8 +62,7 @@ public class HecChannelTest {
         EventBatch batch = new JsonEventBatch();
         Event event = new JsonEvent("ni", "hao");
         batch.add(event);
-        boolean res = ch.send(batch);
-        Assert.assertTrue(res);
+        ch.send(batch);
 
         List<EventBatch> batches = indexer.getBatches();
         Assert.assertEquals(1, batches.size());

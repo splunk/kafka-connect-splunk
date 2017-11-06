@@ -35,8 +35,7 @@ public class HecTest {
         HecConfig config = UnitUtil.createHecConfig();
         Poller pm = new PollerMock();
         Hec hec = new Hec(config, Hec.createHttpClient(config), pm, lb);
-        boolean result = hec.send(new JsonEventBatch());
-        Assert.assertFalse(result);
+        hec.send(new JsonEventBatch());
         Assert.assertEquals(0, lb.getBatches().size());
     }
 
@@ -46,8 +45,7 @@ public class HecTest {
         HecConfig config = UnitUtil.createHecConfig();
         Poller pm = new PollerMock();
         Hec hec = new Hec(config, Hec.createHttpClient(config), pm, lb);
-        boolean result = hec.send(UnitUtil.createBatch());
-        Assert.assertTrue(result);
+        hec.send(UnitUtil.createBatch());
         Assert.assertEquals(1, lb.getBatches().size());
     }
 

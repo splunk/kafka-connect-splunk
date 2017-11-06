@@ -8,6 +8,7 @@ import java.util.List;
  */
 public class LoadBalancerMock implements LoadBalancerInf {
     private List<EventBatch> batches = new ArrayList<>();
+    private boolean throwOnSend = false;
 
     public void add(HecChannel channel) {
     }
@@ -15,9 +16,16 @@ public class LoadBalancerMock implements LoadBalancerInf {
     public void remove(HecChannel channel) {
     }
 
-    public boolean send(final EventBatch batch) {
+    public void send(final EventBatch batch) {
+        if (throwOnSend) {
+            throw new HecException("mocked up");
+        }
         batches.add(batch);
-        return true;
+    }
+
+    public LoadBalancerMock setThrowOnSend(boolean throwOnSend) {
+        this.throwOnSend = throwOnSend;
+        return this;
     }
 
     public int size() {
