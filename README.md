@@ -31,6 +31,7 @@ SplunkSinkConnector supports writing data from Kafka topics into Splunk via Splu
        "splunk.hec.uri": "<Splunk-HEC-URI>",
        "splunk.hec.token": "<Splunk-HEC-Token>",
        "splunk.hec.raw": "<true|false>",
+       "splunk.hec.raw.line.breaker": "<line breaker separator>",
        "splunk.hec.json.event.enrichment": "<key value pairs separated by comma, only applicable to /event HEC>",
        "splunk.hec.ack.enabled": "<true|false>",
        "splunk.hec.ack.poll.interval": "<event ack poll interval>",
