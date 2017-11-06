@@ -13,6 +13,7 @@ import java.util.Map;
  */
 public class RawEventTest {
     static final ObjectMapper jsonMapper = new ObjectMapper();
+    static final String separator = "###";
 
     @Test
     public void createValidRawEvent() {
@@ -118,55 +119,51 @@ public class RawEventTest {
     }
 
     @Test
-    public void getInputStreamWithoutCarriageReturn() {
-        getInputStream(false);
+    public void getInputStreamWithoutLineBreaker() {
+        getInputStream(null);
     }
 
     @Test
-    public void getInputStreamWithCarriageReturn() {
-        getInputStream(true);
+    public void getInputStreamWithLineBreaker() {
+        getInputStream(separator);
     }
 
-    private void getInputStream(boolean withCarriageReturn) {
-        String e;
-        if (withCarriageReturn) {
-            e = "ni\n";
-        } else {
-            e = "ni"; // the lib will append a trailing '\n' to the event
-        }
-
-        Event event = new RawEvent(e, "hao");
+    private void getInputStream(final String lineBreaker) {
+        String e = "ni";
+        RawEvent event = new RawEvent(e, "hao");
+        event.setLineBreaker(lineBreaker);
         InputStream stream = event.getInputStream();
         byte[] data = new byte[1024];
         int siz = UnitUtil.read(stream, data);
-        if (withCarriageReturn) {
-            Assert.assertEquals(siz, e.length());
+        if (lineBreaker != null) {
+            Assert.assertEquals(siz, e.length() + lineBreaker.length());
         } else {
-            Assert.assertEquals(siz, e.length() + 1);
+            Assert.assertEquals(siz, e.length());
         }
 
-        Assert.assertEquals(data[0], 'n');
-        Assert.assertEquals(data[1], 'i');
-        Assert.assertEquals(data[2], '\n');
+        String got = new String(data, 0, siz);
+
+        if (lineBreaker != null) {
+            Assert.assertEquals(e + lineBreaker, got);
+        } else {
+            Assert.assertEquals(e, got);
+        }
     }
 
     @Test
     public void writeToWithoutCarriageReturn() {
-        writeTo(false);
+        writeTo(null);
     }
 
     @Test
     public void writeToWithCarriageReturn() {
-        writeTo(true);
+        writeTo(separator);
     }
 
-    private void writeTo(boolean withCarriageReturn) {
+    private void writeTo(final String lineBreaker) {
         String eventData = "ni";
-        if (withCarriageReturn) {
-            eventData += "\n";
-        }
-
-        Event e = new RawEvent(eventData, null);
+        RawEvent e = new RawEvent(eventData, null);
+        e.setLineBreaker(lineBreaker);
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         try {
             e.writeTo(stream);
@@ -176,10 +173,10 @@ public class RawEventTest {
         }
 
         String dataGot = stream.toString();
-        if (withCarriageReturn) {
-            Assert.assertEquals(dataGot, eventData);
+        if (lineBreaker != null) {
+            Assert.assertEquals(eventData + lineBreaker, dataGot);
         } else {
-            Assert.assertEquals(dataGot, eventData + "\n");
+            Assert.assertEquals(eventData, dataGot);
         }
     }
 
@@ -198,28 +195,12 @@ public class RawEventTest {
     @Test
     public void length() {
         String data = "ni";
-        Event event = new RawEvent(data, null);
-        Assert.assertEquals(event.length(), data.length() + 1); // if we don't have trailing "\n", we add it
+        RawEvent event = new RawEvent(data, null);
+        Assert.assertEquals(event.length(), data.length());
 
-        data = "ni\n";
+        data = "ni";
         event = new RawEvent(data, null);
-        Assert.assertEquals(event.length(), data.length()); // if we have trailing "\n", we don't add "\n"
-    }
-
-    @Test
-    public void endswith() {
-        byte[] data = new byte[2];
-        data[0] = 'n';
-        data[1] = 'i';
-
-        boolean r = Event.endswith(data, (byte) 'i');
-        Assert.assertTrue(r);
-
-        r = Event.endswith(data, (byte) 'n');
-        Assert.assertFalse(r);
-
-        data = new byte[0];
-        r = Event.endswith(data, (byte) 'i');
-        Assert.assertFalse(r);
+        event.setLineBreaker(separator);
+        Assert.assertEquals(data.length() + separator.length(), event.length());
     }
 }

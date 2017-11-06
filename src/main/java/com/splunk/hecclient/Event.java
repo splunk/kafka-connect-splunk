@@ -32,6 +32,9 @@ public abstract class Event {
     protected Object event;
 
     @JsonIgnore
+    protected String lineBreaker = "\n";
+
+    @JsonIgnore
     protected byte[] bytes; // populated once, use forever
 
     @JsonIgnore
@@ -48,42 +51,43 @@ public abstract class Event {
     Event() {
     }
 
-    public final Event setEvent(Object data) {
+    public final Event setEvent(final Object data) {
         checkEventData(data);
 
         event = data;
         return this;
     }
 
-    public final Event setTied(Object tied) {
+    public final Event setTied(final Object tied) {
         this.tied = tied;
         return this;
     }
 
-    public final Event setTime(long epochMillis) {
+    public final Event setTime(final long epochMillis) {
         this.time = epochMillis;
         return this;
     }
 
-    public final Event setSource(String source) {
+    public final Event setSource(final String source) {
         this.source = source;
         return this;
     }
 
-    public final Event setSourcetype(String sourcetype) {
+    public final Event setSourcetype(final String sourcetype) {
         this.sourcetype = sourcetype;
         return this;
     }
 
-    public final Event setHost(String host) {
+    public final Event setHost(final String host) {
         this.host = host;
         return this;
     }
 
-    public final Event setIndex(String index) {
+    public final Event setIndex(final String index) {
         this.index = index;
         return this;
     }
+
 
     public final Long getTime() {
         return time;
@@ -109,6 +113,10 @@ public abstract class Event {
         return event;
     }
 
+    public final String getLineBreaker() {
+        return lineBreaker;
+    }
+
     public final Object getTied() {
         return tied;
     }
@@ -127,41 +135,29 @@ public abstract class Event {
 
     public final int length() {
         byte[] data = getBytes();
-        if (endswith(data, (byte) '\n')) {
-            return data.length;
-        }
-        return data.length + 1;
+        return data.length + lineBreaker.getBytes().length;
     }
 
     @JsonIgnore
     public final InputStream getInputStream() {
         byte[] data = getBytes();
         InputStream eventStream = new ByteArrayInputStream(data);
-        if (endswith(data, (byte) '\n')) {
-            return eventStream;
-        }
 
         // avoid copying the event
-        byte[] carriageReturn = new byte[1];
-        carriageReturn[0] = (byte) '\n';
-        InputStream carriageReturnStream = new ByteArrayInputStream(carriageReturn);
+        InputStream carriageReturnStream = new ByteArrayInputStream(lineBreaker.getBytes());
         return new SequenceInputStream(eventStream, carriageReturnStream);
     }
 
     public final void writeTo(OutputStream out) throws IOException {
         byte[] data = getBytes();
         out.write(data);
-        if (!endswith(data, (byte) '\n')) {
-            // append '\n'
-            out.write('\n');
-        }
+
+        // append line breaker
+        byte[] breaker = lineBreaker.getBytes();
+        out.write(breaker);
     }
 
     abstract byte[] getBytes();
-
-    public static boolean endswith(byte[] data, byte b) {
-        return data.length >= 1 && data[data.length - 1] == b;
-    }
 
     private static void checkEventData(Object eventData) {
         if (eventData == null) {

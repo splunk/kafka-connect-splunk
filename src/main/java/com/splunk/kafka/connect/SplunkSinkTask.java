@@ -182,7 +182,9 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
     private Event createHecEventFrom(SinkRecord record) {
         if (connectorConfig.raw) {
-            return new RawEvent(record.value(), record);
+            RawEvent event = new RawEvent(record.value(), record);
+            event.setLineBreaker(connectorConfig.lineBreaker);
+            return event;
         }
 
         // meta data for /event endpoint is per event basis
