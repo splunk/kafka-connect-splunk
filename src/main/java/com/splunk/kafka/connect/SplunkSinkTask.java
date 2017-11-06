@@ -17,12 +17,9 @@ import org.slf4j.LoggerFactory;
  */
 public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class);
-    private int backPressureResetWindow = 10 * 60 * 1000; // 10 mins
 
     private HecInf hec;
     private KafkaRecordTracker tracker;
-    private long backPressure = 0;
-    private long lastResetTime = System.currentTimeMillis();
     private SplunkSinkConnectorConfig connectorConfig;
 
     @Override
@@ -38,9 +35,8 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
     @Override
     public void put(Collection<SinkRecord> records) {
-        log.debug("received {} records with backPressure={}", records.size(), backPressure);
+        log.debug("received {} records", records.size());
 
-        handleBackPressure();
         handleFailedBatches();
 
         if (records.isEmpty()) {
@@ -63,26 +59,6 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
     KafkaRecordTracker getTracker() {
         return tracker;
-    }
-
-    SplunkSinkTask setBackPressureResetWindow(int win) {
-        backPressureResetWindow = win;
-        return this;
-    }
-
-    private void handleBackPressure() {
-        long curTime = System.currentTimeMillis();
-
-        if (backPressure > 0) {
-            backPressure = 0;
-            lastResetTime = curTime;
-            throw new RetriableException(new HecException("detected backPressure, pause the pull for a while"));
-        }
-
-        if (curTime - lastResetTime > backPressureResetWindow) {
-            backPressure = 0;
-            lastResetTime = curTime;
-        }
     }
 
     private void handleFailedBatches() {
@@ -144,11 +120,12 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     private void send(final EventBatch batch) {
         batch.resetSendTimestamp();
         tracker.addEventBatch(batch);
-        boolean success = hec.send(batch);
-        if (success) {
-            backPressure -= 1;
-        } else {
-            backPressure += 1;
+        try {
+            hec.send(batch);
+        } catch (Exception ex) {
+            batch.fail();
+            onEventFailure(Arrays.asList(batch), ex);
+            log.error("failed to send batch", ex);
         }
     }
 

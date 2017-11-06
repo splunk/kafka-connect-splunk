@@ -46,6 +46,8 @@ public class ConcurrentHec implements HecInf {
         try {
             return batches.offer(batch, 1000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException ex) {
+            batch.fail();
+            pollerCallback.onEventFailure(Arrays.asList(batch), ex);
             return false;
         }
     }
@@ -84,8 +86,8 @@ public class ConcurrentHec implements HecInf {
             hec.send(batch);
         } catch (Exception ex) {
             batch.fail();
-            log.error("sending batch to splunk encountered error", ex);
             pollerCallback.onEventFailure(Arrays.asList(batch), ex);
+            log.error("sending batch to splunk encountered error", ex);
         }
     }
 
