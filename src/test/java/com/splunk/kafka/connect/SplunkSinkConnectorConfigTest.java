@@ -52,7 +52,7 @@ public class SplunkSinkConnectorConfigTest {
             Assert.assertEquals(uu.httpKeepAlive, config.getHttpKeepAlive());
             Assert.assertEquals(uu.ackPollInterval, config.getAckPollInterval());
             Assert.assertEquals(uu.ackPollThreads, config.getAckPollThreads());
-            Assert.assertEquals(uu.trackChannel, config.getEnableChannelTracking());
+            Assert.assertEquals(uu.trackData, config.getEnableChannelTracking());
         }
     }
 
@@ -212,7 +212,7 @@ public class SplunkSinkConnectorConfigTest {
         Assert.assertEquals(uu.maxHttpConnPerChannel, connectorConfig.maxHttpConnPerChannel);
         Assert.assertEquals(uu.totalHecChannels, connectorConfig.totalHecChannels);
         Assert.assertEquals(uu.socketTimeout, connectorConfig.socketTimeout);
-        Assert.assertEquals(uu.trackChannel, connectorConfig.trackChannel);
+        Assert.assertEquals(uu.trackData, connectorConfig.trackData);
         Assert.assertEquals(uu.maxBatchSize, connectorConfig.maxBatchSize);
         Assert.assertEquals(uu.numOfThreads, connectorConfig.numberOfThreads);
     }
