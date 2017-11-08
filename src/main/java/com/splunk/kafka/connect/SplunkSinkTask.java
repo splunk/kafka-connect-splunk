@@ -200,12 +200,12 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
         if (connectorConfig.trackData) {
             // for data loss, latency tracking
-            Map<String, String> offsetTimestamp = new HashMap<>();
-            offsetTimestamp.put("__offset", String.valueOf(record.kafkaOffset()));
-            offsetTimestamp.put("__timestamp", String.valueOf(record.timestamp()));
-            offsetTimestamp.put("__topic", record.topic());
-            offsetTimestamp.put("__partition", String.valueOf(record.kafkaPartition()));
-            event.addFields(offsetTimestamp);
+            Map<String, String> trackMetas = new HashMap<>();
+            trackMetas.put("kafka_offset", String.valueOf(record.kafkaOffset()));
+            trackMetas.put("kafka_timestamp", String.valueOf(record.timestamp()));
+            trackMetas.put("kafka_topic", record.topic());
+            trackMetas.put("kafka_partition", String.valueOf(record.kafkaPartition()));
+            event.addFields(trackMetas);
         }
 
         return event;

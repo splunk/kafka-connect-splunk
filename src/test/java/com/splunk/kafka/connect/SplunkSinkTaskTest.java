@@ -239,10 +239,10 @@ public class SplunkSinkTaskTest {
                 int j = 0;
                 for (Event event: batch.getEvents()) {
                     int n = i * 100 + j;
-                    Assert.assertEquals(String.valueOf(n), event.getFields().get("__offset"));
-                    Assert.assertEquals(String.valueOf(1), event.getFields().get("__partition"));
-                    Assert.assertEquals(new UnitUtil().topics, event.getFields().get("__topic"));
-                    Assert.assertEquals(String.valueOf(0), event.getFields().get("__timestamp"));
+                    Assert.assertEquals(String.valueOf(n), event.getFields().get("kafka_offset"));
+                    Assert.assertEquals(String.valueOf(1), event.getFields().get("kafka_partition"));
+                    Assert.assertEquals(new UnitUtil().topics, event.getFields().get("kafka_topic"));
+                    Assert.assertEquals(String.valueOf(0), event.getFields().get("kafka_timestamp"));
                     j++;
                 }
 
