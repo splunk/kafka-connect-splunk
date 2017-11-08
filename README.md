@@ -44,7 +44,7 @@ SplunkSinkConnector supports writing data from Kafka topics into Splunk via Splu
        "splunk.hec.threads": "<number of threads to use to do HEC post for single task>",
        "splunk.hec.event.timeout": "<timeout in seconds>",
        "splunk.hec.socket.timeout": "<timeout in seconds>",
-       "splunk.hec.track.channel": "<true|false, for debug only>"
+       "splunk.hec.track.data": "<true|false, tracking data loss and latency, for debugging lagging and data loss>"
       }
     }'
 
