@@ -30,7 +30,7 @@ public class UnitUtil {
     final int socketTimeout = 1;
     final String enrichements = "ni=hao";
     final Map<String, String> enrichementMap = new HashMap<>();
-    final boolean trackChannel = true;
+    final boolean trackData = true;
     final int maxBatchSize = 1;
     final int numOfThreads = 1;
 
@@ -55,7 +55,7 @@ public class UnitUtil {
         config.put(SplunkSinkConnectorConfig.TOTAL_HEC_CHANNEL_CONF, String.valueOf(totalHecChannels));
         config.put(SplunkSinkConnectorConfig.SOCKET_TIMEOUT_CONF, String.valueOf(socketTimeout));
         config.put(SplunkSinkConnectorConfig.ENRICHEMENT_CONF, String.valueOf(enrichements));
-        config.put(SplunkSinkConnectorConfig.TRACK_CHANNEL_CONF, String.valueOf(trackChannel));
+        config.put(SplunkSinkConnectorConfig.TRACK_DATA_CONF, String.valueOf(trackData));
         config.put(SplunkSinkConnectorConfig.MAX_BATCH_SIZE_CONF, String.valueOf(maxBatchSize));
         config.put(SplunkSinkConnectorConfig.HEC_THREDS_CONF, String.valueOf(numOfThreads));
         return config;

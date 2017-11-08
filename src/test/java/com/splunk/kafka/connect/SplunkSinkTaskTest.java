@@ -1,9 +1,11 @@
 package com.splunk.kafka.connect;
 
+import com.splunk.hecclient.Event;
 import com.splunk.hecclient.EventBatch;
 import com.splunk.hecclient.RawEventBatch;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.record.TimestampType;
 import org.apache.kafka.connect.errors.RetriableException;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.junit.Assert;
@@ -195,11 +197,14 @@ public class SplunkSinkTaskTest {
     }
 
     private void putWithSuccess(boolean raw, boolean withMeta) {
+        int batchSize = 100;
+        int total = 1000;
+
         UnitUtil uu = new UnitUtil();
         Map<String, String> config = uu.createTaskConfig();
         config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(raw));
         config.put(SplunkSinkConnectorConfig.ACK_CONF, String.valueOf(true));
-        config.put(SplunkSinkConnectorConfig.MAX_BATCH_SIZE_CONF, String.valueOf(100));
+        config.put(SplunkSinkConnectorConfig.MAX_BATCH_SIZE_CONF, String.valueOf(batchSize));
         if (withMeta) {
             config.put(SplunkSinkConnectorConfig.INDEX_CONF, "i1");
             config.put(SplunkSinkConnectorConfig.SOURCETYPE_CONF, "s1");
@@ -216,7 +221,7 @@ public class SplunkSinkTaskTest {
         hec.setSendReturnResult(HecMock.success);
         task.setHec(hec);
         task.start(config);
-        task.put(createSinkRecords(1000));
+        task.put(createSinkRecords(total));
         Assert.assertEquals(10, hec.getBatches().size());
         if (raw && withMeta) {
             for (EventBatch batch: hec.getBatches()) {
@@ -226,6 +231,25 @@ public class SplunkSinkTaskTest {
                 Assert.assertEquals("e1", rb.getSource());
             }
         }
+
+        // assert data tracking
+        if (!raw) {
+            int i = 0;;
+            for (EventBatch batch: hec.getBatches()) {
+                int j = 0;
+                for (Event event: batch.getEvents()) {
+                    int n = i * 100 + j;
+                    Assert.assertEquals(String.valueOf(n), event.getFields().get("kafka_offset"));
+                    Assert.assertEquals(String.valueOf(1), event.getFields().get("kafka_partition"));
+                    Assert.assertEquals(new UnitUtil().topics, event.getFields().get("kafka_topic"));
+                    Assert.assertEquals(String.valueOf(0), event.getFields().get("kafka_timestamp"));
+                    j++;
+                }
+
+                i++;
+            }
+        }
+
         Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>();
         offsets.put(new TopicPartition(uu.topics, 1), new OffsetAndMetadata(1000));
         Assert.assertEquals(offsets, task.preCommit(null));
@@ -244,7 +268,7 @@ public class SplunkSinkTaskTest {
     private Collection<SinkRecord> createSinkRecords(int numOfRecords, int start, String value) {
         List<SinkRecord> records = new ArrayList<>();
         for (int i = start; i < start + numOfRecords; i++) {
-            SinkRecord rec = new SinkRecord(new UnitUtil().topics, 1, null, null, null, value, i);
+            SinkRecord rec = new SinkRecord(new UnitUtil().topics, 1, null, null, null, value, i, 0L, TimestampType.NO_TIMESTAMP_TYPE);
             records.add(rec);
         }
         return records;

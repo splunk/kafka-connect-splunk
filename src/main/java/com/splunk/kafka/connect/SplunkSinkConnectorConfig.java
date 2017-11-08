@@ -35,7 +35,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String MAX_BATCH_SIZE_CONF = "splunk.hec.max.batch.size"; // record count
     static final String HEC_THREDS_CONF = "splunk.hec.threads";
     static final String LINE_BREAKER_CONF = "splunk.hec.raw.line.breaker";
-    static final String TRACK_CHANNEL_CONF = "splunk.hec.track.channel";
+    static final String TRACK_DATA_CONF = "splunk.hec.track.data";
 
      // Kafka configuration description strings
     static final String TOKEN_DOC = "The authorization token to use when writing data to splunk.";
@@ -63,7 +63,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String MAX_BATCH_SIZE_DOC = "Max number of Kafka record to be sent to Splunk HEC for one POST";
     static final String HEC_THREADS_DOC = "Number of threads used to POST events to Splunk HEC in single task";
     static final String LINE_BREAKER_DOC = "Line breaker for /raw HEC endpoint. The line breaker can help Splunkd to do event breaking";
-    static final String TRACK_CHANNEL_DOC = "Track HEC channel or not. Is only applicable to splunk.hec.raw=false case";
+    static final String TRACK_DATA_DOC = "Track data loss, latency or not. Is only applicable to splunk.hec.raw=false case";
 
     final String splunkToken;
     final String splunkURI;
@@ -82,7 +82,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final int maxHttpConnPerChannel;
     final int totalHecChannels;
     final int socketTimeout;
-    final boolean trackChannel;
+    final boolean trackData;
     final int maxBatchSize;
     final int numberOfThreads;
     final String lineBreaker;
@@ -110,7 +110,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         totalHecChannels = getInt(TOTAL_HEC_CHANNEL_CONF);
         socketTimeout = getInt(SOCKET_TIMEOUT_CONF);
         enrichements = parseEnrichements(getString(ENRICHEMENT_CONF));
-        trackChannel = getBoolean(TRACK_CHANNEL_CONF);
+        trackData = getBoolean(TRACK_DATA_CONF);
         maxBatchSize = getInt(MAX_BATCH_SIZE_CONF);
         numberOfThreads = getInt(HEC_THREDS_CONF);
         lineBreaker = getString(LINE_BREAKER_CONF);
@@ -137,7 +137,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             .define(TOTAL_HEC_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.HIGH, TOTAL_HEC_CHANNEL_DOC)
             .define(SOCKET_TIMEOUT_CONF, ConfigDef.Type.INT, 60, ConfigDef.Importance.LOW, SOCKET_TIMEOUT_DOC)
             .define(ENRICHEMENT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.LOW, ENRICHMENT_DOC)
-            .define(TRACK_CHANNEL_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.LOW, TRACK_CHANNEL_DOC)
+            .define(TRACK_DATA_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.LOW, TRACK_DATA_DOC)
             .define(HEC_THREDS_CONF, ConfigDef.Type.INT, 1, ConfigDef.Importance.LOW, HEC_THREADS_DOC)
             .define(LINE_BREAKER_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, LINE_BREAKER_DOC)
             .define(MAX_BATCH_SIZE_CONF, ConfigDef.Type.INT, 100, ConfigDef.Importance.MEDIUM, MAX_BATCH_SIZE_DOC);
@@ -156,7 +156,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .setHttpKeepAlive(httpKeepAlive)
                 .setAckPollInterval(ackPollInterval)
                 .setAckPollThreads(ackPollThreads)
-                .setEnableChannelTracking(trackChannel);
+                .setEnableChannelTracking(trackData);
         return config;
     }
 
@@ -186,7 +186,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 + "maxBatchSize: " + maxBatchSize + ", "
                 + "numberOfThreads: " + numberOfThreads + ", "
                 + "lineBreaker: " + lineBreaker + ", "
-                + "trackChannel: " + trackChannel;
+                + "trackData: " + trackData;
     }
 
     private static String[] split(String data, String sep) {
