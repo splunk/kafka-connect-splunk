@@ -155,8 +155,8 @@ Keeping (replication factor and partition number) as default is recommended acco
 
 ## Configuration
 
-After Kafka Connect is brought up on every host, all of the Kafka Connect instances will form a cluster automatically. 
-User can send configuration REST calls to one machine. If a load balancer is setup in front of the Kafka Connect Cluster, then the load balancer's hostname/ip can be used for configuration calls.
+After Kafka Connect is brought up on every host all of the Kafka Connect instances will form a cluster automatically. 
+Even in a load balanced environment configuration REST calls can be sent to 1 machine.
 
 ### Configuration parameters
 
@@ -193,7 +193,7 @@ User can send configuration REST calls to one machine. If a load balancer is set
     }'
 	
 	```
-#####Required Settings
+##### Required Settings
 * `name` - Connector name. Different connector names form different consumer groups. 
     > Note: When a user creates a connector named `splunk-prod-financial` with **tasks.max** setting to 30, and there are 3 Kafka Connect servers in the cluster. Each Splunk Kafka Connector on each Kafka Connect instance will get ~ 10 tasks. All of the 30 tasks will be in the same consumer group even if they are spread across different boxes / containers. If one Kafka Connect is down, the tasks on that node will be re dispatched to the other 2 nodes automatically. 
 * `connector.class` - Java Class Entry point which is used to do connector job(s). The value for the Splunk Kafka Connector is **com.splunk.kafka.connect.SplunkSinkConnector**.
@@ -203,7 +203,7 @@ User can send configuration REST calls to one machine. If a load balancer is set
 * `splunk.hec.token` -  Splunk HEC token.
 * `topics` -  Kafka topics which Splunk will consume data from. List of comma separated topics. `prod-topic1,prod-topc2,prod-topic3`
 
-#####Optional Settings
+##### Optional Settings
 * `splunk.indexes` - Target Splunk indexes to send data to. It can be a list of indexes which shall be the same sequence / order as topics.
     > Note: If is possible to inject data from different topics to different indexers. For Example prod-topic1,prod-topic2,prod-topic3 can be sent to index prod-index1,prod-index2,prod-index3. If the user would like to index all data from multiple topics to the main index, then "main" can be specified. Leaving this setting un configured will result in data being routed to the default index configured against the HEC token being used. Please note make sure the indexes configured here are in the index list of HEC token, otherwise Splunk HEC will reject the data. By default, this setting is empty.
 * `splunk.sources` -  Splunk event source metadata for Kafka topic data. Same configuration rules as indexes can be applied here. Leaving it non-configured will result in the default source bound to the HEC token. By default, this setting is empty.
@@ -269,7 +269,7 @@ A common architecture is to have a load balancer set up in front of a Splunk ind
 
 For this architecture configuration to work:
 
-1. Enable**sticky sessions**for the load balancer. This is critical. Without **sticky sessions** enabled the data injection will potentially fail with duplicate data.
+1. Enable **sticky sessions**for the load balancer. This is critical. Without **sticky sessions** enabled the data injection will potentially fail with duplicate data.
 2. Ensure the correct value for the **splunk.hec.total.channels** setting. Assume there are N Splunk HEC endpoints behind the load balancer. The **splunk.hec.total.channels** should be set to a multiple of N.(E.g N, 2N, 3N etc..) This will ensure that channels are evenly load balanced and POSTs the amount of Splunk servers being used. 
 
 > Note: Using a load balancer with **sticky sessions** enabled can sometimes cause duplicate data when requests are offloaded to different servers under load.
@@ -278,13 +278,13 @@ For this architecture configuration to work:
 
 With the following testing bed and raw event setup, initial basic performance testing shows a single Splunk Kafka Connector can reach maximum indexed throughput of 32MB/second. 
 
-Hardware Specification: EC2 c4.2xlarge, 8 vCPU and 31 GB memory
-Splunk Cluster: 3 indexer cluster without Load balancer
-Kafka Connect: JVM heap size configuration is "-Xmx6G -Xms2G"
-Kafka Connect resource usage: ~6GB memory, ~3 vCPUs.
+Hardware Specification: 
+* **AWS:** EC2 c4.2xlarge, 8 vCPU and 31 GB Memory
+* **Splunk Cluster:** 3 indexer cluster without Load balancer
+* **Kafka Connect:** JVM heap size configuration is "-Xmx6G -Xms2G"
+* **Kafka Connect resource usage:** ~6GB memory, ~3 vCPUs.
 
-
-## Scale
+## Scaling out your environment
 There are 2 ways to scale out the Splunk Kafka Connector to handle more load. However, before scaling the Splunk Kafka Connector tier it is important to ensure that it is in fact the connector which is the current bottleneck. If the bottleneck is Splunk (Splunk environment size is too small) we will need to scale the Splunk environment first for greater throughput.
 
 1. Reconfigure with more tasks to scale up the data injection. If the hardware resources which are allocated to run the Splunk Kafka Connector are enough (Observed low CPU, memory usage and low data injection throughput). The user can reconfigure the connector with more tasks. Example above in the **Configuration parameters**-**Update** section.
