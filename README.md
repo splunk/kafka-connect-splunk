@@ -111,11 +111,11 @@ throughput environments.
 	```
 	bootstrap.servers=<broker1:9092,broker2:9092,...>  # adjust this setting to brokers IP/hostname port
 	```
-3. Revise other optional settings in **config/connect-distributed.properties**if necessary. 
+3. Revise other optional settings in **config/connect-distributed.properties** if necessary. 
 Keeping (replication factor and partition number) as default is recommended according to best practice. Change at own risk.
 
     Please note the below topics will be created by Kafka Connect when deploying the Splunk Connector if they are not in the Kafka cluster. 
-    If the Kafka Connect cluster**does not have permission**to create these topics due to Access Control, the user needs create the topic in Kafka before starting Kafka Connect cluster.
+    If the Kafka Connect cluster **does not have permission** to create these topics due to Access Control, the user needs create the topic in Kafka before starting Kafka Connect cluster.
 
 	```
 	group.id=kafka-connect-splunk-hec-sink    # consumer group id of Kafka Connect, which is used to form a Kafka Connect cluster
@@ -138,19 +138,19 @@ Keeping (replication factor and partition number) as default is recommended acco
 	cd kafka-connect-splunk
 	export KAFKA_HEAP_OPTS="-Xmx6G -Xms2G" && ./bin/connect-distributed.sh config/connect-distributed.properties >> kafka-connect-splunk.log 2>&1 
 	```
-	**Note:** Please pay attention to the**KAFKA_HEAP_OPTS**environment variable which controls how much memory Kafka Connect can use. 
+	**Note:** Please pay attention to the **KAFKA_HEAP_OPTS** environment variable which controls how much memory Kafka Connect can use. 
 	Setting the **KAFKA_HEAP_OPTS** with the value stated above is recommended.
 
 ### Deploy Splunk Kafka Connector to an existing Kafka Connect Cluster
 
-1. Untar the **kafka-connect-splunk.tar.gz**installation package and enter the**kafka-connect-splunk**directory.
+1. Untar the **kafka-connect-splunk.tar.gz** installation package and enter the **kafka-connect-splunk** directory.
 
     ``` 
        tar xzvf kafka-connect-splunk.tar.gz
        cd kafka-connect-splunk
     ```
-2. Copy the **conectors/kafka-connect-splunk-1.0-SNAPSHOT.jar**to plugin path specified by**plugin.path**in existing Kafka Connect on every host.
-3. Copy**libs/commons-logging-1.2.jar**to**libs**of existing Kafka Connect on every host.
+2. Copy the **conectors/kafka-connect-splunk-1.0-SNAPSHOT.jar** to plugin path specified by **plugin.path** in existing Kafka Connect on every host.
+3. Copy **libs/commons-logging-1.2.jar** to **libs** of existing Kafka Connect on every host.
 4. Restart the Kafka Connect cluster.
 
 ## Configuration
@@ -205,28 +205,28 @@ Even in a load balanced environment configuration REST calls can be sent to 1 ma
 
 ##### Optional Settings
 * `splunk.indexes` - Target Splunk indexes to send data to. It can be a list of indexes which shall be the same sequence / order as topics.
-    > Note: If is possible to inject data from different topics to different indexers. For Example prod-topic1,prod-topic2,prod-topic3 can be sent to index prod-index1,prod-index2,prod-index3. If the user would like to index all data from multiple topics to the main index, then "main" can be specified. Leaving this setting un configured will result in data being routed to the default index configured against the HEC token being used. Please note make sure the indexes configured here are in the index list of HEC token, otherwise Splunk HEC will reject the data. By default, this setting is empty.
-* `splunk.sources` -  Splunk event source metadata for Kafka topic data. Same configuration rules as indexes can be applied here. Leaving it non-configured will result in the default source bound to the HEC token. By default, this setting is empty.
-* `splunk.sourcetypes` - Splunk event source metadata for Kafka topic data. Same configuration rules as indexes can be applied here. Leaving it non-configured result in default source bound to HEC token. By default, this setting is empty.
+    > Note: If is possible to inject data from different topics to different indexers. For Example prod-topic1,prod-topic2,prod-topic3 can be sent to index prod-index1,prod-index2,prod-index3. If the user would like to index all data from multiple topics to the main index, then "main" can be specified. Leaving this setting unconfigured will result in data being routed to the default index configured against the HEC token being used. Please note make sure the indexes configured here are in the index list of HEC token, otherwise Splunk HEC will reject the data. By default, this setting is empty.
+* `splunk.sources` -  Splunk event source metadata for Kafka topic data. Same configuration rules as indexes can be applied here. Leaving it unconfigured will result in the default source bound to the HEC token. By default, this setting is empty.
+* `splunk.sourcetypes` - Splunk event source metadata for Kafka topic data. Same configuration rules as indexes can be applied here. Leaving it unconfigured result in default source bound to HEC token. By default, this setting is empty.
 * `splunk.hec.raw` - Valid settings are `true` or `false`. When set to `true` the /raw HEC endpoint is used to inject data into Splunk. If set to `false` the /event HEC endpoint is used. By default, this setting is `false`.
 * `splunk.hec.raw.line.breaker` - This setting is only applicable to /raw HEC endpoint. The setting is used to specify a special line breaker to help Splunk break the events correctly. 
     > Note: For example, user can specify "#####" as a special line breaker. Internally the Splunk Kafka Connector will append this line breaker to every Kafka record to form a clear event boundary and the connector does data injection in batch mode. On Splunk side, user can configure **props.conf** to setup line breaker for the sourcetypes, then Splunk will correctly break events for data flowing through /raw HEC endpoint. For question "when I should specify line breaker and how", please go to FAQ section. By default, this setting is empty.
 * `splunk.hec.json.event.enrichment` -  This setting is only applicable to /event HEC endpoint. This setting is used to enrich raw data with extra metadata fields. It contains a list of key value pairs separated by ",". The configured enrichment meta data will be indexed along with raw event in Splunk. Please note, data enrichment for /event HEC endpoint is only available in Splunk Enterprise 6.5 onwards ([Documentation](http://dev.splunk.com/view/event-collector/SP-CAAAE8Y#indexedfield)). By default, this setting is empty. 
     > Note: For example `org=fin,bu=south-east-us`
 * `splunk.hec.ack.enabled` -  Valid settings are `true` or `false`. When set to `true` the Splunk Kafka Connector will poll event ACKs for POST events before check-pointing the Kafka offsets. This is used to prevent data loss as this setting implements guaranteed delivery. By default, this setting is `true`.
-    > Note: If this setting is enabled to `true` please ensure the corresponding HEC token is also enabled with indexer acknowledgements otherwise the data injection will fail with duplicate data. When set to `false` the Splunk Kafka Connector will simply POST events to Splunk. After it receives a HTTP 200 OK response it assumes the events are indexed by Splunk. Most of the time this is true; However in cases where Splunk crashes there will be some data loss. 
+    > Note: If this setting is enabled to `true`, please ensure the corresponding HEC token is also enabled with index acknowledgements otherwise the data injection will fail with duplicate data. When set to `false` the Splunk Kafka Connector will simply POST events to Splunk. After it receives a HTTP 200 OK response, it assumes the events are indexed by Splunk. Most of the time this is true; however in cases where Splunk crashes there will be some data loss. 
 * `splunk.hec.ack.poll.interval` - This setting is only applicable when `splunk.hec.ack.enabled` is set to `true`. Internally it controls the event ACKs polling interval. By default, this setting is 10 seconds.
 * `splunk.hec.ack.poll.threads` - This setting is used for performance tuning and is only applicable when `splunk.hec.ack.enabled` is set to `true`. It controls how many threads should be spawn to poll event ACKs. By default it is set to 1. 
     > Note: For large Splunk indexer clusters (E.g. 100 indexers) users will want to increase this number. Recommended increase is 4 threads to speed up ACK polling.
 * `splunk.hec.ssl.validate.certs` - Valid settings are `true` or `false`. Enables or disables HTTPS certification validation. By default, this setting is "true".
-* `splunk.hec.http.keepalive` - Valid settings are `true` or `false`. Enables or disables HTTP connection keep-alive. By default, it is "true"
+* `splunk.hec.http.keepalive` - Valid settings are `true` or `false`. Enables or disables HTTP connection keep-alive. By default, it is `true`
 * `splunk.hec.max.http.connection.per.channel` - Controls how many HTTP connections should be created and cached in the HTTP pool for one HEC channel. By default this setting is 2.
 * `splunk.hec.total.channels` - Controls the total channels created to perform HEC event POSTs. Please refer to the Load balancer section for more details. By default this setting is 2.
-* `splunk.hec.max.batch.size` - Maximum batch size when posting events to Splunk. The size is the actual number of Kafka events it is not related to byte size. By default this setting is 100. 
+* `splunk.hec.max.batch.size` - Maximum batch size when posting events to Splunk. The size is the actual number of Kafka events, it is not related to byte size. By default this setting is 100. 
 * `splunk.hec.threads` - Controls how many threads are spawned to do data injection via HEC in a **single** connector task. By default this setting is 1.
-* `splunk.hec.event.timeout` - This setting is only applicable when `splunk.hec.ack.enabled` is set to `true`. When events are POSTed to Splunk and before they are ACKed; This setting determines how long the connector will wait before timing out and resending. By default this setting is 120 seconds. 
+* `splunk.hec.event.timeout` - This setting is only applicable when `splunk.hec.ack.enabled` is set to `true`. When events are POSTed to Splunk and before they are ACKed, this setting determines how long the connector will wait before timing out and resending. By default this setting is 120 seconds. 
 * `splunk.hec.socket.timeout` - Internal TCP socket timeout when connecting to Splunk. By default this setting is 60 seconds.
-* `splunk.hec.track.data` -  Valid settings are `true` or `false`. When configured as `true`, data loss and data injection latency metadata will be indexed along with raw data. This setting will only works in conjunction with using /event HEC endpoint (`"splunk.hec.raw" : "false"`). By default this setting is `false`.
+* `splunk.hec.track.data` -  Valid settings are `true` or `false`. When configured as `true`, data loss and data injection latency metadata will be indexed along with raw data. This setting will only work in conjunction with using /event HEC endpoint (`"splunk.hec.raw" : "false"`). By default this setting is `false`.
 
 2. **Create** a connector by using the above schema. The example below creates a connector called `splunk-prod-financial` for 10 topics with 10 parallel tasks by using  the /event HEC endpoint with acknowledgements enabled. The data is injected into a 3 server Splunk Indexer cluster.
 
@@ -265,39 +265,42 @@ Even in a load balanced environment configuration REST calls can be sent to 1 ma
 	```
 	
 ## Load balancing
-A common architecture is to have a load balancer set up in front of a Splunk indexer cluster or a collection of Splunk Heavy Forwarders. If configured in this architecture some care must be paid to ensure things behave as expected when Enabling HEC with acknowledgements.`splunk.hec.ack.enabled:true`
+A common architecture is to have a load balancer set up in front of a Splunk indexer cluster or a collection of Splunk Heavy Forwarders. If configured in this architecture, some cares must be paid to ensure things behave as expected when enabling HEC with acknowledgements.`splunk.hec.ack.enabled:true`
 
 For this architecture configuration to work:
 
-1. Enable **sticky sessions**for the load balancer. This is critical. Without **sticky sessions** enabled the data injection will potentially fail with duplicate data.
+1. Enable **sticky sessions** for the load balancer. This is critical and required. Without **sticky sessions** enabledm the data injection will potentially fail with duplicate data.
 2. Ensure the correct value for the **splunk.hec.total.channels** setting. Assume there are N Splunk HEC endpoints behind the load balancer. The **splunk.hec.total.channels** should be set to a multiple of N.(E.g N, 2N, 3N etc..) This will ensure that channels are evenly load balanced and POSTs the amount of Splunk servers being used. 
 
 > Note: Using a load balancer with **sticky sessions** enabled can sometimes cause duplicate data when requests are offloaded to different servers under load.
 
 ## Benchmark Results
 
-With the following testing bed and raw event setup, initial basic performance testing shows a single Splunk Kafka Connector can reach maximum indexed throughput of 32MB/second. 
+With the following testing bed and raw event setup, initial basic performance testing shows a single Splunk Kafka Connector can reach maximum indexed throughput of **32 MB/second**. 
 
 Hardware Specification: 
 * **AWS:** EC2 c4.2xlarge, 8 vCPU and 31 GB Memory
 * **Splunk Cluster:** 3 indexer cluster without Load balancer
 * **Kafka Connect:** JVM heap size configuration is "-Xmx6G -Xms2G"
 * **Kafka Connect resource usage:** ~6GB memory, ~3 vCPUs.
+* **Kafka recrods size**:** 512 Bytes
 
 ## Scaling out your environment
-There are 2 ways to scale out the Splunk Kafka Connector to handle more load. However, before scaling the Splunk Kafka Connector tier it is important to ensure that it is in fact the connector which is the current bottleneck. If the bottleneck is Splunk (Splunk environment size is too small) we will need to scale the Splunk environment first for greater throughput.
+There are 2 ways to scale out the Splunk Kafka Connector to handle more load. However, before scaling the Splunk Kafka Connector tier, it is important to ensure that it is in fact the connector which is the current bottleneck. If the bottleneck is Splunk (Splunk environment size is too small) we will need to scale the Splunk environment first for greater throughput.
 
 1. Reconfigure with more tasks to scale up the data injection. If the hardware resources which are allocated to run the Splunk Kafka Connector are enough (Observed low CPU, memory usage and low data injection throughput). The user can reconfigure the connector with more tasks. Example above in the **Configuration parameters**-**Update** section.
 
-2. Increase hardware resources on machines. If there is observed high CPU, High memory usage and the amount of tasks has already been increased. Recommendation is to scale out the hardware/virtual resources and increase the amount of Kafka Connect Instances.
+2. Increase hardware resources on machines. If there is observed high CPU, high memory usage and the amount of tasks has already been increased. Recommendation is to scale out the hardware/virtual resources and increase the amount of Kafka Connect Instances (deploy more Kafka Connect instances with more hardwarre resoruces).
 
 ## Data loss and latency monitoring
 
-When creating a Splunk Kafka Connector by using the REST API `"splunk.hec.track.data": "true"` should be enabled to allow data loss tracking and data collection latency monitoring. 
+When creating a Splunk Kafka Connector by using the REST API, `"splunk.hec.track.data": "true"` can be configured to allow data loss tracking and data collection latency monitoring. 
 This works by enriching the raw data with **offset, timestamp, partition, topic** metadata to Kafka records.
-#####Data Loss Tracking
-The Splunk Kafka Connector uses offset to track data loss since offsets in a partition are sequential. If a gap is observed in Splunk, there is some data loss.
-#####Data Latency Tracking
+
+##### Data Loss Tracking
+The Splunk Kafka Connector uses offset to track data loss since offsets in a Kafka topic partition are sequential. If a gap is observed in Splunk, there is some data loss.
+
+##### Data Latency Tracking
 The Splunk Kafka Connector uses the timestamp of the record to track the duration between the time a Kafka record was created and the time the record was indexed in Splunk.
 
 > Note: This setting will only works in conjunction with using /event HEC endpoint (`"splunk.hec.raw" : "false"`)
@@ -305,7 +308,7 @@ The Splunk Kafka Connector uses the timestamp of the record to track the duratio
 ## FAQ
 1. When should I use HEC acknowledgements?
 
-	If avoiding data loss is a must enable HEC token acknowledgements. HEC without acknowledgement doesn't mean there is always data loss, but in the event of aSplunk crash, restart etc, there might be some data lost in flight.
+	If avoiding data loss is a must, enable HEC token acknowledgements. HEC without acknowledgement doesn't mean there is always data loss, but in the event of Splunk crash, restart etc, there might be some data lost in flight.
 
 2. When should I use /raw HEC endpoint and /event HEC endpoint?
 
@@ -340,9 +343,9 @@ The Splunk Kafka Connector uses the timestamp of the record to track the duratio
 	
 7. Is there a recommended deployment architecture ?
 
-	There are 2 typical architectures. Setting up a Heavy forwarder layer has performance benefits for Splunk Search.
+	There are 2 typical architectures. 
 	
-	* Setting up a Heavy Forwarder layer in front of Splunk Indexer Cluster to offload data injection load to Indexer Cluster
+	* Setting up a Heavy Forwarder layer in front of Splunk Indexer Cluster to offload data injection load to Indexer Cluster. Setting up a Heavy forwarder layer has performance benefits for Splunk Search.
 	
 		Kafka Connect Cluster (in containers or virtual machines or physical machines) -> Heavy Forwarders (HEC) -> Splunk Indexer Cluster
 	
@@ -353,4 +356,5 @@ The Splunk Kafka Connector uses the timestamp of the record to track the duratio
 
 ## Troubleshooting
 
-Append **log4j.logger.com.splunk=DEBUG** to **config/connect-log4j.properties** file to enable more verbose logging for Splunk Kafka Connector
+1. Append **log4j.logger.com.splunk=DEBUG** to **config/connect-log4j.properties** file to enable more verbose logging for Splunk Kafka Connector
+2. Kafka connect is "Out of memory". Please remember to export environment variable **KAFKA\_HEAP\_OPTS="-Xmx6G -Xms2G"**. Please refer to **Deploy** section for more details.
