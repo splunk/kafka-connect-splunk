@@ -1,15 +1,14 @@
-## kafka-connect-splunk
-Splunk Kafka Connector features:
-* Pulling data from Kafka topic(s).
-* Transforming and enriching data in-flight.
-* Injecting data into Splunk via [Splunk HTTP Event Collector(HEC)](http://dev.splunk.com/view/event-collector/SP-CAAAE6M).
+## Kafka Connect Splunk
+A Kafka Connect Sink for Splunk features:
+* Data ingestion from Kafka topics into Splunk via [Splunk HTTP Event Collector(HEC)](http://dev.splunk.com/view/event-collector/SP-CAAAE6M).
+* In-flight data transformation and enrichment.
 
 ## Requirements
 1. Kafka version 0.9 above.
 2. Java 8 and above.
 3. Splunk configured with valid Http Event Collector (HEC) tokens.
-* HEC token settings should be same on all Splunk Indexers and Heavy Forwarders in your environment.
-* Task configuration parameters will vary depending on acknowledgement setting (Please refer to **configuration** section for details)
+* HEC token settings should be the same on all Splunk Indexers and Heavy Forwarders in your environment.
+* Task configuration parameters will vary depending on acknowledgement setting (Refer to **configuration** section for details).
 
 Note: HEC Acknowledgement prevents potential data loss but may slow down event ingestion. 
 
@@ -19,16 +18,16 @@ Note: HEC Acknowledgement prevents potential data loss but may slow down event i
 2. Make sure Java8 JRE or JDK is installed
 3. Run `bash build.sh`. The build script will download all dependencies and build the Splunk Kafka Connector.
 
-Note: The resulting "kafka-connect-splunk.tar.gz" package is fully self-contained. Bundled within it are the Kafka Connect framework, all 3rd party libraries and the Splunk Kafka Connector.
+Note: The resulting "kafka-connect-splunk.tar.gz" package is self-contained. Bundled within it are the Kafka Connect framework, all 3rd party libraries and the Splunk Kafka Connector.
 
 ## Quick Start
 1. [Start](https://kafka.apache.org/quickstart) your Kafka Cluster and Zookeeper locally. Confirm both are running.
-2. If this is a fresh install, create a test topic (eg: `perf`). Inject events into the `perf` topic. This can be done using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen) or the Kafka bundled [kafka-console-producer](https://kafka.apache.org/quickstart#quickstart_send).
+2. If this is a fresh install, create a test topic (eg: `perf`). Inject events into the topic. This can be done using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen) or the Kafka bundled [kafka-console-producer](https://kafka.apache.org/quickstart#quickstart_send).
 3. Untar the package created from the build script: `tar xzvf kafka-connect-splunk.tar.gz` (Default target location is /tmp/kafka-connect-splunk-build/kafka-connect-splunk).
-4. Change directory to kafka-connect-splunk `cd kafka-connect-splunk`.
+4. Go to kafka-connect-splunk directory `cd kafka-connect-splunk`.
 5. Adjust values for `bootstrap.servers` and `plugin.path` inside `config/connect-distributed-quickstart.properties` for your environment. Default values should work for experimentation.
 6. Run `./bin/connect-distributed.sh config/connect-distributed-quickstart.properties` to start Kafka Connect.
-7. Run the following command to create connector tasks. Adjust the `topics`, `tasks.max`, `indexes`, `sources`, `sourcetypes` and `hec` settings if necessary.
+7. Run the following command to create connector tasks. Adjust `topics`, `tasks.max`, `indexes`, `sources`, `sourcetypes` and `hec` settings as needed.
 
     ```
     curl localhost:8083/connectors -X POST -H "Content-Type: application/json" -d '{
@@ -61,8 +60,8 @@ Note: The resulting "kafka-connect-splunk.tar.gz" package is fully self-containe
     }'
 
     ```
-8. Data should be flowing into Splunk. To validate, search Splunk using the index, sourcetype from your config.
-9. User the following commands to check status and manage connector and tasks:
+8. Data should be flowing into Splunk. To validate, search Splunk using the index, sourcetype or soure from your config.
+9. Use the following commands to check status and manage connector and tasks:
 
     ```
     # List active connectors
@@ -153,7 +152,7 @@ Even in a load balanced environment, a REST call can be executed against one of 
 
 ### Configuration schema structure
 
-Use the below schema to configure the Splunk Kafka Connector
+Use the below schema to configure Splunk Kafka Connector
 	
 	```
 	'{
