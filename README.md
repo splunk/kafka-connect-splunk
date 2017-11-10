@@ -23,10 +23,9 @@ Please also note that, HEC token should be same on all Splunk Indexers or Heavy 
 The final ".tar.gz" package is fully self-contained; bundled with the Kafka Connect framework, all 3rd party libs and the Splunk Kafka Connector 
 
 ## Quick Start
-1. [Start up](https://kafka.apache.org/quickstart) your Kafka Cluster and Zookeeper locally. After confirming both are running
-, create a test topic (eg: `perf`). If you have already have a Kafka Cluster install please feel free to use it.
+1. [Start up](https://kafka.apache.org/quickstart) your Kafka Cluster and Zookeeper locally. After confirming both are running, create a test topic (eg: `perf`). If you have already have a Kafka Cluster install please feel free to use it.
 2. Inject events into the `perf` topic. This can be done using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen) or use the Kafka bundled [kafka-console-producer](https://kafka.apache.org/quickstart#quickstart_send).
-3. Untar the package created from the build script: `tar xzvf kafka-connect-splunk.tar.gz` (default location will be built to is /tmp/kafka-connect-splunk-build/kafka-connect-splunk).
+3. Untar the package created from the build script: `tar xzvf kafka-connect-splunk.tar.gz`.
 4. Change directory to kafka-connect-splunk `cd kafka-connect-splunk`.
 5. Adjust values for `bootstrap.servers` and `plugin.path` inside `config/connect-distributed-quickstart.properties` for your environment. Default values should work for experimentation.
 6. Run `./bin/connect-distributed.sh config/connect-distributed-quickstart.properties` to start Kafka Connect.
@@ -99,7 +98,7 @@ For the current version of the Splunk Kafka Connector it is recommended to deplo
 This will isolate the Splunk Kafka Connector from other Kafka Connectors and will have performance benefits in high 
 throughput environments. 
 
-1. Untar the **kafka-connect-splunk.tar.gz**installation package and enter the**kafka-connect-splunk**directory.
+1. Untar the **kafka-connect-splunk.tar.gz** installation package and enter the **kafka-connect-splunk** directory.
 
     ``` 
        tar xzvf kafka-connect-splunk.tar.gz
@@ -111,11 +110,11 @@ throughput environments.
 	```
 	bootstrap.servers=<broker1:9092,broker2:9092,...>  # adjust this setting to brokers IP/hostname port
 	```
-3. Revise other optional settings in **config/connect-distributed.properties**if necessary. 
+3. Revise other optional settings in **config/connect-distributed.properties** if necessary. 
 Keeping (replication factor and partition number) as default is recommended according to best practice. Change at own risk.
 
     Please note the below topics will be created by Kafka Connect when deploying the Splunk Connector if they are not in the Kafka cluster. 
-    If the Kafka Connect cluster**does not have permission**to create these topics due to Access Control, the user needs create the topic in Kafka before starting Kafka Connect cluster.
+    If the Kafka Connect cluster **does not have permission** to create these topics due to Access Control, the user needs to create the required topics in Kafka before starting Kafka Connect cluster.
 
 	```
 	group.id=kafka-connect-splunk-hec-sink    # consumer group id of Kafka Connect, which is used to form a Kafka Connect cluster
@@ -132,7 +131,7 @@ Keeping (replication factor and partition number) as default is recommended acco
 	status.storage.partitions=5
 	```
 4. Deploy/Copy the **kafka-connect-splunk** directory to all target hosts(virtual machine, physical machine or container).
-5. Start the connector on all target hosts by leveraging deployment tools by executing the following commands. 
+5. Start Kafka Connect on all the target hosts by leveraging deployment tools by executing the following commands:
 	
 	```
 	cd kafka-connect-splunk
@@ -143,20 +142,20 @@ Keeping (replication factor and partition number) as default is recommended acco
 
 ### Deploy Splunk Kafka Connector to an existing Kafka Connect Cluster
 
-1. Untar the **kafka-connect-splunk.tar.gz**installation package and enter the**kafka-connect-splunk**directory.
+1. Untar the **kafka-connect-splunk.tar.gz** installation package and enter the **kafka-connect-splunk** directory.
 
     ``` 
        tar xzvf kafka-connect-splunk.tar.gz
        cd kafka-connect-splunk
     ```
-2. Copy the **conectors/kafka-connect-splunk-1.0-SNAPSHOT.jar**to plugin path specified by**plugin.path**in existing Kafka Connect on every host.
-3. Copy**libs/commons-logging-1.2.jar**to**libs**of existing Kafka Connect on every host.
+2. Copy the **conectors/kafka-connect-splunk-1.0-SNAPSHOT.jar** to plugin path specified by **plugin.path** in existing Kafka Connect on every host.
+3. Copy **libs/commons-logging-1.2.jar** to **libs** of existing Kafka Connect on every host.
 4. Restart the Kafka Connect cluster.
 
 ## Configuration
 
-After Kafka Connect is brought up on every host all of the Kafka Connect instances will form a cluster automatically. 
-Even in a load balanced environment configuration REST calls can be sent to 1 machine.
+After Kafka Connect is brought up on every host, all of the Kafka Connect instances will form a cluster automatically. 
+Even in a load balanced environment, a REST call can be executed against one of the cluster instances and rest of the instances will pick up the task automiatically.
 
 ### Configuration parameters
 
