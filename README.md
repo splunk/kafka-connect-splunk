@@ -261,7 +261,7 @@ Use the below schema to configure Splunk Kafka Connector
 ## Load balancing
 A common architecture will include a load balancer in front of the Splunk indexer cluster or a collection of Splunk Heavy Forwarders. If configured in this manner and HEC acknowledgement is enabled (`splunk.hec.ack.enabled:true`), care must be taken to ensure data ingestion behaves correctly:
 
-1. Enable **sticky sessions** on the load balancer. Without this, data iduplication may occur.
+1. Enable **sticky sessions** on the load balancer. Without this, data duplication may occur.
 2. Set HEC channels (**splunk.hec.total.channels**) to a multiple of HEC endpoints (=indexers behind the load balancer). This will ensure the data flow is evenly load balanced across the Splunk indexers. 
 
 > Note: Data duplication may occur even with sticky sessions, when requests are offloaded to a different endpoint under load.
