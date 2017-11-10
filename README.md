@@ -137,7 +137,7 @@ Keeping (replication factor and partition number) as default is recommended acco
 	cd kafka-connect-splunk
 	export KAFKA_HEAP_OPTS="-Xmx6G -Xms2G" && ./bin/connect-distributed.sh config/connect-distributed.properties >> kafka-connect-splunk.log 2>&1 
 	```
-	**Note:** Please pay attention to the**KAFKA_HEAP_OPTS**environment variable which controls how much memory Kafka Connect can use. 
+	**Note:** Please pay attention to the **KAFKA_HEAP_OPTS** environment variable which controls how much memory Kafka Connect can use. 
 	Setting the **KAFKA_HEAP_OPTS** with the value stated above is recommended.
 
 ### Deploy Splunk Kafka Connector to an existing Kafka Connect Cluster
