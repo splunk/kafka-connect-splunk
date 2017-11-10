@@ -1,20 +1,17 @@
 ## kafka-connect-splunk
-Splunk Kafka Connector is a Kafka Connect for Splunk which supports:
+Splunk Kafka Connector features:
 * Pulling data from Kafka topic(s).
 * Transforming and enriching data in-flight.
-* Injecting the data to Splunk via [Splunk HTTP Event Collector(HEC)](http://dev.splunk.com/view/event-collector/SP-CAAAE6M).
+* Injecting data into Splunk via [Splunk HTTP Event Collector(HEC)](http://dev.splunk.com/view/event-collector/SP-CAAAE6M).
 
 ## Requirements
 1. Kafka version 0.9 above.
 2. Java 8 and above.
 3. Splunk configured with valid Http Event Collector (HEC) tokens.
-
-Splunk HTTP Event Collector (HEC)
 * HEC token settings should be same on all Splunk Indexers and Heavy Forwarders in your environment.
 * Task configuration parameters will vary depending on acknowledgement setting (Please refer to **configuration** section for details)
 
-Note: 
-HEC Acknowledgement prevents potential data loss but may slow down event ingestion. 
+Note: HEC Acknowledgement prevents potential data loss but may slow down event ingestion. 
 
 
 ## Build
