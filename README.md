@@ -23,10 +23,9 @@ Please also note that, HEC token should be same on all Splunk Indexers or Heavy 
 The final ".tar.gz" package is fully self-contained; bundled with the Kafka Connect framework, all 3rd party libs and the Splunk Kafka Connector 
 
 ## Quick Start
-1. [Start up](https://kafka.apache.org/quickstart) your Kafka Cluster and Zookeeper locally. After confirming both are running
-, create a test topic (eg: `perf`). If you have already have a Kafka Cluster install please feel free to use it.
+1. [Start up](https://kafka.apache.org/quickstart) your Kafka Cluster and Zookeeper locally. After confirming both are running, create a test topic (eg: `perf`). If you have already have a Kafka Cluster install please feel free to use it.
 2. Inject events into the `perf` topic. This can be done using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen) or use the Kafka bundled [kafka-console-producer](https://kafka.apache.org/quickstart#quickstart_send).
-3. Untar the package created from the build script: `tar xzvf kafka-connect-splunk.tar.gz` (default location will be built to is /tmp/kafka-connect-splunk-build/kafka-connect-splunk).
+3. Untar the package created from the build script: `tar xzvf kafka-connect-splunk.tar.gz`.
 4. Change directory to kafka-connect-splunk `cd kafka-connect-splunk`.
 5. Adjust values for `bootstrap.servers` and `plugin.path` inside `config/connect-distributed-quickstart.properties` for your environment. Default values should work for experimentation.
 6. Run `./bin/connect-distributed.sh config/connect-distributed-quickstart.properties` to start Kafka Connect.
@@ -99,7 +98,7 @@ For the current version of the Splunk Kafka Connector it is recommended to deplo
 This will isolate the Splunk Kafka Connector from other Kafka Connectors and will have performance benefits in high 
 throughput environments. 
 
-1. Untar the **kafka-connect-splunk.tar.gz**installation package and enter the**kafka-connect-splunk**directory.
+1. Untar the **kafka-connect-splunk.tar.gz** installation package and enter the **kafka-connect-splunk** directory.
 
     ``` 
        tar xzvf kafka-connect-splunk.tar.gz
@@ -115,7 +114,7 @@ throughput environments.
 Keeping (replication factor and partition number) as default is recommended according to best practice. Change at own risk.
 
     Please note the below topics will be created by Kafka Connect when deploying the Splunk Connector if they are not in the Kafka cluster. 
-    If the Kafka Connect cluster **does not have permission** to create these topics due to Access Control, the user needs create the topic in Kafka before starting Kafka Connect cluster.
+    If the Kafka Connect cluster **does not have permission** to create these topics due to Access Control, the user needs to create the required topics in Kafka before starting Kafka Connect cluster.
 
 	```
 	group.id=kafka-connect-splunk-hec-sink    # consumer group id of Kafka Connect, which is used to form a Kafka Connect cluster
@@ -132,7 +131,7 @@ Keeping (replication factor and partition number) as default is recommended acco
 	status.storage.partitions=5
 	```
 4. Deploy/Copy the **kafka-connect-splunk** directory to all target hosts(virtual machine, physical machine or container).
-5. Start the connector on all target hosts by leveraging deployment tools by executing the following commands. 
+5. Start Kafka Connect on all the target hosts by leveraging deployment tools by executing the following commands:
 	
 	```
 	cd kafka-connect-splunk
@@ -155,8 +154,8 @@ Keeping (replication factor and partition number) as default is recommended acco
 
 ## Configuration
 
-After Kafka Connect is brought up on every host all of the Kafka Connect instances will form a cluster automatically. 
-Even in a load balanced environment configuration REST calls can be sent to 1 machine.
+After Kafka Connect is brought up on every host, all of the Kafka Connect instances will form a cluster automatically. 
+Even in a load balanced environment, a REST call can be executed against one of the cluster instances and rest of the instances will pick up the task automiatically.
 
 ### Configuration parameters
 
@@ -205,9 +204,9 @@ Even in a load balanced environment configuration REST calls can be sent to 1 ma
 
 ##### Optional Settings
 * `splunk.indexes` - Target Splunk indexes to send data to. It can be a list of indexes which shall be the same sequence / order as topics.
-    > Note: If is possible to inject data from different topics to different indexers. For Example prod-topic1,prod-topic2,prod-topic3 can be sent to index prod-index1,prod-index2,prod-index3. If the user would like to index all data from multiple topics to the main index, then "main" can be specified. Leaving this setting unconfigured will result in data being routed to the default index configured against the HEC token being used. Please note make sure the indexes configured here are in the index list of HEC token, otherwise Splunk HEC will reject the data. By default, this setting is empty.
-* `splunk.sources` -  Splunk event source metadata for Kafka topic data. Same configuration rules as indexes can be applied here. Leaving it unconfigured will result in the default source bound to the HEC token. By default, this setting is empty.
-* `splunk.sourcetypes` - Splunk event source metadata for Kafka topic data. Same configuration rules as indexes can be applied here. Leaving it unconfigured result in default source bound to HEC token. By default, this setting is empty.
+    > Note: It is possible to inject data from different kafka topics to different splunk indexes. For Example prod-topic1,prod-topic2,prod-topic3 can be sent to index prod-index1,prod-index2,prod-index3. If the user would like to index all data from multiple topics to the main index, then "main" can be specified. Leaving this setting un configured will result in data being routed to the default index configured against the HEC token being used. Please make sure the indexes configured here are in the index list of HEC token, otherwise Splunk HEC will reject the data. By default, this setting is empty.
+* `splunk.sources` -  Splunk event source metadata for Kafka topic data. Same configuration rules as indexes can be applied here. Leaving it non-configured will result in the default source bound to the HEC token. By default, this setting is empty.
+* `splunk.sourcetypes` - Splunk event source metadata for Kafka topic data. Same configuration rules as indexes can be applied here. Leaving it non-configured result in default source bound to HEC token. By default, this setting is empty.
 * `splunk.hec.raw` - Valid settings are `true` or `false`. When set to `true` the /raw HEC endpoint is used to inject data into Splunk. If set to `false` the /event HEC endpoint is used. By default, this setting is `false`.
 * `splunk.hec.raw.line.breaker` - This setting is only applicable to /raw HEC endpoint. The setting is used to specify a special line breaker to help Splunk break the events correctly. 
     > Note: For example, user can specify "#####" as a special line breaker. Internally the Splunk Kafka Connector will append this line breaker to every Kafka record to form a clear event boundary and the connector does data injection in batch mode. On Splunk side, user can configure **props.conf** to setup line breaker for the sourcetypes, then Splunk will correctly break events for data flowing through /raw HEC endpoint. For question "when I should specify line breaker and how", please go to FAQ section. By default, this setting is empty.
@@ -308,7 +307,7 @@ The Splunk Kafka Connector uses the timestamp of the record to track the duratio
 ## FAQ
 1. When should I use HEC acknowledgements?
 
-	If avoiding data loss is a must, enable HEC token acknowledgements. HEC without acknowledgement doesn't mean there is always data loss, but in the event of Splunk crash, restart etc, there might be some data lost in flight.
+	If avoiding data loss is a must enable HEC token acknowledgements. HEC without acknowledgement doesn't mean there is always data loss, but in the event of a Splunk crash, restart etc, there might be some data lost in flight.
 
 2. When should I use /raw HEC endpoint and /event HEC endpoint?
 
