@@ -204,7 +204,7 @@ Even in a load balanced environment, a REST call can be executed against one of 
 
 ##### Optional Settings
 * `splunk.indexes` - Target Splunk indexes to send data to. It can be a list of indexes which shall be the same sequence / order as topics.
-    > Note: If is possible to inject data from different topics to different indexers. For Example prod-topic1,prod-topic2,prod-topic3 can be sent to index prod-index1,prod-index2,prod-index3. If the user would like to index all data from multiple topics to the main index, then "main" can be specified. Leaving this setting un configured will result in data being routed to the default index configured against the HEC token being used. Please note make sure the indexes configured here are in the index list of HEC token, otherwise Splunk HEC will reject the data. By default, this setting is empty.
+    > Note: It is possible to inject data from different kafka topics to different splunk indexes. For Example prod-topic1,prod-topic2,prod-topic3 can be sent to index prod-index1,prod-index2,prod-index3. If the user would like to index all data from multiple topics to the main index, then "main" can be specified. Leaving this setting un configured will result in data being routed to the default index configured against the HEC token being used. Please make sure the indexes configured here are in the index list of HEC token, otherwise Splunk HEC will reject the data. By default, this setting is empty.
 * `splunk.sources` -  Splunk event source metadata for Kafka topic data. Same configuration rules as indexes can be applied here. Leaving it non-configured will result in the default source bound to the HEC token. By default, this setting is empty.
 * `splunk.sourcetypes` - Splunk event source metadata for Kafka topic data. Same configuration rules as indexes can be applied here. Leaving it non-configured result in default source bound to HEC token. By default, this setting is empty.
 * `splunk.hec.raw` - Valid settings are `true` or `false`. When set to `true` the /raw HEC endpoint is used to inject data into Splunk. If set to `false` the /event HEC endpoint is used. By default, this setting is `false`.
@@ -304,7 +304,7 @@ The Splunk Kafka Connector uses the timestamp of the record to track the duratio
 ## FAQ
 1. When should I use HEC acknowledgements?
 
-	If avoiding data loss is a must enable HEC token acknowledgements. HEC without acknowledgement doesn't mean there is always data loss, but in the event of aSplunk crash, restart etc, there might be some data lost in flight.
+	If avoiding data loss is a must enable HEC token acknowledgements. HEC without acknowledgement doesn't mean there is always data loss, but in the event of a Splunk crash, restart etc, there might be some data lost in flight.
 
 2. When should I use /raw HEC endpoint and /event HEC endpoint?
 
