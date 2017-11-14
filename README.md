@@ -1,5 +1,7 @@
 ## Kafka Connect Splunk
+
 A Kafka Connect Sink for Splunk features:
+
 * Data ingestion from Kafka topics into Splunk via [Splunk HTTP Event Collector(HEC)](http://dev.splunk.com/view/event-collector/SP-CAAAE6M).
 * In-flight data transformation and enrichment.
 
@@ -7,13 +9,15 @@ A Kafka Connect Sink for Splunk features:
 1. Kafka version 0.9 and above.
 2. Java 8 and above.
 3. A Splunk platform instance configured with valid HTTP Event Collector (HEC) tokens.
-* HEC token settings should be the same on all Splunk Indexers and Heavy Forwarders in your environment.
-* Task configuration parameters will vary depending on acknowledgement setting (See the **configuration** section for details).
+	
+	* HEC token settings should be the same on all Splunk Indexers and Heavy Forwarders in your environment.
+	* Task configuration parameters will vary depending on acknowledgement setting (See the **Configuration** section for details).
 
-Note: HEC Acknowledgement prevents potential data loss but may slow down event ingestion. 
+	Note: HEC Acknowledgement prevents potential data loss but may slow down event ingestion. 
 
 
 ## Build
+
 1. Clone the repo from https://github.com/splunk/kafka-connect-splunk
 2. Verify that Java8 JRE or JDK is installed.
 3. Run `bash build.sh`. The build script will download all dependencies and build the Splunk Kafka Connector.
@@ -21,6 +25,7 @@ Note: HEC Acknowledgement prevents potential data loss but may slow down event i
 Note: The resulting "kafka-connect-splunk.tar.gz" package is self-contained. Bundled within it are the Kafka Connect framework, all 3rd party libraries, and the Splunk Kafka Connector.
 
 ## Quick Start
+
 1. [Start](https://kafka.apache.org/quickstart) your Kafka Cluster and Zookeeper on your local host. Confirm both are running.
 2. If this is a new install, create a test topic (eg: `perf`). Inject events into the topic. This can be done using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen) or the Kafka bundle [kafka-console-producer](https://kafka.apache.org/quickstart#quickstart_send).
 3. Untar the package created from the build script: `tar xzvf kafka-connect-splunk.tar.gz` (Default target location is /tmp/kafka-connect-splunk-build/kafka-connect-splunk).
@@ -58,7 +63,6 @@ Note: The resulting "kafka-connect-splunk.tar.gz" package is self-contained. Bun
        "splunk.hec.track.data": "<true|false, tracking data loss and latency, for debugging lagging and data loss>"
       }
     }'
-
     ```
 8. Verify that data is flowing into your Splunk platform instance by searching using the index, sourcetype or source from your configuration.
 9. Use the following commands to check status, and manage connectors and tasks:
@@ -79,6 +83,7 @@ Note: The resulting "kafka-connect-splunk.tar.gz" package is self-contained. Bun
     # Get kafka-connect-splunk connector task info
     curl http://localhost:8083/connectors/kafka-connect-splunk/tasks
     ```
+    
     See the [the Confluent doucumentation](https://docs.confluent.io/current/connect/managing.html#common-rest-examples) for additional REST examples.
     
 
@@ -146,6 +151,7 @@ Note: The below topics should be created by Kafka Connect when deploying the Spl
 4. Restart the Kafka Connect cluster.
 
 ## Configuration
+
 After Kafka Connect is brought up on every host, all of the Kafka Connect instances will form a cluster automatically. 
 Even in a load balanced environment, a REST call can be executed against one of the cluster instances, and rest of the instances will pick up the task automatically.
 
@@ -186,7 +192,8 @@ Use the below schema to configure Splunk Kafka Connector
 	```
 
 ### Parameters
-##### Required Parameters
+
+#### Required Parameters
 * `name` - Connector name. A consumer group with this name will be created with tasks to be distributed evenly across the connector cluster nodes. 
 * `connector.class` - The Java class used to perform connector jobs. Keep the default value **com.splunk.kafka.connect.SplunkSinkConnector** unless you modify the connector.
 * `tasks.max` -  The number of tasks generated to handle data collection jobs in parallel. The tasks will be spread evenly across all Splunk Kafka Connector nodes. 
@@ -195,7 +202,7 @@ Use the below schema to configure Splunk Kafka Connector
 * `splunk.hec.token` -  [Splunk Http Event Collector token] (http://docs.splunk.com/Documentation/SplunkCloud/6.6.3/Data/UsetheHTTPEventCollector#About_Event_Collector_tokens).
 * `topics` -  Comma separated list of Kafka topics for Splunk to consume. `prod-topic1,prod-topc2,prod-topic3`
 
-##### Optional Parameters
+#### Optional Parameters
 * `splunk.indexes` - Target Splunk indexes to send data to. It can be a list of indexes which shall be the same sequence / order as topics.
     > Note: It is possible to inject data from different kafka topics to different splunk indexes. For example, prod-topic1,prod-topic2,prod-topic3 can be sent to index prod-index1,prod-index2,prod-index3. If you would like to index all data from multiple topics to the main index, then "main" can be specified. Leaving this setting unconfigured will result in data being routed to the default index configured against the HEC token being used. Verify the indexes configured here are in the index list of HEC tokens, otherwise Splunk HEC will drop the data. By default, this setting is empty.
 * `splunk.sources` -  Splunk event source metadata for Kafka topic data. The same configuration rules as indexes can be applied. If left unconfigured, the default source binds to the HEC token. By default, this setting is empty.
@@ -220,7 +227,7 @@ Use the below schema to configure Splunk Kafka Connector
 * `splunk.hec.socket.timeout` - Internal TCP socket timeout when connecting to Splunk. By default, it is set to 60 seconds.
 * `splunk.hec.track.data` -  Valid settings are `true` or `false`. When set to `true`, data loss and data injection latency metadata will be indexed along with raw data. This setting only works in conjunction with /event HEC endpoint (`"splunk.hec.raw" : "false"`). By default, it is set to `false`.
 
-##### Configuration Example
+#### Configuration Example
 * Use the below command to create a connector called `splunk-prod-financial` for 10 topics and 10 parallelized tasks. The connector will use the /event HEC endpoint with acknowledgements enabled. The data is injected into a 3-server Splunk platform indexer cluster.
 
 	```
@@ -239,7 +246,7 @@ Use the below schema to configure Splunk Kafka Connector
 * Use the command below to update the connector to use 20 parallelized tasks.
 
 	```
-	 curl <hostname>:8083/connectors/splunk-prod-financial/config -X PUT -H "Content-Type: application/json" -d'{
+	curl <hostname>:8083/connectors/splunk-prod-financial/config -X PUT -H "Content-Type: application/json" -d'{
     "name": "splunk-prod-financial",
     "config": {
        "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
@@ -254,10 +261,11 @@ Use the below schema to configure Splunk Kafka Connector
 * Use the command below to delete the connector.
 
 	```
-	 curl <hostname>:8083/connectors/splunk-prod-financial-X DELETE
+	curl <hostname>:8083/connectors/splunk-prod-financial-X DELETE
 	```
 	
 ## Load balancing
+
 A common architecture will include a load balancer in front of your Splunk platform indexer cluster or a collection of Splunk platform heavy forwarders. If configured in this manner and HEC acknowledgement is enabled (`splunk.hec.ack.enabled:true`), take care to ensure data ingestion behaves correctly:
 
 1. Enable **sticky sessions** on the load balancer. Without this, data duplication may occur.
@@ -266,16 +274,20 @@ A common architecture will include a load balancer in front of your Splunk platf
 > Note: Data duplication may occur even with sticky sessions, when requests are offloaded to a different endpoint under load.
 
 ## Benchmark Results
+
 A single Splunk Kafka Connector can reach maximum indexed throughput of **32 MB/second** with the following testbed and raw HEC endpoint in use:
 
 Hardware specifications: 
+
 * **AWS:** EC2 c4.2xlarge, 8 vCPU and 31 GB Memory
 * **Splunk Cluster:** 3 indexer cluster without load balancer
 * **Kafka Connect:** JVM heap size configuration is "-Xmx6G -Xms2G"
 * **Kafka Connect resource usage:** ~6GB memory, ~3 vCPUs.
-* **Kafka recrods size**:** 512 Bytes
+* **Kafka records size**: 512 Bytes
+* **Batch size**: Maximum 100 Kafka records per batch which is around 50KB per batch
 
 ## Scaling out your environment
+
 Before scaling the Splunk Kafka Connector tier, ensure the bottleneck is in the connector tier and not in another component.
 
 Scaling out options:
@@ -287,18 +299,20 @@ Scaling out options:
 3. Increase the number of Kafka Connect nodes.
 
 ## Data loss and latency monitoring
+
 When creating a Splunk Kafka Connector using the REST API, `"splunk.hec.track.data": "true"` can be configured to allow data loss tracking and data collection latency monitoring. 
 This is accomplished by enriching the raw data with **offset, timestamp, partition, topic** metadata.
 
-##### Data Loss Tracking
+### Data Loss Tracking
 The Splunk Kafka Connector uses offset to track data loss since offsets in a Kafka topic partition are sequential. If a gap is observed in the Splunk software, there is data loss.
 
-##### Data Latency Tracking
+### Data Latency Tracking
 The Splunk Kafka Connector uses the timestamp of the record to track the time elapsed between the time a Kafka record was created and the time the record was indexed in Splunk.
 
 > Note: This setting will only work in conjunction with /event HEC endpoint (`"splunk.hec.raw" : "false"`)
 
 ## FAQ
+
 1. When should I use HEC acknowledgements?
 
 	Enable HEC token acknowledgements to avoid data loss. Without HEC token acknowledgement, data loss may occur, especially in case of a system restart or crash.
@@ -348,5 +362,6 @@ The Splunk Kafka Connector uses the timestamp of the record to track the time el
 	
 
 ## Troubleshooting
+
 1. Append the **log4j.logger.com.splunk=DEBUG** to **config/connect-log4j.properties** file to enable more verbose logging for Splunk Kafka Connector.
 2. Kafka connect encounters an "out of memory" error. Remember to export environment variable **KAFKA\_HEAP\_OPTS="-Xmx6G -Xms2G"**. Refer to the **Deploy** section for more information.
