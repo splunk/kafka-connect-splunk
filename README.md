@@ -11,7 +11,7 @@ A Kafka Connect Sink for Splunk features:
 3. A Splunk platform instance configured with valid HTTP Event Collector (HEC) tokens.
 	
 	* HEC token settings should be the same on all Splunk Indexers and Heavy Forwarders in your environment.
-	* Task configuration parameters will vary depending on acknowledgement setting (See the **Configuration** section for details).
+	* Task configuration parameters will vary depending on acknowledgement setting (See the [Configuration](#configuration) section for details).
 
 	Note: HEC Acknowledgement prevents potential data loss but may slow down event ingestion. 
 
