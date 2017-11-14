@@ -101,8 +101,8 @@ Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recom
 1. Untar the **kafka-connect-splunk.tar.gz** package and navigate to the **kafka-connect-splunk** directory.
 
     ``` 
-       tar xzvf kafka-connect-splunk.tar.gz
-       cd kafka-connect-splunk
+    tar xzvf kafka-connect-splunk.tar.gz
+    cd kafka-connect-splunk
     ```
 
 2. Update config/connect-distributed.properties to match your environment.
@@ -112,11 +112,11 @@ Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recom
 	```
 3. Revise other optional settings in **config/connect-distributed.properties** as needed. 
 
-Note: Do not change the replication factor and partition number at this time.
+	> Note: Do not change the replication factor and partition number at this time.
+	
+	> Note: The below topics should be created by Kafka Connect when deploying the Splunk Connector. If the Kafka Connect cluster **does not have permission** to create these topics, create these manually before starting Kafka Connect cluster.
 
-Note: The below topics should be created by Kafka Connect when deploying the Splunk Connector. If the Kafka Connect cluster **does not have permission** to create these topics, create these manually before starting Kafka Connect cluster.
-
-	```
+    ```
 	group.id=kafka-connect-splunk-hec-sink    # consumer group id of Kafka Connect, which is used to form a Kafka Connect cluster
 	
 	config.storage.topic=__kafka-connect-splunk-task-configs # kafka topic used to persistent connector task configurations
@@ -130,6 +130,7 @@ Note: The below topics should be created by Kafka Connect when deploying the Spl
 	status.storage.replication.factor=3
 	status.storage.partitions=5
 	```
+	
 4. Deploy/Copy the **kafka-connect-splunk** directory to all target hosts (virtual machines, physical machines or containers).
 5. Start Kafka Connect on all target hosts using the below commands:
 	
@@ -137,14 +138,14 @@ Note: The below topics should be created by Kafka Connect when deploying the Spl
 	cd kafka-connect-splunk
 	export KAFKA_HEAP_OPTS="-Xmx6G -Xms2G" && ./bin/connect-distributed.sh config/connect-distributed.properties >> kafka-connect-splunk.log 2>&1 
 	```
-	**Note:** The **KAFKA_HEAP_OPTS** environment variable controls how much memory Kafka Connect can use. Set the **KAFKA_HEAP_OPTS** with the recommended value stated in the example above.
+	> Note: The **KAFKA\_HEAP\_OPTS** environment variable controls how much memory Kafka Connect can use. Set the **KAFKA\_HEAP\_OPTS** with the recommended value stated in the example above.
 
 ### Connector in an existing Kafka Connect Cluster
 1. Untar the **kafka-connect-splunk.tar.gz** installation package and go to the **kafka-connect-splunk** directory.
 
     ``` 
-       tar xzvf kafka-connect-splunk.tar.gz
-       cd kafka-connect-splunk
+    tar xzvf kafka-connect-splunk.tar.gz
+    cd kafka-connect-splunk
     ```
 2. Copy the **conectors/kafka-connect-splunk-1.0-SNAPSHOT.jar** to the plugin path specified by **plugin.path** in the existing Kafka Connect on every host.
 3. Copy **libs/commons-logging-1.2.jar** to **libs** of the existing Kafka Connect on each host.
@@ -156,40 +157,38 @@ After Kafka Connect is brought up on every host, all of the Kafka Connect instan
 Even in a load balanced environment, a REST call can be executed against one of the cluster instances, and rest of the instances will pick up the task automatically.
 
 ### Configuration schema structure
-
 Use the below schema to configure Splunk Kafka Connector
-	
-	```
-	'{
-    "name": "<connector-name>",
-    "config": {
-       "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
-       "tasks.max": "<number-of-tasks>",
-       "topics": "<list-of-topics-separated-by-comma>",
-       "splunk.indexes": "<list-of-indexes-for-topics-data-separated-by-comma>",
-       "splunk.sources": "<list-of-sources-for-topics-data-separated-by-comma>",
-       "splunk.sourcetypes": "<list-of-sourcetypes-for-topics-data-separated-by-comma>",
-       "splunk.hec.uri": "<Splunk-HEC-URI>",
-       "splunk.hec.token": "<Splunk-HEC-Token>",
-       "splunk.hec.raw": "<true|false>",
-       "splunk.hec.raw.line.breaker": "<line breaker separator>",
-       "splunk.hec.json.event.enrichment": "<key value pairs separated by comma, only applicable to /event HEC>",
-       "splunk.hec.ack.enabled": "<true|false>",
-       "splunk.hec.ack.poll.interval": "<event ack poll interval>",
-       "splunk.hec.ack.poll.threads": "<number of threads used to poll event acks>",
-       "splunk.hec.ssl.validate.certs": "<true|false>",
-       "splunk.hec.http.keepalive": "<true|false>",
-       "splunk.hec.max.http.connection.per.channel": "<max number of http connections per channel>",
-       "splunk.hec.total.channels": "<total number of channels>",
-       "splunk.hec.max.batch.size": "<max number of kafka records post in one batch>",
-       "splunk.hec.threads": "<number of threads to use to do HEC post for single task>",
-       "splunk.hec.event.timeout": "<timeout in seconds>",
-       "splunk.hec.socket.timeout": "<timeout in seconds>",
-       "splunk.hec.track.data": "<true|false, tracking data loss and latency, for debugging lagging and data loss>"
-      }
-    }'
-	
-	```
+
+```
+{
+"name": "<connector-name>",
+"config": {
+   "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+   "tasks.max": "<number-of-tasks>",
+   "topics": "<list-of-topics-separated-by-comma>",
+   "splunk.indexes": "<list-of-indexes-for-topics-data-separated-by-comma>",
+   "splunk.sources": "<list-of-sources-for-topics-data-separated-by-comma>",
+   "splunk.sourcetypes": "<list-of-sourcetypes-for-topics-data-separated-by-comma>",
+   "splunk.hec.uri": "<Splunk-HEC-URI>",
+   "splunk.hec.token": "<Splunk-HEC-Token>",
+   "splunk.hec.raw": "<true|false>",
+   "splunk.hec.raw.line.breaker": "<line breaker separator>",
+   "splunk.hec.json.event.enrichment": "<key value pairs separated by comma, only applicable to /event HEC>",
+   "splunk.hec.ack.enabled": "<true|false>",
+   "splunk.hec.ack.poll.interval": "<event ack poll interval>",
+   "splunk.hec.ack.poll.threads": "<number of threads used to poll event acks>",
+   "splunk.hec.ssl.validate.certs": "<true|false>",
+   "splunk.hec.http.keepalive": "<true|false>",
+   "splunk.hec.max.http.connection.per.channel": "<max number of http connections per channel>",
+   "splunk.hec.total.channels": "<total number of channels>",
+   "splunk.hec.max.batch.size": "<max number of kafka records post in one batch>",
+   "splunk.hec.threads": "<number of threads to use to do HEC post for single task>",
+   "splunk.hec.event.timeout": "<timeout in seconds>",
+   "splunk.hec.socket.timeout": "<timeout in seconds>",
+   "splunk.hec.track.data": "<true|false, tracking data loss and latency, for debugging lagging and data loss>"
+  }
+}
+```
 
 ### Parameters
 
@@ -244,18 +243,18 @@ Use the below schema to configure Splunk Kafka Connector
 	```
 
 * Use the command below to update the connector to use 20 parallelized tasks.
-
+	
 	```
 	curl <hostname>:8083/connectors/splunk-prod-financial/config -X PUT -H "Content-Type: application/json" -d'{
-    "name": "splunk-prod-financial",
-    "config": {
-       "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
-       "tasks.max": "20",
-       "topics": "t1,t2,t3,t4,t5,t6,t7,t8,t9,t10",
-       "splunk.hec.uri": "https://idx1:8089,https://idx2:8089,https://idx3:8089",
-       "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534"
-      }
-    }'
+	"name": "splunk-prod-financial",
+	"config": {
+	   "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+	   "tasks.max": "20",
+	   "topics": "t1,t2,t3,t4,t5,t6,t7,t8,t9,t10",
+	   "splunk.hec.uri": "https://idx1:8089,https://idx2:8089,https://idx3:8089",
+	   "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534"
+	  }
+	}'
 	```
 	
 * Use the command below to delete the connector.
@@ -269,7 +268,7 @@ Use the below schema to configure Splunk Kafka Connector
 A common architecture will include a load balancer in front of your Splunk platform indexer cluster or a collection of Splunk platform heavy forwarders. If configured in this manner and HEC acknowledgement is enabled (`splunk.hec.ack.enabled:true`), take care to ensure data ingestion behaves correctly:
 
 1. Enable **sticky sessions** on the load balancer. Without this, data duplication may occur.
-2. Set HEC channels (**splunk.hec.total.channels**) to multiple HEC endpoints (=indexers behind the load balancer). This will ensure the data flow is evenly load balanced across the Splunk platform indexers. 
+2. Set HEC channels (**splunk.hec.total.channels**) to multiple HEC endpoints (= indexers or 2 * indexers behind the load balancer). This will ensure the data flow is evenly load balanced across the Splunk platform indexers. 
 
 > Note: Data duplication may occur even with sticky sessions, when requests are offloaded to a different endpoint under load.
 
