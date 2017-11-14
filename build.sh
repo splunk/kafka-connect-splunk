@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # variables
 kafkaversion=0.11.0.1
@@ -52,6 +52,7 @@ cd .. && tar czf ${packagename} kafka-connect-splunk
 echo "Copy package ${packagename} to ${curdir} ..."
 cp ${packagename} ${curdir}
 
+/bin/rm -rf kafka-connect-splunk ${packagename}
 echo "Done with build & packaging"
 
 echo
