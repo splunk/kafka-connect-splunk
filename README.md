@@ -165,7 +165,7 @@ The following examples assume you're deploying to an [existing Kafka Connect clu
 If you are using [Quick Start](https://github.com/splunk/kafka-connect-splunk#quick-start), adjust the config file to **config/connect-distributed-quickstart.properties**.
 
 ### SSL
-This section documents how to configure Kafka Connect If your Kafka Cluster is secured using [SSL](http://kafka.apache.org/documentation/#security_ssl).
+This section documents how to configure Kafka Connect if your Kafka Cluster is secured using [SSL](http://kafka.apache.org/documentation/#security_ssl).
 
 Configure the Kafka Connect worker and consumer settings to use SSL in **config/connect-distributed.properties**
 
@@ -194,7 +194,7 @@ Start kafka connect
 Workers and sink tasks should work with your SSL secured cluster.
 
 ### SASL/GSSAPI (Kerberos)
-This section documents how to configure Kafka Connect If your Kafka Cluster is secured using [Kerberos](http://kafka.apache.org/documentation/#security_sasl_kerberos). 
+This section documents how to configure Kafka Connect if your Kafka Cluster is secured using [Kerberos](http://kafka.apache.org/documentation/#security_sasl_kerberos). 
 
 Configure the Kafka Connect worker and consumer settings to use Kerberos in **config/connect-distributed.properties**
 
@@ -240,9 +240,9 @@ Start Kafka connect
 Workers and sink tasks should work with your Kerberos secured cluster.
 
 ### SASL/PLAIN
-> Warning: You should not run SASL/Plain in produciton without SSL. See [Confluent's documentation](https://docs.confluent.io/current/kafka/sasl.html#use-of-sasl-plain-in-production) for details.
+> Warning: Do not run SASL/Plain in produciton without SSL. See [Confluent's documentation](https://docs.confluent.io/current/kafka/sasl.html#use-of-sasl-plain-in-production) for details.
 
-This section documents how to configure Kafka Connect If your Kafka Cluster is secured using [SASL/PLAIN](http://kafka.apache.org/documentation/#security_sasl_plain).
+This section documents how to configure Kafka Connect if your Kafka Cluster is secured using [SASL/PLAIN](http://kafka.apache.org/documentation/#security_sasl_plain).
 
 Configure the Kafka Connect worker and consumer settings to use SASL/PLAIN in **config/connect-distributed.properties**
 
@@ -284,7 +284,7 @@ Workers and sink tasks should work with your SASL/PLAIN secured cluster.
 
 ### SASL/SCRAM-SHA-256 and SASL/SCRAM-SHA-512
 
-This section documents how to configure Kafka Connect If your Kafka Cluster is secured using [SASL/SCRAM](http://kafka.apache.org/documentation/#security_sasl_scram). 
+This section documents how to configure Kafka Connect if your Kafka Cluster is secured using [SASL/SCRAM](http://kafka.apache.org/documentation/#security_sasl_scram). 
 
 Configure the Kafka Connect worker and consumer settings to use SASL/SCRAM in **config/connect-distributed.properties**
 
