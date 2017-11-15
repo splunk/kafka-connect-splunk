@@ -9,6 +9,11 @@ KAFKA_CONNECT_IMAGE = 'repo.splunk.com/kafka-connect-splunk:1.0'
 KAFKA_BASTION_IMAGE = 'repo.splunk.com/kafka-bastion:1.0'
 
 
+def gen_depends_from(bootstrap_servers):
+    return [sp.split(':')[0].strip()
+            for sp in bootstrap_servers.split(',')]
+
+
 class KafkaDataGenYamlGen(object):
 
     def __init__(self, image, bootstrap_servers, topic='perf'):
@@ -32,12 +37,14 @@ class KafkaDataGenYamlGen(object):
             'JVM_MAX_HEAP=2G',
             'JVM_MIN_HEAP=512M',
         ]
+        depends = gen_depends_from(self.bootstrap_servers)
         services = kcg.gen_services(
-            self.num_of_gen, 'kafkagen', self.image, [], envs, None)
+            self.num_of_gen, 'kafkagen', self.image, [], envs, depends, None)
         return '\n'.join(services)
 
 
 class KafkaConnectYamlGen(object):
+    prefix = 'kafkaconnect'
 
     def __init__(self, image, bootstrap_servers):
         self.image = image
@@ -54,16 +61,19 @@ class KafkaConnectYamlGen(object):
             'KAFKA_BOOTSTRAP_SERVERS={}'.format(self.bootstrap_servers),
             jvm_mem,
         ]
+        depends = gen_depends_from(self.bootstrap_servers)
         services = kcg.gen_services(
-            self.num_of_connect, 'kafkaconnect', self.image, [8083], envs, None)
+            self.num_of_connect, self.prefix, self.image,
+            [8083], envs, depends, None)
         return '\n'.join(services)
 
 
 class KafkaBastionYamlGen(object):
 
-    def __init__(self, image, num_of_indexer):
+    def __init__(self, image, num_of_indexer, num_of_connect):
         self.image = image
         self.num_of_indexer = num_of_indexer
+        self.num_of_connect = num_of_connect
         self.raw = False
         self.topic = 'perf'
         self.max_tasks = 30
@@ -76,8 +86,10 @@ class KafkaBastionYamlGen(object):
             'KAFKA_CONNECT_TASKS_MAX={}'.format(self.max_tasks),
         ]
 
+        depends = ['{}{}'.format(KafkaConnectYamlGen.prefix, i)
+                   for i in xrange(1, self.num_of_connect + 1)]
         services = kcg.gen_services(
-            1, 'kafkabastion', self.image, [], envs, None)
+            1, 'kafkabastion', self.image, [], envs, depends, None)
         return '\n'.join(services)
 
 
@@ -121,7 +133,8 @@ class KafkaOrcaYamlGen(object):
 
     def _create_kafka_bastion_gen(self):
         gen = KafkaBastionYamlGen(
-            self.args.kafka_bastion_image, self.args.indexer_size)
+            self.args.kafka_bastion_image, self.args.indexer_size,
+            self.args.kafka_connect_size)
 
         gen.raw = self.args.kafka_connect_raw == 1
         gen.max_tasks = self.args.kafka_connect_max_tasks
@@ -137,12 +150,12 @@ class KafkaOrcaYamlGen(object):
             kafka_yaml_gen.bootstrap_servers())
         kafka_bastion_yaml_gen = self._create_kafka_bastion_gen()
 
-        data_gen_yaml = data_gen_yaml_gen.gen()
         kafka_yaml = kafka_yaml_gen.gen()
+        data_gen_yaml = data_gen_yaml_gen.gen()
         kafka_connect_yaml = kafka_connect_yaml_gen.gen()
         kafka_bastion_yaml = kafka_bastion_yaml_gen.gen()
 
-        return data_gen_yaml + kafka_yaml + kafka_connect_yaml + kafka_bastion_yaml
+        return kafka_yaml + data_gen_yaml + kafka_connect_yaml + kafka_bastion_yaml
 
 
 def _gen_service_file(args, service_file):
@@ -166,6 +179,7 @@ def _gen_orca_file(args, service_file):
         lines.append('memory = 8')
         lines.append('swap_memory = 20')
         lines.append('cpu = 8')
+        lines.append('perf = true')
         lines.append('disk = fast')
         lines.append('services = {}'.format(service_file))
         f.write('\n'.join(lines))
