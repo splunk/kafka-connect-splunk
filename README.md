@@ -185,7 +185,7 @@ consumer.ssl.truststore.password=test1234
 
 > Note: As of now, there is no way to change the configuration for connectors individually, but if your server supports client authentication over SSL, it is possible to use a separate principal for the worker and the connectors. See [Confluent's documentation on configuring workers and connectors with security](https://docs.confluent.io/current/connect/security.html#configuring-connectors-with-security) for more information.
 
-Start kafka connect
+Start Kafka Connect
 
 ```
 ./bin/connect-distributed.sh config/connect-distributed-quickstart.properties
@@ -217,7 +217,7 @@ EXTRA_ARGS=${EXTRA_ARGS-'-name connectDistributed -Djava.security.krb5.conf=/etc
 
 See [Confluent's documentation](https://docs.confluent.io/current/kafka/sasl.html#sasl-configuration-for-kafka-clients) for more information on configuring Kafka Connect using JAAS.
 
-Here's an example Kafka Client JAAS file using the principal `connect`.
+For example, a Kafka Client JAAS file using the principal `connect`.
 
 ```
 KafkaClient {
@@ -231,7 +231,7 @@ KafkaClient {
 ```
 > Note: Modify the **keyTab** and **principal** settings to reflect your environment.
 
-Start Kafka connect 
+Start Kafka Connect 
 
 ```
 ./bin/connect-distributed.sh config/connect-distributed.properties
@@ -240,7 +240,7 @@ Start Kafka connect
 Workers and sink tasks should work with your Kerberos secured cluster.
 
 ### SASL/PLAIN
-> Warning: Do not run SASL/Plain in produciton without SSL. See [Confluent's documentation](https://docs.confluent.io/current/kafka/sasl.html#use-of-sasl-plain-in-production) for details.
+> Warning: Do not run SASL/PLAIN in produciton without SSL. See [Confluent's documentation](https://docs.confluent.io/current/kafka/sasl.html#use-of-sasl-plain-in-production) for details.
 
 This section documents how to configure Kafka Connect if your Kafka Cluster is secured using [SASL/PLAIN](http://kafka.apache.org/documentation/#security_sasl_plain).
 
@@ -264,7 +264,7 @@ EXTRA_ARGS=${EXTRA_ARGS-'-name connectDistributed -Djava.security.auth.login.con
 
 See [Confluent's documentation](https://docs.confluent.io/current/kafka/sasl.html#sasl-configuration-for-kafka-clients) for more information on configuring Kafka Connect using JAAS.
 
-Here's an example Kafka Client JAAS file for SASL/PLAIN.
+For example, a Kafka Client JAAS file for SASL/PLAIN.
 
 ```
 KafkaClient {
@@ -274,7 +274,7 @@ KafkaClient {
 };
 ```
 
-Start Kafka connect
+Start Kafka Connect
 
 ```
 ./bin/connect-distributed.sh config/connect-distributed.properties
@@ -305,7 +305,7 @@ EXTRA_ARGS=${EXTRA_ARGS-'-name connectDistributed -Djava.security.auth.login.con
 
 See [Confluent's documentation](https://docs.confluent.io/current/kafka/sasl.html#sasl-configuration-for-kafka-clients) for more information on configuring Kafka Connect using JAAS.
 
-Here's an example Kafka Client JAAS file for SASL/SCRAM.
+For example, a Kafka Client JAAS file for SASL/SCRAM.
 
 ```
 KafkaClient {
@@ -315,7 +315,7 @@ KafkaClient {
 };
 ```
 
-Start Kafka connect
+Start Kafka Connect
 
 ```
 ./bin/connect-distributed.sh config/connect-distributed.properties
