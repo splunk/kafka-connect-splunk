@@ -13,4 +13,10 @@ cd kafka-connect-splunk
 
 sed -i"" "s@bootstrap.servers=.*@bootstrap.servers=$KAFKA_BOOTSTRAP_SERVERS@g" config/connect-distributed.properties
 
-./bin/connect-distributed.sh config/connect-distributed.properties
+sleep 60
+
+while :
+do
+    ./bin/connect-distributed.sh config/connect-distributed.properties
+    sleep 1
+done
