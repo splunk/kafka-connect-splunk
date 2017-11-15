@@ -151,6 +151,170 @@ Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recom
 3. Copy **libs/commons-logging-1.2.jar** to **libs** of the existing Kafka Connect on each host.
 4. Restart the Kafka Connect cluster.
 
+## Security
+The Kafka Connect Splunk Sink supports the following security mechanisms
+* `SSL`
+* `SASL/GSSAPI (Kerberos)` - starting at version 0.9.0.0
+* `SASL/PLAIN` - starting at version 0.10.0.0
+* `SASL/SCRAM-SHA-256 and SASL/SCRAM-SHA-512` - starting at version 0.10.2.0
+
+See [Confluent's documentation](https://docs.confluent.io/current/connect/security.html#security) to understand the impact of using security within the Kafka Connect framework, specifically [ACL considerations](https://docs.confluent.io/current/connect/security.html#acl-considerations).
+
+The following examples assume you're deploying to an [existing Kafka Connect cluster](https://github.com/splunk/kafka-connect-splunk#connector-in-an-existing-kafka-connect-cluster) or a [dedicated Kafka Connect cluster](https://github.com/splunk/kafka-connect-splunk#connector-in-a-dedicated-kafka-connect-cluster). Adjust the config file to **config/connect-distributed-quickstart.properties** if you're using [Quick Start](https://github.com/splunk/kafka-connect-splunk#quick-start).
+
+### SSL
+[Secure your cluster according to the documentation](http://kafka.apache.org/documentation/#security_ssl).
+
+Once secured, configure the Kafka Connect worker and consumer settings to use SSL in **config/connect-distributed.properties**
+
+```
+# Worker security are located at the top level
+security.protocol=SSL
+ssl.truststore.location=/var/private/ssl/kafka.client.truststore.jks
+ssl.truststore.password=test1234
+
+# Sink security settings are prefixed with "consumer"
+consumer.security.protocol=SSL
+consumer.ssl.truststore.location=/var/private/ssl/kafka.client.truststore.jks
+consumer.ssl.truststore.password=test1234
+```
+
+> Note: You will need to adjust the settings **consumer.ssl.truststore.location** and **ssl.truststore.password** to reflect your setup.
+
+> Note: See [Confluent's documentation on configuring workers and connectors with security](https://docs.confluent.io/current/connect/security.html#configuring-connectors-with-security), specifically the note about a lack of support for individual connector configuration.
+
+Start kafka connect
+
+```
+./bin/connect-distributed.sh config/connect-distributed-quickstart.properties
+```
+
+Workers and sink tasks should work with your SSL secured cluster.
+
+### SASL/GSSAPI (Kerberos)
+[Secure your cluster according to the documentation](http://kafka.apache.org/documentation/#security_sasl_kerberos). Once secured, configure the Kafka Connect worker and consumer settings to use Kerberos in **config/connect-distributed.properties**
+
+```
+# Worker security are located at the top level
+security.protocol=SASL_PLAINTEXT
+sasl.mechanism=GSSAPI
+
+# Sink security settings are prefixed with "consumer"
+consumer.sasl.mechanism=GSSAPI
+consumer.security.protocol=SASL_PLAINTEXT
+sasl.kerberos.service.name=kafka
+```
+
+Modify **bin/connect-distributed.sh** by editing the `EXTRA_ARGS` environment variable. Pass in the location of the JAAS conf file. Optionally, you can specify the path to your Kerberos config file and set Kerberos debugging to true for troubleshooting connection issues.
+
+```
+EXTRA_ARGS=${EXTRA_ARGS-'-name connectDistributed -Djava.security.krb5.conf=/etc/krb5.conf -Djava.security.auth.login.config=/root/kafka_connect_jaas.conf -Dsun.security.krb5.debug=true'}
+```
+
+See [Confluent's documentation](https://docs.confluent.io/current/kafka/sasl.html#sasl-configuration-for-kafka-clients) for more information on configuring Kafka Connect using JAAS.
+
+Here's an example Kafka Client JAAS file using the principal `connect`.
+
+```
+KafkaClient {
+	com.sun.security.auth.module.Krb5LoginModule required
+	useKeyTab=true
+	storeKey=true
+	keyTab="/etc/security/keytabs/connect.keytab"
+	principal="connect/_HOST@REALM";
+};
+
+```
+> Note: Modify the **keyTab** and **principal** settings to reflect your environment.
+
+Start Kafka connect 
+
+```
+./bin/connect-distributed.sh config/connect-distributed.properties
+```
+
+Workers and sink tasks should work with your Kerberos secured cluster.
+
+### SASL/PLAIN
+> Warning: You should not run SASL/Plain in produciton without SSL. See [Confluent's documentation](https://docs.confluent.io/current/kafka/sasl.html#use-of-sasl-plain-in-production) for details.
+
+[Secure your cluster according to the documentation](http://kafka.apache.org/documentation/#security_sasl_plain). Once secured, configure the Kafka Connect worker and consumer settings to use SASL/PLAIN in **config/connect-distributed.properties**
+
+```
+# Worker security are located at the top level
+security.protocol=SASL_SSL
+sasl.mechanism=PLAIN
+
+# Sink security settings are prefixed with "consumer"
+consumer.security.protocol=SASL_SSL
+consumer.sasl.mechanism=PLAIN
+```
+
+Modify **bin/connect-distributed.sh** by editing the `EXTRA_ARGS` environment variable. Pass in the location of the JAAS conf file.
+
+```
+EXTRA_ARGS=${EXTRA_ARGS-'-name connectDistributed -Djava.security.auth.login.config=/root/kafka_connect_jaas.conf'}
+```
+
+See [Confluent's documentation](https://docs.confluent.io/current/kafka/sasl.html#sasl-configuration-for-kafka-clients) for more information on configuring Kafka Connect using JAAS.
+
+Here's an example Kafka Client JAAS file for SASL/PLAIN.
+
+```
+KafkaClient {
+  org.apache.kafka.common.security.plain.PlainLoginModule required
+  username="alice"
+  password="alice-secret";
+};
+```
+
+Start Kafka connect
+
+```
+./bin/connect-distributed.sh config/connect-distributed.properties
+```
+
+Workers and sink tasks should work with your SASL/PLAIN secured cluster.
+
+### SASL/SCRAM-SHA-256 and SASL/SCRAM-SHA-512
+
+[Secure your cluster according to the documentation](http://kafka.apache.org/documentation/#security_sasl_scram). Once secured, configure the Kafka Connect worker and consumer settings to use SASL/SCRAM in **config/connect-distributed.properties**
+
+```
+# Worker security are located at the top level
+security.protocol=SASL_SSL
+sasl.mechanism=SCRAM-SHA-256 (or SCRAM-SHA-512)
+
+# Sink security settings are prefixed with "consumer"
+consumer.security.protocol=SASL_SSL
+consumer.sasl.mechanism=SCRAM-SHA-256 (or SCRAM-SHA-512)
+```
+Modify **bin/connect-distributed.sh** by editing the `EXTRA_ARGS` environment variable. Pass in the location of the JAAS conf file.
+
+```
+EXTRA_ARGS=${EXTRA_ARGS-'-name connectDistributed -Djava.security.auth.login.config=/root/kafka_connect_jaas.conf'}
+```
+
+See [Confluent's documentation](https://docs.confluent.io/current/kafka/sasl.html#sasl-configuration-for-kafka-clients) for more information on configuring Kafka Connect using JAAS.
+
+Here's an example Kafka Client JAAS file for SASL/SCRAM.
+
+```
+KafkaClient {
+  org.apache.kafka.common.security.scram.ScramLoginModule required
+  username="alice"
+  password="alice-secret";
+};
+```
+
+Start Kafka connect
+
+```
+./bin/connect-distributed.sh config/connect-distributed.properties
+```
+
+Workers and sink tasks should work with your SASL/SCRAM secured cluster.
+
 ## Configuration
 
 After Kafka Connect is brought up on every host, all of the Kafka Connect instances will form a cluster automatically. 
