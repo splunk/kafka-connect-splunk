@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # variables
 kafkaversion=0.11.0.1
@@ -26,7 +26,7 @@ cp LICENSE ${builddir}
 
 # Download kafka
 echo "Downloading kafka_2.11-${kafkaversion} ..."
-wget --quiet http://mirror.olnevhost.net/pub/apache/kafka/${kafkaversion}/kafka_2.11-${kafkaversion}.tgz -P ${builddir}
+wget -q http://mirror.olnevhost.net/pub/apache/kafka/${kafkaversion}/kafka_2.11-${kafkaversion}.tgz -P ${builddir}
 cd ${builddir} && tar xzf kafka_2.11-${kafkaversion}.tgz
 
 # Copy over kafka connect runtime
@@ -38,7 +38,7 @@ cp kafka_2.11-${kafkaversion}/libs/*.jar ${builddir}/libs
 
 # Download commons-logging jar
 echo "Downloading commons-logging jar"
-wget --quiet http://central.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar -P ${builddir}/libs/
+wget -q http://central.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar -P ${builddir}/libs/
 
 # Clean up
 echo "Clean up ..."
@@ -52,6 +52,7 @@ cd .. && tar czf ${packagename} kafka-connect-splunk
 echo "Copy package ${packagename} to ${curdir} ..."
 cp ${packagename} ${curdir}
 
+/bin/rm -rf kafka-connect-splunk ${packagename}
 echo "Done with build & packaging"
 
 echo
