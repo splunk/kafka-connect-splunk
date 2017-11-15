@@ -176,11 +176,13 @@ def _gen_orca_file(args, service_file):
         lines.append('search_heads = 1')
         lines.append('indexers = {}'.format(args.indexer_size))
         lines.append('log_token = 00000000-0000-0000-0000-000000000000')
-        lines.append('memory = 8')
-        lines.append('swap_memory = 20')
-        lines.append('cpu = 8')
-        lines.append('perf = true')
-        lines.append('disk = fast')
+        if args.perf == 0:
+            lines.append('memory = 8')
+            lines.append('swap_memory = 20')
+            lines.append('cpu = 8')
+            lines.append('disk = fast')
+        else:
+            lines.append('perf = true')
         lines.append('services = {}'.format(service_file))
         f.write('\n'.join(lines))
 
@@ -189,6 +191,8 @@ def _gen_orca_file(args, service_file):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--perf', type=int, default=1,
+                        help='[0|1] Perf mode or not')
     parser.add_argument('--indexer_size', type=int, default=30,
                         help='Indexer cluster size')
     parser.add_argument('--data_gen_image', default=DATA_GEN_IMAGE,
