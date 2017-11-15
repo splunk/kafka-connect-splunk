@@ -6,13 +6,19 @@ import kafka_cluster_gen as kcg
 DATA_GEN_IMAGE = 'repo.splunk.com/kafka-data-gen:0.1'
 KAFKA_IMAGE = 'repo.splunk.com/kafka-cluster:0.11'
 KAFKA_CONNECT_IMAGE = 'repo.splunk.com/kafka-connect-splunk:1.0'
+KAFKA_BASTION_IMAGE = 'repo.splunk.com/kafka-bastion:1.0'
 
 
-class KafkaDataGenYaml(object):
+def gen_depends_from(bootstrap_servers):
+    return [sp.split(':')[0].strip()
+            for sp in bootstrap_servers.split(',')]
+
+
+class KafkaDataGenYamlGen(object):
 
     def __init__(self, image, bootstrap_servers, topic='perf'):
         self.image = image
-        self.boostrap_servers = bootstrap_servers
+        self.bootstrap_servers = bootstrap_servers
         self.topic = topic
         self.num_of_gen = 1
         self.total_messages = 100 * 1000 * 1000
@@ -23,7 +29,7 @@ class KafkaDataGenYaml(object):
 
     def gen(self):
         envs = [
-            'KAFKA_BOOTSTRAP_SERVERS={}'.format(self.boostrap_servers),
+            'KAFKA_BOOTSTRAP_SERVERS={}'.format(self.bootstrap_servers),
             'KAFKA_TOPIC={}'.format(self.topic),
             'MESSAGE_COUNT={}'.format(self.total_messages),
             'EPS={}'.format(self.eps),
@@ -31,8 +37,59 @@ class KafkaDataGenYaml(object):
             'JVM_MAX_HEAP=2G',
             'JVM_MIN_HEAP=512M',
         ]
+        depends = gen_depends_from(self.bootstrap_servers)
         services = kcg.gen_services(
-            self.num_of_gen, 'kafkagen', self.image, [], envs, None)
+            self.num_of_gen, 'kafkagen', self.image, [], envs, depends, None)
+        return '\n'.join(services)
+
+
+class KafkaConnectYamlGen(object):
+    prefix = 'kafkaconnect'
+
+    def __init__(self, image, bootstrap_servers):
+        self.image = image
+        self.bootstrap_servers = bootstrap_servers
+        self.num_of_connect = 3
+        self.max_jvm_memory = '6G'
+        self.min_jvm_memory = '512M'
+
+    def gen(self):
+        jvm_mem = 'KAFKA_HEAP_OPTS=-Xmx{} -Xms{}'.format(
+            self.max_jvm_memory, self.min_jvm_memory)
+
+        envs = [
+            'KAFKA_BOOTSTRAP_SERVERS={}'.format(self.bootstrap_servers),
+            jvm_mem,
+        ]
+        depends = gen_depends_from(self.bootstrap_servers)
+        services = kcg.gen_services(
+            self.num_of_connect, self.prefix, self.image,
+            [8083], envs, depends, None)
+        return '\n'.join(services)
+
+
+class KafkaBastionYamlGen(object):
+
+    def __init__(self, image, num_of_indexer, num_of_connect):
+        self.image = image
+        self.num_of_indexer = num_of_indexer
+        self.num_of_connect = num_of_connect
+        self.raw = False
+        self.topic = 'perf'
+        self.max_tasks = 30
+
+    def gen(self):
+        envs = [
+            'INDEX_CLUSTER_SIZE={}'.format(self.num_of_indexer),
+            'KAFKA_CONNECT_RAW={}'.format(str(self.raw).lower()),
+            'KAFKA_CONNECT_TOPICS={}'.format(self.topic),
+            'KAFKA_CONNECT_TASKS_MAX={}'.format(self.max_tasks),
+        ]
+
+        depends = ['{}{}'.format(KafkaConnectYamlGen.prefix, i)
+                   for i in xrange(1, self.num_of_connect + 1)]
+        services = kcg.gen_services(
+            1, 'kafkabastion', self.image, [], envs, depends, None)
         return '\n'.join(services)
 
 
@@ -42,41 +99,102 @@ class KafkaOrcaYamlGen(object):
         self.args = args
 
     def _create_data_gen(self, bootstrap_servers):
-        data_gen_yaml_gen = KafkaDataGenYaml(
+        gen = KafkaDataGenYamlGen(
             self.args.data_gen_image, bootstrap_servers,
             self.args.kafka_topic)
 
-        data_gen_yaml_gen.num_of_gen = self.args.data_gen_size
-        data_gen_yaml_gen.total_messages = self.args.data_gen_total_events
-        data_gen_yaml_gen.eps = self.args.data_gen_eps
+        gen.num_of_gen = self.args.data_gen_size
+        gen.total_messages = self.args.data_gen_total_events
+        gen.eps = self.args.data_gen_eps
 
-        return data_gen_yaml_gen
+        return gen
 
     def _create_kafka_gen(self):
-        kafka_yaml_gen = kcg.KafkaClusterYamlGen(
-            self.args.kafka_image, version='2')
+        gen = kcg.KafkaClusterYamlGen(self.args.kafka_image, version='2')
 
-        kafka_yaml_gen.num_of_zk = self.args.zookeeper_size
-        kafka_yaml_gen.num_of_broker = self.args.broker_size
+        gen.num_of_zk = self.args.zookeeper_size
+        gen.num_of_broker = self.args.broker_size
+        gen.num_of_partition = self.args.default_partitions
 
-        kafka_yaml_gen.max_jvm_memory = self.args.max_jvm_memory
-        kafka_yaml_gen.min_jvm_memory = self.args.min_jvm_memory
+        gen.max_jvm_memory = self.args.max_jvm_memory
+        gen.min_jvm_memory = self.args.min_jvm_memory
 
-        return kafka_yaml_gen
+        return gen
+
+    def _create_kafka_connect_gen(self, bootstrap_servers):
+        gen = KafkaConnectYamlGen(
+            self.args.kafka_connect_image, bootstrap_servers)
+
+        gen.num_of_connect = self.args.kafka_connect_size
+        gen.max_jvm_memory = self.args.max_jvm_memory
+        gen.min_jvm_memory = self.args.min_jvm_memory
+
+        return gen
+
+    def _create_kafka_bastion_gen(self):
+        gen = KafkaBastionYamlGen(
+            self.args.kafka_bastion_image, self.args.indexer_size,
+            self.args.kafka_connect_size)
+
+        gen.raw = self.args.kafka_connect_raw == 1
+        gen.max_tasks = self.args.kafka_connect_max_tasks
+        gen.topic = self.args.kafka_topic
+
+        return gen
 
     def gen(self):
         kafka_yaml_gen = self._create_kafka_gen()
         data_gen_yaml_gen = self._create_data_gen(
             kafka_yaml_gen.bootstrap_servers())
+        kafka_connect_yaml_gen = self._create_kafka_connect_gen(
+            kafka_yaml_gen.bootstrap_servers())
+        kafka_bastion_yaml_gen = self._create_kafka_bastion_gen()
 
-        data_gen_yaml = data_gen_yaml_gen.gen()
         kafka_yaml = kafka_yaml_gen.gen()
+        data_gen_yaml = data_gen_yaml_gen.gen()
+        kafka_connect_yaml = kafka_connect_yaml_gen.gen()
+        kafka_bastion_yaml = kafka_bastion_yaml_gen.gen()
 
-        return data_gen_yaml + kafka_yaml
+        return kafka_yaml + data_gen_yaml + kafka_connect_yaml + kafka_bastion_yaml
+
+
+def _gen_service_file(args, service_file):
+    gen = KafkaOrcaYamlGen(args)
+
+    orca_services = gen.gen()
+
+    with open(service_file, 'w') as f:
+        f.write(orca_services)
+
+    print 'finish generating orca service yaml file in', service_file
+
+
+def _gen_orca_file(args, service_file):
+    lines = []
+    with open('orca.conf', 'w') as f:
+        lines.append('[kafka-connect]')
+        lines.append('search_heads = 1')
+        lines.append('indexers = {}'.format(args.indexer_size))
+        lines.append('log_token = 00000000-0000-0000-0000-000000000000')
+        if args.perf == 0:
+            lines.append('memory = 8')
+            lines.append('swap_memory = 20')
+            lines.append('cpu = 8')
+            lines.append('disk = fast')
+        else:
+            lines.append('perf = true')
+        lines.append('services = {}'.format(service_file))
+        f.write('\n'.join(lines))
+
+    print 'finish generating orca.conf'
 
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--perf', type=int, default=1,
+                        help='[0|1] Perf mode or not')
+    parser.add_argument('--indexer_size', type=int, default=30,
+                        help='Indexer cluster size')
     parser.add_argument('--data_gen_image', default=DATA_GEN_IMAGE,
                         help='Kafka data gen docker image')
     parser.add_argument('--data_gen_eps', type=int, default=10000,
@@ -90,6 +208,8 @@ def main():
 
     parser.add_argument('--kafka_image', default=KAFKA_IMAGE,
                         help='Kafka cluster docker image')
+    parser.add_argument('--default_partitions', type=int, default=300,
+                        help='Default number of partitions for new topic')
     parser.add_argument('--broker_size', type=int, default=5,
                         help='number of kafka brokers')
     parser.add_argument('--zookeeper_size', type=int, default=5,
@@ -100,21 +220,22 @@ def main():
     parser.add_argument('--kafka_connect_size', type=int, default=3,
                         help='number of Kafka connect')
 
+    parser.add_argument('--kafka_bastion_image', default=KAFKA_BASTION_IMAGE,
+                        help='Kafka bastion docker image')
+    parser.add_argument('--kafka_connect_raw', type=int, default=0,
+                        help='[0|1] use /raw HEC endpoint')
+    parser.add_argument('--kafka_connect_max_tasks', type=int, default=30,
+                        help='Max number of data collection tasks')
+
     parser.add_argument('--max_jvm_memory', default="6G",
                         help='Max JVM memory, by default it is 6G')
     parser.add_argument('--min_jvm_memory', default="512M",
                         help='Min JVM memory, by default it is 512M')
 
     args = parser.parse_args()
-    gen = KafkaOrcaYamlGen(args)
-
-    orca_services = gen.gen()
-
-    service_file = 'kafka-connect-ci.yaml'
-    with open(service_file, 'w') as f:
-        f.write(orca_services)
-
-    print 'finish generating orca service yaml file in', service_file
+    service_file = 'kafka-connect-ci.yml'
+    _gen_service_file(args, service_file)
+    _gen_orca_file(args, service_file)
 
 
 if __name__ == '__main__':

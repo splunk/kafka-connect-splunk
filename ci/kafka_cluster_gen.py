@@ -20,12 +20,13 @@ class KafkaClusterYamlGen(object):
         ]
 
         self.num_of_broker = 5
+        self.num_of_partition = 300
         self.broker_prefix = 'kafka'
         self.broker_opts = [
             'KAFKA_listeners=PLAINTEXT://:9092',
             # 'KAFKA_advertised_listeners=PLAINTEXT://kafka1:9092',
             'KAFKA_log_dirs=/kafkadata',
-            'KAFKA_num_partitions=3',
+            # 'KAFKA_num_partitions=3',
             'KAFKA_delete_topic_enable=true',
             'KAFKA_auto_create_topics_enable=true',
             # 'KAFKA_zookeeper_connect=zookeeper1:2181,zookeeper2:2181,zookeeper3:2181',
@@ -72,7 +73,7 @@ class KafkaClusterYamlGen(object):
 
         return gen_services(
             self.num_of_zk, self.zk_prefix, self.image, [2181, 2888, 3888],
-            self.zk_opts, add_myid)
+            self.zk_opts, [], add_myid)
 
     def _do_gen_broker(self):
         def add_advertise_name_and_id(service, service_idx):
@@ -84,13 +85,17 @@ class KafkaClusterYamlGen(object):
 
         self.broker_opts.insert(0, 'RUN=kafka')
         self.broker_opts.insert(1, self._get_jvm_memory())
+        self.broker_opts.append(
+            'KAFKA_num_partitions={}'.format(self.num_of_partition))
         zk_connect = self._get_zk_connect_setting()
         self.broker_opts.append(
             'KAFKA_zookeeper_connect={}'.format(zk_connect))
+        depends = ['{}{}'.format(self.zk_prefix, i)
+                   for i in xrange(1, self.num_of_zk + 1)]
 
         return gen_services(
             self.num_of_broker, self.broker_prefix, self.image, [9092],
-            self.broker_opts, add_advertise_name_and_id)
+            self.broker_opts, depends, add_advertise_name_and_id)
 
     def _get_jvm_memory(self):
         return 'KAFKA_HEAP_OPTS=-Xmx{} -Xms{}'.format(
@@ -112,7 +117,7 @@ class KafkaClusterYamlGen(object):
         return ','.join(zk_connect_settings)
 
 
-def gen_services(num, prefix, image, ports, envs, callback):
+def gen_services(num, prefix, image, ports, envs, depends, callback):
     services = []
     for i in xrange(1, num + 1):
         name = '{}{}'.format(prefix, i)
@@ -123,12 +128,18 @@ def gen_services(num, prefix, image, ports, envs, callback):
             '  container_name: {}'.format(name),
         ]
 
+        # ports
         if ports:
             service.append('  ports:')
 
-            # ports
             for port in ports:
                 service.append('    - "{}"'.format(port))
+
+        # depends
+        if depends:
+            service.append('  depends_on:')
+            for dep in depends:
+                service.append('    - {}'.format(dep))
 
         # envs
         if envs:
@@ -152,9 +163,11 @@ def main():
     parser.add_argument('--image', default='zlchen/kafka-cluster:0.11',
                         help='Docker image')
     parser.add_argument('--broker_size', type=int, default=5,
-                        help='number of kafka brokers')
+                        help='Number of kafka brokers')
     parser.add_argument('--zookeeper_size', type=int, default=5,
-                        help='number of zookeeper')
+                        help='Number of zookeeper')
+    parser.add_argument('--default_partitions', type=int, default=300,
+                        help='Default number of partitions for new topic')
     parser.add_argument('--max_jvm_memory', default="6G",
                         help='Max JVM memory, by default it is 6G')
     parser.add_argument('--min_jvm_memory', default="512M",
@@ -166,6 +179,7 @@ def main():
 
     gen.num_of_zk = args.zookeeper_size
     gen.num_of_broker = args.broker_size
+    gen.num_of_partition = args.default_partitions
 
     gen.max_jvm_memory = args.max_jvm_memory
     gen.min_jvm_memory = args.min_jvm_memory
