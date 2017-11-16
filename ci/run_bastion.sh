@@ -2,6 +2,10 @@
 
 sleep 70
 
+if [ -f /etc/hosts2 ]; then
+    cat /etc/hosts2 >> /etc/hosts
+fi
+
 HEC_URIS="https://idx1:8088"
 for i in `seq 2 ${INDEX_CLUSTER_SIZE}`
 do

@@ -73,7 +73,7 @@ class KafkaClusterYamlGen(object):
 
         return gen_services(
             self.num_of_zk, self.zk_prefix, self.image, [2181, 2888, 3888],
-            self.zk_opts, [], add_myid)
+            self.zk_opts, [], [2181], add_myid)
 
     def _do_gen_broker(self):
         def add_advertise_name_and_id(service, service_idx):
@@ -95,7 +95,7 @@ class KafkaClusterYamlGen(object):
 
         return gen_services(
             self.num_of_broker, self.broker_prefix, self.image, [9092],
-            self.broker_opts, depends, add_advertise_name_and_id)
+            self.broker_opts, depends, [9092], add_advertise_name_and_id)
 
     def _get_jvm_memory(self):
         return 'KAFKA_HEAP_OPTS=-Xmx{} -Xms{}'.format(
@@ -117,7 +117,8 @@ class KafkaClusterYamlGen(object):
         return ','.join(zk_connect_settings)
 
 
-def gen_services(num, prefix, image, ports, envs, depends, callback):
+def gen_services(num, prefix, image, ports, envs,
+                 depends, exposed_ports, callback):
     services = []
     for i in xrange(1, num + 1):
         name = '{}{}'.format(prefix, i)
@@ -128,10 +129,15 @@ def gen_services(num, prefix, image, ports, envs, depends, callback):
             '  container_name: {}'.format(name),
         ]
 
+        # exposed ports
+        if exposed_ports:
+            service.append('  expose:')
+            for port in exposed_ports:
+                service.append('    - "{}"'.format(port))
+
         # ports
         if ports:
             service.append('  ports:')
-
             for port in ports:
                 service.append('    - "{}"'.format(port))
 
@@ -190,7 +196,7 @@ def main():
     with open(yaml_file, 'w') as f:
         f.write(yaml)
 
-    print 'finish generating kafka cluster yaml file in ', yaml_file
+    print 'finish generating kafka cluster yaml file in', yaml_file
 
 
 if __name__ == '__main__':
