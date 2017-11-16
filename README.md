@@ -160,7 +160,7 @@ The Kafka Connect Splunk Sink supports the following security mechanisms
 
 See [Confluent's documentation](https://docs.confluent.io/current/connect/security.html#security) to understand the impact of using security within the Kafka Connect framework, specifically [ACL considerations](https://docs.confluent.io/current/connect/security.html#acl-considerations).
 
-The following examples assume you're deploying to an [existing Kafka Connect cluster](https://github.com/splunk/kafka-connect-splunk#connector-in-an-existing-kafka-connect-cluster) or a [dedicated Kafka Connect cluster](https://github.com/splunk/kafka-connect-splunk#connector-in-a-dedicated-kafka-connect-cluster).
+The following examples assume you're deploying to an [existing Kafka Connect cluster](#connector-in-an-existing-kafka-connect-cluster) or a [dedicated Kafka Connect cluster](#connector-in-a-dedicated-kafka-connect-cluster).
 
 If you are using [Quick Start](https://github.com/splunk/kafka-connect-splunk#quick-start), adjust the config file to **config/connect-distributed-quickstart.properties**.
 
@@ -175,7 +175,7 @@ security.protocol=SSL
 ssl.truststore.location=/var/private/ssl/kafka.client.truststore.jks
 ssl.truststore.password=test1234
 
-# Sink security settings are prefixed with "consumer"
+# Sink security settings are prefixed with "consumer."
 consumer.security.protocol=SSL
 consumer.ssl.truststore.location=/var/private/ssl/kafka.client.truststore.jks
 consumer.ssl.truststore.password=test1234
@@ -203,7 +203,7 @@ Configure the Kafka Connect worker and consumer settings to use Kerberos in **co
 security.protocol=SASL_PLAINTEXT
 sasl.mechanism=GSSAPI
 
-# Sink security settings are prefixed with "consumer"
+# Sink security settings are prefixed with "consumer."
 consumer.sasl.mechanism=GSSAPI
 consumer.security.protocol=SASL_PLAINTEXT
 sasl.kerberos.service.name=kafka
@@ -251,7 +251,7 @@ Configure the Kafka Connect worker and consumer settings to use SASL/PLAIN in **
 security.protocol=SASL_SSL
 sasl.mechanism=PLAIN
 
-# Sink security settings are prefixed with "consumer"
+# Sink security settings are prefixed with "consumer."
 consumer.security.protocol=SASL_SSL
 consumer.sasl.mechanism=PLAIN
 ```
@@ -293,7 +293,7 @@ Configure the Kafka Connect worker and consumer settings to use SASL/SCRAM in **
 security.protocol=SASL_SSL
 sasl.mechanism=SCRAM-SHA-256 (or SCRAM-SHA-512)
 
-# Sink security settings are prefixed with "consumer"
+# Sink security settings are prefixed with "consumer."
 consumer.security.protocol=SASL_SSL
 consumer.sasl.mechanism=SCRAM-SHA-256 (or SCRAM-SHA-512)
 ```
