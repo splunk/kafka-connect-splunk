@@ -162,7 +162,7 @@ See [Confluent's documentation](https://docs.confluent.io/current/connect/securi
 
 The following examples assume you're deploying to an [existing Kafka Connect cluster](#connector-in-an-existing-kafka-connect-cluster) or a [dedicated Kafka Connect cluster](#connector-in-a-dedicated-kafka-connect-cluster).
 
-If you are using [Quick Start](https://github.com/splunk/kafka-connect-splunk#quick-start), adjust the config file to **config/connect-distributed-quickstart.properties**.
+If you are using [Quick Start](#quick-start), adjust the config file to **config/connect-distributed-quickstart.properties**.
 
 ### SSL
 This section documents how to configure Kafka Connect if your Kafka Cluster is secured using [SSL](http://kafka.apache.org/documentation/#security_ssl).
