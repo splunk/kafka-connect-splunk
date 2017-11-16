@@ -39,7 +39,8 @@ class KafkaDataGenYamlGen(object):
         ]
         depends = gen_depends_from(self.bootstrap_servers)
         services = kcg.gen_services(
-            self.num_of_gen, 'kafkagen', self.image, [], envs, depends, None)
+            self.num_of_gen, 'kafkagen', self.image, [], envs,
+            depends, [8080], None)
         return '\n'.join(services)
 
 
@@ -64,7 +65,7 @@ class KafkaConnectYamlGen(object):
         depends = gen_depends_from(self.bootstrap_servers)
         services = kcg.gen_services(
             self.num_of_connect, self.prefix, self.image,
-            [8083], envs, depends, None)
+            [8083], envs, depends, [8083], None)
         return '\n'.join(services)
 
 
@@ -89,7 +90,7 @@ class KafkaBastionYamlGen(object):
         depends = ['{}{}'.format(KafkaConnectYamlGen.prefix, i)
                    for i in xrange(1, self.num_of_connect + 1)]
         services = kcg.gen_services(
-            1, 'kafkabastion', self.image, [], envs, depends, None)
+            1, 'kafkabastion', self.image, [], envs, depends, [8080], None)
         return '\n'.join(services)
 
 

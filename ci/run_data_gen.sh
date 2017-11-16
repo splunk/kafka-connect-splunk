@@ -5,6 +5,10 @@ cd kafka-data-gen && gradle install
 
 sleep 60
 
+if [ -f /etc/hosts2 ]; then
+    cat /etc/hosts2 >> /etc/hosts
+fi
+
 while :
 do
     java -Xmx${JVM_MAX_HEAP:-4G} -Xms${JVM_MIN_HEAP:-512M} -jar build/libs/kafka-data-gen.jar -message-count ${MESSAGE_COUNT} -message-size ${MESSAGE_SIZE} -topic ${KAFKA_TOPIC} -bootstrap.servers ${KAFKA_BOOTSTRAP_SERVERS} -EPS ${EPS}

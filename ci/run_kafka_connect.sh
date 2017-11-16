@@ -15,6 +15,10 @@ sed -i"" "s@bootstrap.servers=.*@bootstrap.servers=$KAFKA_BOOTSTRAP_SERVERS@g" c
 
 sleep 60
 
+if [ -f /etc/hosts2 ]; then
+    cat /etc/hosts2 >> /etc/hosts
+fi
+
 while :
 do
     ./bin/connect-distributed.sh config/connect-distributed.properties
