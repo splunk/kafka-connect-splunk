@@ -62,18 +62,18 @@ class KafkaClusterYamlGen(object):
         return zk_yaml
 
     def _do_gen_zk(self):
-        zk_servers = self._get_zk_servers()
         self.zk_opts.insert(0, 'RUN=zookeeper')
         self.zk_opts.insert(1, self._get_jvm_memory())
-        self.zk_opts.append('ZOOKEEPER_servers={}'.format(zk_servers))
 
         def add_myid(service, service_idx):
             myid = '    - ZOOKEEPER_myid={}'.format(service_idx)
             service.append(myid)
+            zk_servers = self._get_zk_servers(service_idx)
+            service.append('    - ZOOKEEPER_servers={}'.format(zk_servers))
 
         return gen_services(
             self.num_of_zk, self.zk_prefix, self.image, [2181, 2888, 3888],
-            self.zk_opts, [], [2181], add_myid)
+            self.zk_opts, [], [2181, 2888, 3888], add_myid)
 
     def _do_gen_broker(self):
         def add_advertise_name_and_id(service, service_idx):
@@ -101,11 +101,16 @@ class KafkaClusterYamlGen(object):
         return 'KAFKA_HEAP_OPTS=-Xmx{} -Xms{}'.format(
             self.max_jvm_memory, self.min_jvm_memory)
 
-    def _get_zk_servers(self):
+    def _get_zk_servers(self, cur_idx):
         zk_servers = []
-        for i in xrange(self.num_of_zk):
-            zk_server = 'server.{kid}={prefix}{kid}:2888:3888'.format(
-                kid=i + 1, prefix=self.zk_prefix)
+        for i in xrange(1, self.num_of_zk + 1):
+            if i != cur_idx:
+                hname = '{prefix}{kid}'.format(prefix=self.zk_prefix, kid=i)
+            else:
+                hname = '0.0.0.0'
+
+            zk_server = 'server.{kid}={hname}:2888:3888'.format(
+                kid=i, hname=hname)
             zk_servers.append(zk_server)
         return ','.join(zk_servers)
 
