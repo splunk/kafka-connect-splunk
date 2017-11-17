@@ -17,10 +17,13 @@ import org.slf4j.LoggerFactory;
  */
 public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class);
+    private static final long flushWindow = 30 * 1000; // 30 seconds
 
     private HecInf hec;
     private KafkaRecordTracker tracker;
     private SplunkSinkConnectorConfig connectorConfig;
+    private List<SinkRecord> bufferedRecords;
+    private long lastFlushed = System.currentTimeMillis();
 
     @Override
     public void start(Map<String, String> taskConfig) {
@@ -29,6 +32,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             hec = createHec();
         }
         tracker = new KafkaRecordTracker();
+        bufferedRecords = new ArrayList<>();
 
         log.info("kafka-connect-splunk task starts with config={}", connectorConfig);
     }
@@ -39,9 +43,24 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
         handleFailedBatches();
 
-        if (records.isEmpty()) {
-            return;
+        bufferedRecords.addAll(records);
+        if (bufferedRecords.size() < connectorConfig.maxBatchSize) {
+            if (System.currentTimeMillis() - lastFlushed < flushWindow) {
+                // still in flush window, buffer the records and return
+                return;
+            }
+
+            if (bufferedRecords.isEmpty()) {
+                lastFlushed = System.currentTimeMillis();
+                return;
+            }
         }
+
+        // either flush window reached or max batch size reached
+        records = bufferedRecords;
+        bufferedRecords = new ArrayList<>();
+        lastFlushed = System.currentTimeMillis();
+
         if (connectorConfig.raw) {
             /* /raw endpoint */
             handleRaw(records);
