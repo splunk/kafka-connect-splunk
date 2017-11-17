@@ -16,6 +16,7 @@ ADD known_hosts /root/.ssh/known_hosts
 RUN mkdir -p /kafka-connect/
 WORKDIR /kafka-connect
 
+ADD fix_hosts.sh /fix_hosts.sh
 ADD run_kafka_connect.sh /kafka-connect/run_kafka_connect.sh
 
 CMD ["/bin/bash", "-c", "/kafka-connect/run_kafka_connect.sh"]

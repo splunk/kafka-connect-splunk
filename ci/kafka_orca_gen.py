@@ -3,10 +3,10 @@
 import argparse
 import kafka_cluster_gen as kcg
 
-DATA_GEN_IMAGE = 'repo.splunk.com/kafka-data-gen:0.1'
-KAFKA_IMAGE = 'repo.splunk.com/kafka-cluster:0.11'
-KAFKA_CONNECT_IMAGE = 'repo.splunk.com/kafka-connect-splunk:1.0'
-KAFKA_BASTION_IMAGE = 'repo.splunk.com/kafka-bastion:1.0'
+DATA_GEN_IMAGE = 'repo.splunk.com/kafka-data-gen:0.2'
+KAFKA_IMAGE = 'repo.splunk.com/kafka-cluster:0.12'
+KAFKA_CONNECT_IMAGE = 'repo.splunk.com/kafka-connect-splunk:1.1'
+KAFKA_BASTION_IMAGE = 'repo.splunk.com/kafka-bastion:1.2'
 
 
 def gen_depends_from(bootstrap_servers):
@@ -36,11 +36,11 @@ class KafkaDataGenYamlGen(object):
             'MESSAGE_SIZE={}'.format(self.message_size),
             'JVM_MAX_HEAP=2G',
             'JVM_MIN_HEAP=512M',
+            'KAFKA_DATA_GEN_SIZE={}'.format(self.num_of_gen / 2),
         ]
         depends = gen_depends_from(self.bootstrap_servers)
         services = kcg.gen_services(
-            self.num_of_gen, 'kafkagen', self.image, [], envs,
-            depends, [8080], None)
+            2, 'kafkagen', self.image, [], envs, depends, [8080], None)
         return '\n'.join(services)
 
 
@@ -75,6 +75,8 @@ class KafkaBastionYamlGen(object):
         self.image = image
         self.num_of_indexer = num_of_indexer
         self.num_of_connect = num_of_connect
+        self.batch_size = 500
+        self.line_breaker = '@@@@'
         self.raw = False
         self.topic = 'perf'
         self.max_tasks = 30
@@ -85,6 +87,8 @@ class KafkaBastionYamlGen(object):
             'KAFKA_CONNECT_RAW={}'.format(str(self.raw).lower()),
             'KAFKA_CONNECT_TOPICS={}'.format(self.topic),
             'KAFKA_CONNECT_TASKS_MAX={}'.format(self.max_tasks),
+            'KAFKA_CONNECT_LINE_BREAKER={}'.format(self.line_breaker),
+            'KAFKA_CONNECT_BATCH_SIZE={}'.format(self.batch_size),
         ]
 
         depends = ['{}{}'.format(KafkaConnectYamlGen.prefix, i)
@@ -140,6 +144,8 @@ class KafkaOrcaYamlGen(object):
         gen.raw = self.args.kafka_connect_raw == 1
         gen.max_tasks = self.args.kafka_connect_max_tasks
         gen.topic = self.args.kafka_topic
+        gen.line_breaker = self.args.kafka_connect_line_breaker
+        gen.batch_size = self.args.kafka_connect_batch_size
 
         return gen
 
@@ -227,6 +233,10 @@ def main():
                         help='[0|1] use /raw HEC endpoint')
     parser.add_argument('--kafka_connect_max_tasks', type=int, default=30,
                         help='Max number of data collection tasks')
+    parser.add_argument('--kafka_connect_batch_size', type=int, default=500,
+                        help='HEC batch size')
+    parser.add_argument('--kafka_connect_line_breaker', default='@@@@',
+                        help='/raw event line breaker')
 
     parser.add_argument('--max_jvm_memory', default="6G",
                         help='Max JVM memory, by default it is 6G')

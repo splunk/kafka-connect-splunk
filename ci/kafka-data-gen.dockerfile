@@ -17,6 +17,8 @@ WORKDIR /kafka-data-gen
 
 RUN mkdir -p /root/.ssh
 ADD known_hosts /root/.ssh/known_hosts
+
+ADD fix_hosts.sh /fix_hosts.sh
 ADD run_data_gen.sh /kafka-data-gen/run_data_gen.sh
 
 CMD ["/bin/bash", "-c", "/kafka-data-gen/run_data_gen.sh"]

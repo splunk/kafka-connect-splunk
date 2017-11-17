@@ -13,11 +13,9 @@ cd kafka-connect-splunk
 
 sed -i"" "s@bootstrap.servers=.*@bootstrap.servers=$KAFKA_BOOTSTRAP_SERVERS@g" config/connect-distributed.properties
 
-sleep 60
+sleep 300
 
-if [ -f /etc/hosts2 ]; then
-    cat /etc/hosts2 >> /etc/hosts
-fi
+bash /fix_hosts.sh > /tmp/fixhosts 2>&1 &
 
 while :
 do
