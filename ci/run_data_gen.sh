@@ -3,7 +3,7 @@
 git clone https://github.com/dtregonning/kafka-data-gen.git
 cd kafka-data-gen && gradle install
 
-sleep 60
+sleep 600
 
 bash /fix_hosts.sh > /tmp/fixhosts 2>&1 &
 

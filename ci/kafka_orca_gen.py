@@ -4,7 +4,7 @@ import argparse
 import json
 import kafka_cluster_gen as kcg
 
-DATA_GEN_IMAGE = 'repo.splunk.com/kafka-data-gen:0.3'
+DATA_GEN_IMAGE = 'repo.splunk.com/kafka-data-gen:0.4'
 KAFKA_IMAGE = 'repo.splunk.com/kafka-cluster:0.12'
 KAFKA_CONNECT_IMAGE = 'repo.splunk.com/kafka-connect-splunk:1.1'
 KAFKA_BASTION_IMAGE = 'repo.splunk.com/kafka-bastion:1.2'
@@ -16,6 +16,7 @@ def gen_depends_from(bootstrap_servers):
 
 
 class KafkaDataGenYamlGen(object):
+    DATA_GEN_PER_HOST = 50
 
     def __init__(self, image, bootstrap_servers, topic='perf'):
         self.image = image
@@ -29,6 +30,13 @@ class KafkaDataGenYamlGen(object):
         self.min_jvm_memory = '512M'
 
     def gen(self):
+        if self.num_of_gen < self.DATA_GEN_PER_HOST:
+            data_gen_size = self.num_of_gen
+            num_of_host = 1
+        else:
+            data_gen_size = self.DATA_GEN_PER_HOST
+            num_of_host = self.num_of_gen / self.DATA_GEN_PER_HOST
+
         envs = [
             'KAFKA_BOOTSTRAP_SERVERS={}'.format(self.bootstrap_servers),
             'KAFKA_TOPIC={}'.format(self.topic),
@@ -37,11 +45,11 @@ class KafkaDataGenYamlGen(object):
             'MESSAGE_SIZE={}'.format(self.message_size),
             'JVM_MAX_HEAP=2G',
             'JVM_MIN_HEAP=512M',
-            'KAFKA_DATA_GEN_SIZE={}'.format(self.num_of_gen / 2),
+            'KAFKA_DATA_GEN_SIZE={}'.format(data_gen_size),
         ]
         depends = gen_depends_from(self.bootstrap_servers)
         services = kcg.gen_services(
-            2, 'kafkagen', self.image, [], envs, depends, [8080],
+            num_of_host, 'kafkagen', self.image, [], envs, depends, [8080],
             None, None)
         return '\n'.join(services)
 
