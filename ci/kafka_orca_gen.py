@@ -1,9 +1,10 @@
 #!/usr/bin/python
 
 import argparse
+import json
 import kafka_cluster_gen as kcg
 
-DATA_GEN_IMAGE = 'repo.splunk.com/kafka-data-gen:0.2'
+DATA_GEN_IMAGE = 'repo.splunk.com/kafka-data-gen:0.3'
 KAFKA_IMAGE = 'repo.splunk.com/kafka-cluster:0.12'
 KAFKA_CONNECT_IMAGE = 'repo.splunk.com/kafka-connect-splunk:1.1'
 KAFKA_BASTION_IMAGE = 'repo.splunk.com/kafka-bastion:1.2'
@@ -40,7 +41,8 @@ class KafkaDataGenYamlGen(object):
         ]
         depends = gen_depends_from(self.bootstrap_servers)
         services = kcg.gen_services(
-            2, 'kafkagen', self.image, [], envs, depends, [8080], None)
+            2, 'kafkagen', self.image, [], envs, depends, [8080],
+            None, None)
         return '\n'.join(services)
 
 
@@ -65,7 +67,7 @@ class KafkaConnectYamlGen(object):
         depends = gen_depends_from(self.bootstrap_servers)
         services = kcg.gen_services(
             self.num_of_connect, self.prefix, self.image,
-            [8083], envs, depends, [8083], None)
+            [8083], envs, depends, [8083], None, None)
         return '\n'.join(services)
 
 
@@ -94,7 +96,8 @@ class KafkaBastionYamlGen(object):
         depends = ['{}{}'.format(KafkaConnectYamlGen.prefix, i)
                    for i in xrange(1, self.num_of_connect + 1)]
         services = kcg.gen_services(
-            1, 'kafkabastion', self.image, [], envs, depends, [8080], None)
+            1, 'kafkabastion', self.image, [], envs, depends,
+            [8080], None, None)
         return '\n'.join(services)
 
 
@@ -115,7 +118,9 @@ class KafkaOrcaYamlGen(object):
         return gen
 
     def _create_kafka_gen(self):
-        gen = kcg.KafkaClusterYamlGen(self.args.kafka_image, version='2')
+        gen = kcg.KafkaClusterYamlGen(
+            self.args.kafka_image, version='2',
+            volumes=json.loads(self.args.volumes))
 
         gen.num_of_zk = self.args.zookeeper_size
         gen.num_of_broker = self.args.broker_size
@@ -204,9 +209,9 @@ def main():
                         help='Indexer cluster size')
     parser.add_argument('--data_gen_image', default=DATA_GEN_IMAGE,
                         help='Kafka data gen docker image')
-    parser.add_argument('--data_gen_eps', type=int, default=10000,
+    parser.add_argument('--data_gen_eps', type=int, default=100000,
                         help='Event per second for Kafka data gen')
-    parser.add_argument('--data_gen_total_events', type=int, default=100000000,
+    parser.add_argument('--data_gen_total_events', type=int, default=1000000000,
                         help='Total events for Kafka data gen')
     parser.add_argument('--data_gen_size', type=int, default=2,
                         help='number of Kafka data gen')
@@ -242,6 +247,9 @@ def main():
                         help='Max JVM memory, by default it is 6G')
     parser.add_argument('--min_jvm_memory', default="512M",
                         help='Min JVM memory, by default it is 512M')
+
+    volumes = '["{}"]'.format(kcg.KafkaClusterYamlGen.DATA_DIR_ROOT)
+    parser.add_argument('--volumes', default=volumes, help='Volumes to mount')
 
     args = parser.parse_args()
     service_file = 'kafka-connect-ci.yml'

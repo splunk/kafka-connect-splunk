@@ -15,7 +15,7 @@ KAFKA_DATA_GEN_SIZE=$(($KAFKA_DATA_GEN_SIZE - 1))
 echo "#!/bin/bash" > do_run_data_gen.sh
 echo "while :" >> do_run_data_gen.sh
 echo "do" >> do_run_data_gen.sh
-echo "    java -Xmx${JVM_MAX_HEAP:-4G} -Xms${JVM_MIN_HEAP:-512M} -jar build/libs/kafka-data-gen.jar -message-count ${MESSAGE_COUNT} -message-size ${MESSAGE_SIZE} -topic ${KAFKA_TOPIC} -bootstrap.servers ${KAFKA_BOOTSTRAP_SERVERS} -EPS ${EPS}" >> do_run_data_gen.sh
+echo "    java -Xmx${JVM_MAX_HEAP:-4G} -Xms${JVM_MIN_HEAP:-512M} -jar build/libs/kafka-data-gen.jar -message-count ${MESSAGE_COUNT} -message-size ${MESSAGE_SIZE} -topic ${KAFKA_TOPIC} -bootstrap.servers ${KAFKA_BOOTSTRAP_SERVERS} -eps ${EPS}" >> do_run_data_gen.sh
 echo "    sleep 1" >> do_run_data_gen.sh
 echo "done" >> do_run_data_gen.sh
 
