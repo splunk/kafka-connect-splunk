@@ -196,12 +196,7 @@ def _gen_orca_file(args, service_file):
         lines.append('search_heads = 1')
         lines.append('indexers = {}'.format(args.indexer_size))
         lines.append('log_token = 00000000-0000-0000-0000-000000000000')
-        if args.perf == 0:
-            lines.append('memory = 8')
-            lines.append('swap_memory = 20')
-            lines.append('cpu = 8')
-            lines.append('disk = fast')
-        else:
+        if args.perf == 1:
             lines.append('perf = true')
         lines.append('services = {}'.format(service_file))
         f.write('\n'.join(lines))
