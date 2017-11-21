@@ -6,7 +6,7 @@ import kafka_cluster_gen as kcg
 
 DATA_GEN_IMAGE = 'repo.splunk.com/kafka-data-gen:0.4'
 KAFKA_IMAGE = 'repo.splunk.com/kafka-cluster:0.12'
-KAFKA_CONNECT_IMAGE = 'repo.splunk.com/kafka-connect-splunk:1.1'
+KAFKA_CONNECT_IMAGE = 'repo.splunk.com/kafka-connect-splunk:1.2'
 KAFKA_BASTION_IMAGE = 'repo.splunk.com/kafka-bastion:1.2'
 
 

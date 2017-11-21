@@ -1,6 +1,6 @@
 FROM anapsix/alpine-java:8_jdk
 
-RUN apk update && apk upgrade && apk add git && apk add openssh
+RUN apk update && apk upgrade && apk add git && apk add openssh && apk add openssl
 
 RUN wget -q http://apache.claz.org/maven/maven-3/3.5.2/binaries/apache-maven-3.5.2-bin.tar.gz -P /bin && cd /bin && tar xzf apache-maven-3.5.2-bin.tar.gz
 
