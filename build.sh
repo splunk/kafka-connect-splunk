@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # variables
-kafkaversion=0.11.0.1
+kafkaversion=0.11.0.2
 builddir=/tmp/kafka-connect-splunk-build/kafka-connect-splunk
 packagename=kafka-connect-splunk.tar.gz
 
@@ -26,7 +26,7 @@ cp LICENSE ${builddir}
 
 # Download kafka
 echo "Downloading kafka_2.11-${kafkaversion} ..."
-wget -q http://mirror.olnevhost.net/pub/apache/kafka/${kafkaversion}/kafka_2.11-${kafkaversion}.tgz -P ${builddir}
+wget -q https://archive.apache.org/dist/kafka/${kafkaversion}/kafka_2.11-${kafkaversion}.tgz -P ${builddir}
 cd ${builddir} && tar xzf kafka_2.11-${kafkaversion}.tgz
 
 # Copy over kafka connect runtime

@@ -24,9 +24,8 @@ withSplunkWrapNode("master") {
             splunkRunScript request:dockerReq,
                             script:
                                 """
-                                   pwd
                                    pip install splunk_orca==0.8.0 -i https://repo.splunk.com/artifactory/api/pypi/pypi-virtual/simple
-                                   cd /build/kakfa-connect-splunk/ci
+                                   cd ci
                                    python kafka_orca_gen.py --data_gen_size 1 --data_gen_eps 100000 --broker_size 3 --zookeeper_size 3 --kafka_connect_size 1 --kafka_connect_max_tasks 20 --indexer_size 3 --default_partitions 10 --perf 0
                                    splunk_orca create --sc kafka-connect
                                 """;
