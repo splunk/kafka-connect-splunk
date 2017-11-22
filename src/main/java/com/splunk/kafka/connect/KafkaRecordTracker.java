@@ -8,6 +8,7 @@ import org.apache.kafka.connect.sink.SinkRecord;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by kchen on 10/24/17.
@@ -15,11 +16,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 final class KafkaRecordTracker {
     private Map<TopicPartition, TreeMap<Long, EventBatch>> all; // TopicPartition + Long offset represents the SinkRecord
+    private long total;
     private ConcurrentLinkedQueue<EventBatch> failed;
 
     public KafkaRecordTracker() {
         all = new HashMap<>();
         failed = new ConcurrentLinkedQueue<>();
+        total = 0;
     }
 
     public void addFailedEventBatch(final EventBatch batch) {
@@ -40,6 +43,7 @@ final class KafkaRecordTracker {
                     all.put(tp, tpRecords);
                 }
                 tpRecords.put(record.kafkaOffset(), batch);
+                total += 1;
             }
         }
     }
@@ -68,6 +72,7 @@ final class KafkaRecordTracker {
                 if (e.getValue().isCommitted()) {
                     offset = e.getKey();
                     iter.remove();
+                    total -= 1;
                 } else {
                     break;
                 }
@@ -78,5 +83,9 @@ final class KafkaRecordTracker {
             }
         }
         return offsets;
+    }
+
+    public long totalEventBatches() {
+        return total;
     }
 }

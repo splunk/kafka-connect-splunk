@@ -31,10 +31,12 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String ACK_POLL_THREADS_CONF = "splunk.hec.ack.poll.threads";
     static final String MAX_HTTP_CONNECTION_PER_CHANNEL_CONF = "splunk.hec.max.http.connection.per.channel";
     static final String TOTAL_HEC_CHANNEL_CONF = "splunk.hec.total.channels";
-    static final String ENRICHEMENT_CONF = "splunk.hec.json.event.enrichment";
+    static final String ENRICHMENT_CONF = "splunk.hec.json.event.enrichment";
     static final String MAX_BATCH_SIZE_CONF = "splunk.hec.max.batch.size"; // record count
     static final String HEC_THREDS_CONF = "splunk.hec.threads";
     static final String LINE_BREAKER_CONF = "splunk.hec.raw.line.breaker";
+    static final String MAX_OUTSTANDING_EVENTS_CONF = "splunk.hec.max.outstanding.events";
+    static final String MAX_RETRIES_CONF = "splunk.hec.max.retries";
     static final String TRACK_DATA_CONF = "splunk.hec.track.data";
 
      // Kafka configuration description strings
@@ -63,6 +65,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String MAX_BATCH_SIZE_DOC = "Max number of Kafka record to be sent to Splunk HEC for one POST";
     static final String HEC_THREADS_DOC = "Number of threads used to POST events to Splunk HEC in single task";
     static final String LINE_BREAKER_DOC = "Line breaker for /raw HEC endpoint. The line breaker can help Splunkd to do event breaking";
+    static final String MAX_OUTSTANDING_EVENTS_DOC = "Number of outstanding events which are not ACKed kept in memory";
+    static final String MAX_RETRIES_DOC = "Number of retries for failed batches before giving up";
     static final String TRACK_DATA_DOC = "Track data loss, latency or not. Is only applicable to splunk.hec.raw=false case";
 
     final String splunkToken;
@@ -85,8 +89,10 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final boolean trackData;
     final int maxBatchSize;
     final int numberOfThreads;
+    final int maxOutstandingEvents;
+    final int maxRetries;
     final String lineBreaker;
-    final Map<String, String> enrichements;
+    final Map<String, String> enrichments;
 
     final Map<String, Map<String, String>> topicMetas;
 
@@ -109,11 +115,13 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         maxHttpConnPerChannel = getInt(MAX_HTTP_CONNECTION_PER_CHANNEL_CONF);
         totalHecChannels = getInt(TOTAL_HEC_CHANNEL_CONF);
         socketTimeout = getInt(SOCKET_TIMEOUT_CONF);
-        enrichements = parseEnrichements(getString(ENRICHEMENT_CONF));
+        enrichments = parseEnrichments(getString(ENRICHMENT_CONF));
         trackData = getBoolean(TRACK_DATA_CONF);
         maxBatchSize = getInt(MAX_BATCH_SIZE_CONF);
         numberOfThreads = getInt(HEC_THREDS_CONF);
         lineBreaker = getString(LINE_BREAKER_CONF);
+        maxOutstandingEvents = getInt(MAX_OUTSTANDING_EVENTS_CONF);
+        maxRetries = getInt(MAX_RETRIES_CONF);
         topicMetas = initMetaMap(taskConfig);
     }
 
@@ -136,11 +144,13 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             .define(MAX_HTTP_CONNECTION_PER_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.MEDIUM, MAX_HTTP_CONNECTION_PER_CHANNEL_DOC)
             .define(TOTAL_HEC_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.HIGH, TOTAL_HEC_CHANNEL_DOC)
             .define(SOCKET_TIMEOUT_CONF, ConfigDef.Type.INT, 60, ConfigDef.Importance.LOW, SOCKET_TIMEOUT_DOC)
-            .define(ENRICHEMENT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.LOW, ENRICHMENT_DOC)
+            .define(ENRICHMENT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.LOW, ENRICHMENT_DOC)
             .define(TRACK_DATA_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.LOW, TRACK_DATA_DOC)
             .define(HEC_THREDS_CONF, ConfigDef.Type.INT, 1, ConfigDef.Importance.LOW, HEC_THREADS_DOC)
             .define(LINE_BREAKER_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, LINE_BREAKER_DOC)
-            .define(MAX_BATCH_SIZE_CONF, ConfigDef.Type.INT, 100, ConfigDef.Importance.MEDIUM, MAX_BATCH_SIZE_DOC);
+            .define(MAX_OUTSTANDING_EVENTS_CONF, ConfigDef.Type.INT, 500000, ConfigDef.Importance.MEDIUM, MAX_OUTSTANDING_EVENTS_DOC)
+            .define(MAX_RETRIES_CONF, ConfigDef.Type.INT, -1, ConfigDef.Importance.MEDIUM, MAX_RETRIES_DOC)
+            .define(MAX_BATCH_SIZE_CONF, ConfigDef.Type.INT, 500, ConfigDef.Importance.MEDIUM, MAX_BATCH_SIZE_DOC);
     }
 
     /**
@@ -182,10 +192,12 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 + "ackPollThreads:" + ackPollThreads + ", "
                 + "maxHttpConnectionPerChannel:" + maxHttpConnPerChannel + ", "
                 + "totalHecChannels:" + totalHecChannels + ", "
-                + "enrichement: " + getString(ENRICHEMENT_CONF) + ", "
+                + "enrichment: " + getString(ENRICHMENT_CONF) + ", "
                 + "maxBatchSize: " + maxBatchSize + ", "
                 + "numberOfThreads: " + numberOfThreads + ", "
                 + "lineBreaker: " + lineBreaker + ", "
+                + "maxOutstandingEvents: " + maxOutstandingEvents + ", "
+                + "maxRetries: " + maxRetries + ", "
                 + "trackData: " + trackData;
     }
 
@@ -196,8 +208,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         return null;
     }
 
-    private static Map<String, String> parseEnrichements(String enrichement) {
-        String[] kvs = split(enrichement, ",");
+    private static Map<String, String> parseEnrichments(String enrichment) {
+        String[] kvs = split(enrichment, ",");
         if (kvs == null) {
             return null;
         }
@@ -206,7 +218,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         for (final String kv: kvs) {
             String[] kvPairs = split(kv, "=");
             if (kvPairs.length != 2) {
-                throw new ConfigException("Invalid enrichement: " + enrichement + ". Expect key value pairs and separated by comma");
+                throw new ConfigException("Invalid enrichment: " + enrichment+ ". Expect key value pairs and separated by comma");
             }
             enrichmentKvs.put(kvPairs[0], kvPairs[1]);
         }
@@ -258,4 +270,3 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         return metaMap;
     }
 }
-
