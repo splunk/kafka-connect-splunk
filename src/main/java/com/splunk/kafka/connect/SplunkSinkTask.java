@@ -43,6 +43,8 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
         handleFailedBatches();
 
+        preventTooManyOutstandingEvents();
+
         bufferedRecords.addAll(records);
         if (bufferedRecords.size() < connectorConfig.maxBatchSize) {
             if (System.currentTimeMillis() - lastFlushed < flushWindow) {
@@ -85,12 +87,24 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
         // if there are failed ones, first deal with them
         for (final EventBatch batch: failed) {
+            if (connectorConfig.maxRetries > 0 && batch.getFailureCount() > connectorConfig.maxRetries) {
+                log.error("dropping EventBatch with {} events in it since it reaches max retries {}",
+                        batch.size(), connectorConfig.maxRetries);
+                continue;
+            }
             send(batch);
         }
 
         if (!failed.isEmpty()) {
             log.info("handle {} failed batches", failed.size());
             throw new RetriableException(new HecException("need handle failed batches first, pause the pull for a while"));
+        }
+    }
+
+    private void preventTooManyOutstandingEvents() {
+        if (tracker.totalEventBatches() > connectorConfig.maxOutstandingEvents) {
+            String msg = String.format("max outstanding events %d have reached, pause the pull for a while", connectorConfig.maxOutstandingEvents);
+            throw new RetriableException(new HecException(msg));
         }
     }
 
@@ -189,9 +203,9 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     }
 
     public void onEventCommitted(final List<EventBatch> batches) {
-        for (final EventBatch batch: batches) {
+        // for (final EventBatch batch: batches) {
             // assert batch.isCommitted();
-        }
+        // }
     }
 
     public void onEventFailure(final List<EventBatch> batches, Exception ex) {
@@ -214,7 +228,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             event.setIndex(metas.get(SplunkSinkConnectorConfig.INDEX));
             event.setSourcetype(metas.get(SplunkSinkConnectorConfig.SOURCETYPE));
             event.setSource(metas.get(SplunkSinkConnectorConfig.SOURCE));
-            event.addFields(connectorConfig.enrichements);
+            event.addFields(connectorConfig.enrichments);
         }
 
         if (connectorConfig.trackData) {

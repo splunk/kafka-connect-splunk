@@ -22,7 +22,7 @@ public class SplunkSinkConnectorConfigTest {
         Map<String, String> config = uu.createTaskConfig();
         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
 
-        Assert.assertEquals(uu.enrichementMap, connectorConfig.enrichements);
+        Assert.assertEquals(uu.enrichementMap, connectorConfig.enrichments);
         Assert.assertEquals(1, connectorConfig.topicMetas.size());
         Assert.assertEquals(0, connectorConfig.topicMetas.get("mytopic").size());
         assertMeta(connectorConfig);
@@ -60,15 +60,15 @@ public class SplunkSinkConnectorConfigTest {
     public void createWithoutEnrichment() {
         UnitUtil uu = new UnitUtil();
         Map<String, String> config = uu.createTaskConfig();
-        config.put(SplunkSinkConnectorConfig.ENRICHEMENT_CONF, "");
+        config.put(SplunkSinkConnectorConfig.ENRICHMENT_CONF, "");
         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
-        Assert.assertNull(connectorConfig.enrichements);
+        Assert.assertNull(connectorConfig.enrichments);
         assertMeta(connectorConfig);
         commonAssert(connectorConfig);
 
-        config.put(SplunkSinkConnectorConfig.ENRICHEMENT_CONF, null);
+        config.put(SplunkSinkConnectorConfig.ENRICHMENT_CONF, null);
         connectorConfig = new SplunkSinkConnectorConfig(config);
-        Assert.assertNull(connectorConfig.enrichements);
+        Assert.assertNull(connectorConfig.enrichments);
         assertMeta(connectorConfig);
         commonAssert(connectorConfig);
     }
@@ -77,7 +77,7 @@ public class SplunkSinkConnectorConfigTest {
     public void createWithInvalidEnrichment() {
         UnitUtil uu = new UnitUtil();
         Map<String, String> config = uu.createTaskConfig();
-        config.put(SplunkSinkConnectorConfig.ENRICHEMENT_CONF, "i1,i2");
+        config.put(SplunkSinkConnectorConfig.ENRICHMENT_CONF, "i1,i2");
         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
     }
 

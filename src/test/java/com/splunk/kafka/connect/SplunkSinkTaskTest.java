@@ -77,7 +77,7 @@ public class SplunkSinkTaskTest {
         Assert.assertEquals(2, hec.getBatches().size());
         Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>();
         offsets.put(new TopicPartition(uu.topics, 1), new OffsetAndMetadata(120));
-        Assert.assertEquals(offsets, task.preCommit(null));
+        Assert.assertEquals(offsets, task.preCommit(new HashMap<>()));
         Assert.assertTrue(task.getTracker().getAndRemoveFailedRecords().isEmpty());
         task.stop();
     }
@@ -252,7 +252,7 @@ public class SplunkSinkTaskTest {
 
         Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>();
         offsets.put(new TopicPartition(uu.topics, 1), new OffsetAndMetadata(1000));
-        Assert.assertEquals(offsets, task.preCommit(null));
+        Assert.assertEquals(offsets, task.preCommit(new HashMap<>()));
         Assert.assertTrue(task.getTracker().getAndRemoveFailedRecords().isEmpty());
         task.stop();
     }
