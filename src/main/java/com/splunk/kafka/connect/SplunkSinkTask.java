@@ -84,9 +84,14 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
     private void handleFailedBatches() {
         Collection<EventBatch> failed = tracker.getAndRemoveFailedRecords();
+        if (failed.isEmpty()) {
+            return;
+        }
 
+        long failedEvents = 0;
         // if there are failed ones, first deal with them
         for (final EventBatch batch: failed) {
+            failedEvents += batch.size();
             if (connectorConfig.maxRetries > 0 && batch.getFailureCount() > connectorConfig.maxRetries) {
                 log.error("dropping EventBatch with {} events in it since it reaches max retries {}",
                         batch.size(), connectorConfig.maxRetries);
@@ -95,9 +100,10 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             send(batch);
         }
 
-        if (!failed.isEmpty()) {
-            log.info("handle {} failed batches", failed.size());
-            throw new RetriableException(new HecException("need handle failed batches first, pause the pull for a while"));
+        log.info("handle {} failed batches", failed.size());
+        if (failedEvents * 10 > connectorConfig.maxOutstandingEvents) {
+            String msg = String.format("failed events reach 10% of max outstanding events %d, pause the pull for a while", connectorConfig.maxOutstandingEvents);
+            throw new RetriableException(new HecException(msg));
         }
     }
 
