@@ -126,7 +126,7 @@ final class Indexer implements IndexerInf {
             resp = httpClient.execute(req, context);
         } catch (Exception ex) {
             logBackPressure();
-            log.error("encountered io exception:", ex);
+            log.error("encountered io exception", ex);
             throw new HecException("encountered exception when post data", ex);
         }
 
