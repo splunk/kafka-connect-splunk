@@ -8,7 +8,6 @@ import org.apache.kafka.connect.sink.SinkRecord;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by kchen on 10/24/17.
