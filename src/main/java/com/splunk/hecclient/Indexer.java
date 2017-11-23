@@ -5,7 +5,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicHeader;
@@ -15,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.ConnectException;
 
 /**
  * Created by kchen on 10/18/17.
@@ -126,12 +124,9 @@ final class Indexer implements IndexerInf {
         CloseableHttpResponse resp;
         try {
             resp = httpClient.execute(req, context);
-        } catch (ConnectException ex) {
-            backPressure += 1;
-            log.error("encountered io exception:", ex);
-            throw new HecException("encountered exception when post data", ex);
         } catch (Exception ex) {
-            log.error("encountered io exception:", ex);
+            logBackPressure();
+            log.error("encountered io exception", ex);
             throw new HecException("encountered exception when post data", ex);
         }
 
@@ -159,17 +154,26 @@ final class Indexer implements IndexerInf {
         // FIXME 503 server is busy backpressure
         if (status != 200 && status != 201) {
             if (status == 503) {
-                backPressure += 1;
-                lastBackPressure = System.currentTimeMillis();
+                logBackPressure();
             }
 
             log.error("failed to post events resp={}, status={}", respPayload, status);
             throw new HecException(String.format("failed to post events resp=%s, status=%d", respPayload, status));
         }
 
-        backPressure = 0;
+        clearBackPressure();
 
         return respPayload;
+    }
+
+    private void logBackPressure() {
+        backPressure += 1;
+        lastBackPressure = System.currentTimeMillis();
+    }
+
+    private void clearBackPressure() {
+        backPressure = 0;
+        lastBackPressure = 0;
     }
 
     @Override
@@ -184,9 +188,7 @@ final class Indexer implements IndexerInf {
                 // still in the backpressure window
                 return true;
             } else {
-                // clear the backPressure
-                backPressure = 0;
-                lastBackPressure = 0;
+                clearBackPressure();
                 return false;
             }
         }

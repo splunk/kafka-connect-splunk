@@ -102,13 +102,13 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
         log.info("handle {} failed batches", failed.size());
         if (failedEvents * 10 > connectorConfig.maxOutstandingEvents) {
-            String msg = String.format("failed events reach 10% of max outstanding events %d, pause the pull for a while", connectorConfig.maxOutstandingEvents);
+            String msg = String.format("failed events reach 10 %% of max outstanding events %d, pause the pull for a while", connectorConfig.maxOutstandingEvents);
             throw new RetriableException(new HecException(msg));
         }
     }
 
     private void preventTooManyOutstandingEvents() {
-        if (tracker.totalEventBatches() > connectorConfig.maxOutstandingEvents) {
+        if (tracker.totalEventBatches() >= connectorConfig.maxOutstandingEvents) {
             String msg = String.format("max outstanding events %d have reached, pause the pull for a while", connectorConfig.maxOutstandingEvents);
             throw new RetriableException(new HecException(msg));
         }
@@ -139,7 +139,8 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             try {
                 event = createHecEventFrom(record);
             } catch (HecException ex) {
-                log.info("ignore null or empty event for topicPartition={}-{}", record.topic(), record.kafkaPartition());
+                log.info("ignore null or empty event for topicPartitionOffset={}-{}-{}",
+                        record.topic(), record.kafkaPartition(), record.kafkaOffset());
                 continue;
             }
 

@@ -111,6 +111,7 @@ public class SplunkSinkTaskTest {
         config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
         config.put(SplunkSinkConnectorConfig.ACK_CONF, String.valueOf(true));
         config.put(SplunkSinkConnectorConfig.MAX_BATCH_SIZE_CONF, String.valueOf(100));
+        config.put(SplunkSinkConnectorConfig.MAX_OUTSTANDING_EVENTS_CONF, String.valueOf(1000));
 
         SplunkSinkTask task = new SplunkSinkTask();
         HecMock hec = new HecMock(task);
@@ -131,11 +132,33 @@ public class SplunkSinkTaskTest {
         config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
         config.put(SplunkSinkConnectorConfig.ACK_CONF, String.valueOf(true));
         config.put(SplunkSinkConnectorConfig.MAX_BATCH_SIZE_CONF, String.valueOf(100));
+        config.put(SplunkSinkConnectorConfig.MAX_OUTSTANDING_EVENTS_CONF, String.valueOf(1000));
 
         SplunkSinkTask task = new SplunkSinkTask();
         HecMock hec = new HecMock(task);
         // failure
         hec.setSendReturnResult(HecMock.successAndThenFailure);
+        task.setHec(hec);
+        task.start(config);
+        task.put(createSinkRecords(1000));
+        task.put(createSinkRecords(1000));
+
+        task.stop();
+    }
+
+
+    @Test(expected = RetriableException.class)
+    public void putWithMaxEvents() {
+        UnitUtil uu = new UnitUtil();
+        Map<String, String> config = uu.createTaskConfig();
+        config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
+        config.put(SplunkSinkConnectorConfig.ACK_CONF, String.valueOf(true));
+        config.put(SplunkSinkConnectorConfig.MAX_BATCH_SIZE_CONF, String.valueOf(100));
+        config.put(SplunkSinkConnectorConfig.MAX_OUTSTANDING_EVENTS_CONF, String.valueOf(1000));
+
+        SplunkSinkTask task = new SplunkSinkTask();
+        HecMock hec = new HecMock(task);
+        hec.setSendReturnResult(HecMock.success);
         task.setHec(hec);
         task.start(config);
         task.put(createSinkRecords(1000));
