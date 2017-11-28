@@ -16,11 +16,8 @@ public final class HecExample {
     public static void main(String[] args) {
         Logger log = LoggerFactory.getLogger(HecExample.class);
 
-        List<String> uris = Arrays.asList(
-                "https://52.53.254.149:8088",
-                "https://54.241.138.186:8088",
-                "https://54.183.92.156:8088");
-        String tokenWithAck = "536AF219-CF36-4C8C-AA0C-FD9793A0F4DD";
+        List<String> uris = Arrays.asList("https://localhost:8088");
+        String tokenWithAck = "936AF219-CF36-4C8C-AA0C-FD9793A0F4D4";
         HecConfig config = new HecConfig(uris, tokenWithAck);
         config.setAckPollInterval(10)
                 .setEventBatchTimeout(60)
