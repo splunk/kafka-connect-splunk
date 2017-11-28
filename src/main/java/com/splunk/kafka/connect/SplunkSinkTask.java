@@ -139,9 +139,9 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             try {
                 event = createHecEventFrom(record);
             } catch (HecException ex) {
-                log.info("ignore null or empty event for topicPartitionOffset={}-{}-{}",
-                        record.topic(), record.kafkaPartition(), record.kafkaOffset());
-                continue;
+                log.error("ignore malformed event for topicPartitionOffset=({}, {}, {})",
+                        record.topic(), record.kafkaPartition(), record.kafkaOffset(), ex);
+                event = createHecEventFromMalformed(record);
             }
 
             batch.add(event);
@@ -221,7 +221,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         }
     }
 
-    private Event createHecEventFrom(SinkRecord record) {
+    private Event createHecEventFrom(final SinkRecord record) {
         if (connectorConfig.raw) {
             RawEvent event = new RawEvent(record.value(), record);
             event.setLineBreaker(connectorConfig.lineBreaker);
@@ -248,7 +248,29 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             event.addFields(trackMetas);
         }
 
+        event.validate();
+
         return event;
+    }
+
+    private Event createHecEventFromMalformed(final SinkRecord record) {
+        Object data;
+        if (connectorConfig.raw) {
+            data = "timestamp=" + record.timestamp() + ", topic='" + record.topic() + '\'' +
+                    ", partition=" + record.kafkaPartition() +
+                    ", offset=" + record.kafkaOffset() + ", type=malformed";
+        } else {
+            Map<String, Object> v = new HashMap<>();
+            v.put("timestamp", record.timestamp());
+            v.put("topic", record.topic());
+            v.put("partition", record.kafkaPartition());
+            v.put("offset", record.kafkaOffset());
+            v.put("type", "malformed");
+            data = v;
+        }
+
+        final SinkRecord r = record.newRecord("malformed", 0, null, null, null, data, record.timestamp());
+        return createHecEventFrom(r);
     }
 
     // partition records according to topic-partition key

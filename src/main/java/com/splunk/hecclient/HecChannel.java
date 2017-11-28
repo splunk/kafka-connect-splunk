@@ -84,9 +84,7 @@ final class HecChannel {
     }
 
     private HecChannel disableTracking() {
-        if (chField != null) {
-            chField = null;
-        }
+        chField = null;
         return this;
     }
 

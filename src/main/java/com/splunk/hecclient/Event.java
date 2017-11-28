@@ -35,7 +35,7 @@ public abstract class Event {
     protected String lineBreaker = "\n";
 
     @JsonIgnore
-    protected byte[] bytes; // populated once, use forever
+    protected byte[] bytes; // populated once, use forever until invalidate
 
     @JsonIgnore
     private Object tied; // attached object
@@ -53,8 +53,8 @@ public abstract class Event {
 
     public final Event setEvent(final Object data) {
         checkEventData(data);
-
         event = data;
+        invalidate();
         return this;
     }
 
@@ -65,26 +65,31 @@ public abstract class Event {
 
     public final Event setTime(final long epochMillis) {
         this.time = epochMillis;
+        invalidate();
         return this;
     }
 
     public final Event setSource(final String source) {
         this.source = source;
+        invalidate();
         return this;
     }
 
     public final Event setSourcetype(final String sourcetype) {
         this.sourcetype = sourcetype;
+        invalidate();
         return this;
     }
 
     public final Event setHost(final String host) {
         this.host = host;
+        invalidate();
         return this;
     }
 
     public final Event setIndex(final String index) {
         this.index = index;
+        invalidate();
         return this;
     }
 
@@ -157,7 +162,16 @@ public abstract class Event {
         out.write(breaker);
     }
 
-    abstract byte[] getBytes();
+    // if everything is good, no exception. Otherwise HecException will be raised
+    public void validate() throws HecException {
+        getBytes();
+    }
+
+    public void invalidate() {
+        bytes = null;
+    }
+
+    public abstract byte[] getBytes() throws HecException;
 
     private static void checkEventData(Object eventData) {
         if (eventData == null) {
