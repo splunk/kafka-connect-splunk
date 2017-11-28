@@ -11,15 +11,10 @@ import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public final class JsonEvent extends Event {
-    private static final String EVENT = "event";
-    private static final String FIELDS = "fields";
-
     private Map<String, String> fields;
 
     public JsonEvent(Object data, Object tied) {
         super(data, tied);
-
-
     }
 
     // for JSON deserilzed
@@ -36,12 +31,15 @@ public final class JsonEvent extends Event {
             fields = new HashMap<>();
         }
         fields.putAll(extraFields);
+        invalidate();
+
         return this;
     }
 
     @Override
     public JsonEvent setFields(final Map<String, String> extraFields) {
         fields = extraFields;
+        invalidate();
         return this;
     }
 
