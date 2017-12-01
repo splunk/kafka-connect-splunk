@@ -93,7 +93,6 @@ public abstract class Event {
         return this;
     }
 
-
     public final Long getTime() {
         return time;
     }
