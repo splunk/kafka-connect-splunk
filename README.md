@@ -399,6 +399,74 @@ Use the below schema to configure Splunk Kafka Connector
 * `splunk.hec.track.data` -  Valid settings are `true` or `false`. When set to `true`, data loss and data injection latency metadata will be indexed along with raw data. This setting only works in conjunction with /event HEC endpoint (`"splunk.hec.raw" : "false"`). By default, it is set to `false`.
 
 #### Configuration Example
+ Two parameters which affect that core functionality of how the Connector works are:
+ `splunk.hec.raw` and `splunk.hec.ack.enabled`. Detailed below are 4 configuration examples which implement these settings
+
+##### Splunk Indexing with Acknowledgment 
+    
+1)  against HEC /raw endpoint:
+    
+    
+    ```
+    curl <hostname>:8083/connectors -X POST -H "Content-Type: application/json" -d'{
+      "name": "splunk-prod-financial",
+        "config": {
+          "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+          "tasks.max": "10",
+          "topics": "t1,t2,t3,t4,t5,t6,t7,t8,t9,t10",
+          "splunk.hec.uri": "https://idx1:8089,https://idx2:8089,https://idx3:8089",
+          "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534"
+          "splunk.hec.ack.enabled : "true"
+          "splunk.hec.raw" : "true"
+        }
+    }'
+    ```
+
+2) against HEC /event endpoint:
+    
+   
+   ```
+       curl <hostname>:8083/connectors -X POST -H "Content-Type: application/json" -d'{
+         "name": "splunk-prod-financial",
+           "config": {
+             "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+             "tasks.max": "10",
+             "topics": "t1,t2,t3,t4,t5,t6,t7,t8,t9,t10",
+             "splunk.hec.uri": "https://idx1:8089,https://idx2:8089,https://idx3:8089",
+             "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534"
+             "splunk.hec.ack.enabled : "true"
+             "splunk.hec.raw" : "false"
+           }
+       }'
+   ```
+ 
+    
+    
+##### Splunk Indexing without Acknowledgment 
+
+3)  against HEC /raw endpoint:
+ 
+   
+    ```
+        curl <hostname>:8083/connectors -X POST -H "Content-Type: application/json" -d'{
+          "name": "splunk-prod-financial",
+            "config": {
+              "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+              "tasks.max": "10",
+              "topics": "t1,t2,t3,t4,t5,t6,t7,t8,t9,t10",
+              "splunk.hec.uri": "https://idx1:8089,https://idx2:8089,https://idx3:8089",
+              "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534"
+              "splunk.hec.ack.enabled : "false"
+              "splunk.hec.raw" : "false"
+            }
+        }'
+    ```
+
+
+4)  against HEC /event endpoint:
+
+
+
 * Use the below command to create a connector called `splunk-prod-financial` for 10 topics and 10 parallelized tasks. The connector will use the /event HEC endpoint with acknowledgements enabled. The data is injected into a 3-server Splunk platform indexer cluster.
 
 	```
