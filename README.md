@@ -387,7 +387,7 @@ Use the below schema to configure Splunk Kafka Connector
 * `splunk.hec.socket.timeout` - Internal TCP socket timeout when connecting to Splunk. By default, it is set to 60 seconds.
 
 ### Acknowledgement Parameters
-#####Use Ack
+##### Use Ack
 * `splunk.hec.ack.enabled` -  Valid settings are `true` or `false`. When set to `true` the Splunk Kafka Connector will poll event ACKs for POST events before check-pointing the Kafka offsets. This is used to prevent data loss, as this setting implements guaranteed delivery. By default, this setting is set to `true`.
     > Note: If this setting is set to `true`, verify that the corresponding HEC token is also enabled with index acknowledgements, otherwise the data injection will fail, due to duplicate data. When set to `false`, the Splunk Kafka Connector will only POST events to your Splunk platform instance. After it receives a HTTP 200 OK response, it assumes the events are indexed by Splunk. Note: In cases where the Splunk platform crashes, there will be some data loss.
 * `splunk.hec.ack.poll.interval` - This setting is only applicable when `splunk.hec.ack.enabled` is set to `true`. Internally it controls the event ACKs polling interval. By default, this setting is 10 seconds.
@@ -401,12 +401,12 @@ Use the below schema to configure Splunk Kafka Connector
 * `splunk.hec.raw.line.breaker` - Only applicable to /raw HEC endpoint. The setting is used to specify a custom line breaker to help Splunk separate the events correctly. 
     > Note: For example, you can specify "#####" as a special line breaker. Internally, the Splunk Kafka Connector will append this line breaker to every Kafka record to form a clear event boundary. The connector performs data injection in batch mode. On the Splunk platform side, you can configure **props.conf** to set up line breaker for the sourcetypes. Then the Splunk software will correctly break events for data flowing through /raw HEC endpoint. For questions on how and when to specify line breaker, go to the FAQ section. By default, this setting is empty.
 
-#####\event endpoint only
+##### \event endpoint only
 * `splunk.hec.json.event.enrichment` -  Only applicable to /event HEC endpoint. This setting is used to enrich raw data with extra metadata fields. It contains a list of key value pairs separated by ",". The configured enrichment metadata will be indexed along with raw event data by Splunk software. Note: Data enrichment for /event HEC endpoint is only available in Splunk Enterprise 6.5 and above. By default, this setting is empty. See ([Documentation](http://dev.splunk.com/view/event-collector/SP-CAAAE8Y#indexedfield)) for more information.
     > Note: For example, `org=fin,bu=south-east-us`
 * `splunk.hec.track.data` -  Valid settings are `true` or `false`. When set to `true`, data loss and data injection latency metadata will be indexed along with raw data. This setting only works in conjunction with /event HEC endpoint (`"splunk.hec.raw" : "false"`). By default, it is set to `false`.
 
-#### Configuration Example
+#### Configuration Examples
  Two parameters which affect that core functionality of how the Connector works are:
  `splunk.hec.raw` and `splunk.hec.ack.enabled`. Detailed below are 4 configuration examples which implement these settings
 
