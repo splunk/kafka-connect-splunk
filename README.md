@@ -397,11 +397,11 @@ Use the below schema to configure Splunk Kafka Connector
 
 #### Endpoint Parameters
 * `splunk.hec.raw` - Set to `true` in order for Splunk software to ingest data using the the /raw HEC endpoint. Default is `false`, which will use the /event endpoint.
-##### \raw endpoint only
+##### /raw endpoint only
 * `splunk.hec.raw.line.breaker` - Only applicable to /raw HEC endpoint. The setting is used to specify a custom line breaker to help Splunk separate the events correctly. 
     > Note: For example, you can specify "#####" as a special line breaker. Internally, the Splunk Kafka Connector will append this line breaker to every Kafka record to form a clear event boundary. The connector performs data injection in batch mode. On the Splunk platform side, you can configure **props.conf** to set up line breaker for the sourcetypes. Then the Splunk software will correctly break events for data flowing through /raw HEC endpoint. For questions on how and when to specify line breaker, go to the FAQ section. By default, this setting is empty.
 
-##### \event endpoint only
+##### /event endpoint only
 * `splunk.hec.json.event.enrichment` -  Only applicable to /event HEC endpoint. This setting is used to enrich raw data with extra metadata fields. It contains a list of key value pairs separated by ",". The configured enrichment metadata will be indexed along with raw event data by Splunk software. Note: Data enrichment for /event HEC endpoint is only available in Splunk Enterprise 6.5 and above. By default, this setting is empty. See ([Documentation](http://dev.splunk.com/view/event-collector/SP-CAAAE8Y#indexedfield)) for more information.
     > Note: For example, `org=fin,bu=south-east-us`
 * `splunk.hec.track.data` -  Valid settings are `true` or `false`. When set to `true`, data loss and data injection latency metadata will be indexed along with raw data. This setting only works in conjunction with /event HEC endpoint (`"splunk.hec.raw" : "false"`). By default, it is set to `false`.
@@ -412,7 +412,7 @@ Use the below schema to configure Splunk Kafka Connector
 
 ##### Splunk Indexing with Acknowledgment 
     
-1)  against HEC /raw endpoint:
+1)  Using HEC /raw endpoint:
     
     
     ```
@@ -434,7 +434,7 @@ Use the below schema to configure Splunk Kafka Connector
     }'
     ```
 
-2) against HEC /event endpoint:
+2) Using HEC /event endpoint:
     
    
    ```
@@ -459,7 +459,7 @@ Use the below schema to configure Splunk Kafka Connector
  
 ##### Splunk Indexing without Acknowledgment 
 
-3)  against HEC /raw endpoint:
+3)  Using HEC /raw endpoint:
  
    
     ```
@@ -479,7 +479,7 @@ Use the below schema to configure Splunk Kafka Connector
     ```
 
 
-4)  against HEC /event endpoint:
+4)  Using HEC /event endpoint:
 
 
     ```
