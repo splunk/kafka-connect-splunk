@@ -134,8 +134,8 @@ class KafkaOrcaYamlGen(object):
         gen.num_of_broker = self.args.broker_size
         gen.num_of_partition = self.args.default_partitions
 
-        gen.max_jvm_memory = self.args.max_jvm_memory
-        gen.min_jvm_memory = self.args.min_jvm_memory
+        gen.max_jvm_memory = self.args.kafka_max_jvm_memory
+        gen.min_jvm_memory = self.args.kafka_min_jvm_memory
 
         return gen
 
@@ -144,8 +144,8 @@ class KafkaOrcaYamlGen(object):
             self.args.kafka_connect_image, bootstrap_servers)
 
         gen.num_of_connect = self.args.kafka_connect_size
-        gen.max_jvm_memory = self.args.max_jvm_memory
-        gen.min_jvm_memory = self.args.min_jvm_memory
+        gen.max_jvm_memory = self.args.kafka_connect_max_jvm_memory
+        gen.min_jvm_memory = self.args.kafka_connect_min_jvm_memory
 
         return gen
 
@@ -234,6 +234,10 @@ def main():
                         help='Kafka connect docker image')
     parser.add_argument('--kafka_connect_size', type=int, default=3,
                         help='number of Kafka connect')
+    parser.add_argument('--kafka_connect_max_jvm_memory', default="8G",
+                        help='Max JVM memory, by default it is 8G')
+    parser.add_argument('--kafka_connect_min_jvm_memory', default="512M",
+                        help='Min JVM memory, by default it is 512M')
 
     parser.add_argument('--kafka_bastion_image', default=KAFKA_BASTION_IMAGE,
                         help='Kafka bastion docker image')
@@ -246,9 +250,9 @@ def main():
     parser.add_argument('--kafka_connect_line_breaker', default='@@@@',
                         help='/raw event line breaker')
 
-    parser.add_argument('--max_jvm_memory', default="6G",
-                        help='Max JVM memory, by default it is 6G')
-    parser.add_argument('--min_jvm_memory', default="512M",
+    parser.add_argument('--kafka_max_jvm_memory', default="8G",
+                        help='Max JVM memory, by default it is 8G')
+    parser.add_argument('--kafka_min_jvm_memory', default="512M",
                         help='Min JVM memory, by default it is 512M')
 
     volumes = '["{}"]'.format(kcg.KafkaClusterYamlGen.DATA_DIR_ROOT)
