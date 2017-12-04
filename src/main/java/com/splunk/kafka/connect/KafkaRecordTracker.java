@@ -41,8 +41,11 @@ final class KafkaRecordTracker {
                     tpRecords = new TreeMap<>();
                     all.put(tp, tpRecords);
                 }
-                tpRecords.put(record.kafkaOffset(), batch);
-                total += 1;
+
+                if (!tpRecords.containsKey(record.kafkaOffset())) {
+                    tpRecords.put(record.kafkaOffset(), batch);
+                    total += 1;
+                }
             }
         }
     }
@@ -84,7 +87,7 @@ final class KafkaRecordTracker {
         return offsets;
     }
 
-    public long totalEventBatches() {
+    public long totalEvents() {
         return total;
     }
 }
