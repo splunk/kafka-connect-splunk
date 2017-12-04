@@ -109,9 +109,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     }
 
     private void preventTooManyOutstandingEvents() {
-        long total = tracker.totalEvents();
-        log.debug("total {} outstanding events tracked", total);
-        if (total >= connectorConfig.maxOutstandingEvents) {
+        if (tracker.totalEvents() >= connectorConfig.maxOutstandingEvents) {
             String msg = String.format("max outstanding events %d have reached, pause the pull for a while", connectorConfig.maxOutstandingEvents);
             throw new RetriableException(new HecException(msg));
         }
