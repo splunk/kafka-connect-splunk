@@ -423,12 +423,12 @@ Use the below schema to configure Splunk Kafka Connector
           "tasks.max": "10",
           "topics": "t1,t2,t3,t4,t5,t6,t7,t8,t9,t10",
           "splunk.hec.uri": "https://idx1:8089,https://idx2:8089,https://idx3:8089",
-          "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534"
-          "splunk.hec.ack.enabled : "true"
-          "splunk.hec.ack.poll.interval" : "20"
-          "splunk.hec.ack.poll.threads" : "2"
-          "splunk.hec.event.timeout" : "120"
-          "splunk.hec.raw" : "true"
+          "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534",
+          "splunk.hec.ack.enabled : "true",
+          "splunk.hec.ack.poll.interval" : "20",
+          "splunk.hec.ack.poll.threads" : "2",
+          "splunk.hec.event.timeout" : "120",
+          "splunk.hec.raw" : "true",
           "splunk.hec.raw.line.breaker" : "#####"
         }
     }'
@@ -445,13 +445,13 @@ Use the below schema to configure Splunk Kafka Connector
              "tasks.max": "10",
              "topics": "t1,t2,t3,t4,t5,t6,t7,t8,t9,t10",
              "splunk.hec.uri": "https://idx1:8089,https://idx2:8089,https://idx3:8089",
-             "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534"
-             "splunk.hec.ack.enabled : "true"
-             "splunk.hec.ack.poll.interval" : "20"
-             "splunk.hec.ack.poll.threads" : "2"
-             "splunk.hec.event.timeout" : "120"
-             "splunk.hec.raw" : "false"
-             "splunk.hec.json.event.enrichment" : "org=fin,bu=south-east-us"
+             "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534",
+             "splunk.hec.ack.enabled : "true",
+             "splunk.hec.ack.poll.interval" : "20",
+             "splunk.hec.ack.poll.threads" : "2",
+             "splunk.hec.event.timeout" : "120",
+             "splunk.hec.raw" : "false",
+             "splunk.hec.json.event.enrichment" : "org=fin,bu=south-east-us",
              "splunk.hec.track.data" : "true"
            }
        }'
@@ -471,8 +471,8 @@ Use the below schema to configure Splunk Kafka Connector
               "topics": "t1,t2,t3,t4,t5,t6,t7,t8,t9,t10",
               "splunk.hec.uri": "https://idx1:8089,https://idx2:8089,https://idx3:8089",
               "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534"
-              "splunk.hec.ack.enabled : "false"
-              "splunk.hec.raw" : "true"
+              "splunk.hec.ack.enabled : "false",
+              "splunk.hec.raw" : "true",
               "splunk.hec.raw.line.breaker" : "#####"
             }
         }'
@@ -490,10 +490,10 @@ Use the below schema to configure Splunk Kafka Connector
               "tasks.max": "10",
               "topics": "t1,t2,t3,t4,t5,t6,t7,t8,t9,t10",
               "splunk.hec.uri": "https://idx1:8089,https://idx2:8089,https://idx3:8089",
-              "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534"
-              "splunk.hec.ack.enabled : "false"
-              "splunk.hec.raw" : "false"
-              "splunk.hec.json.event.enrichment" : "org=fin,bu=south-east-us"
+              "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534",
+              "splunk.hec.ack.enabled : "false",
+              "splunk.hec.raw" : "false",
+              "splunk.hec.json.event.enrichment" : "org=fin,bu=south-east-us",
               "splunk.hec.track.data" : "true"
 
             }
