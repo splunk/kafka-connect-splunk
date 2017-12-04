@@ -39,7 +39,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
     @Override
     public void put(Collection<SinkRecord> records) {
-        log.info("received {} records", records.size());
+        log.debug("received {} records with total {} outstanding events tracked", records.size(), tracker.totalEvents());
 
         handleFailedBatches();
 
@@ -88,6 +88,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             return;
         }
 
+        log.debug("going to handle {} failed batches", failed.size());
         long failedEvents = 0;
         // if there are failed ones, first deal with them
         for (final EventBatch batch: failed) {
@@ -100,7 +101,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             send(batch);
         }
 
-        log.info("handle {} failed batches", failed.size());
+        log.info("handled {} failed batches with {} events", failed.size(), failedEvents);
         if (failedEvents * 10 > connectorConfig.maxOutstandingEvents) {
             String msg = String.format("failed events reach 10 %% of max outstanding events %d, pause the pull for a while", connectorConfig.maxOutstandingEvents);
             throw new RetriableException(new HecException(msg));
@@ -108,7 +109,9 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     }
 
     private void preventTooManyOutstandingEvents() {
-        if (tracker.totalEventBatches() >= connectorConfig.maxOutstandingEvents) {
+        long total = tracker.totalEvents();
+        log.debug("total {} outstanding events tracked", total);
+        if (total >= connectorConfig.maxOutstandingEvents) {
             String msg = String.format("max outstanding events %d have reached, pause the pull for a while", connectorConfig.maxOutstandingEvents);
             throw new RetriableException(new HecException(msg));
         }
