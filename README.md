@@ -32,7 +32,7 @@ Note: The resulting "kafka-connect-splunk.tar.gz" package is self-contained. Bun
 4. Navigate to kafka-connect-splunk directory `cd kafka-connect-splunk`.
 5. Adjust values for `bootstrap.servers` and `plugin.path` inside `config/connect-distributed-quickstart.properties` to fit your environment. Default values should work for experimentation.
 6. Run `./bin/connect-distributed.sh config/connect-distributed-quickstart.properties` to start Kafka Connect.
-7. Run the following command to create connector tasks. Adjust `splunk.hec.token` to set your HEC token.
+7. Run the following command to create connector tasks. Adjust `topics` to set the topic, and  `splunk.hec.token`  to set your HEC token.
 
     ```
 curl localhost:8083/connectors -X POST -H "Content-Type: application/json" -d '{
@@ -40,7 +40,7 @@ curl localhost:8083/connectors -X POST -H "Content-Type: application/json" -d '{
 "config": {
    "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
    "tasks.max": "3",
-   "topics":"poem",
+   "topics":"<YOUR_TOPIC>",
    "splunk.indexes": "",
    "splunk.sources": "",
    "splunk.sourcetypes": "",
