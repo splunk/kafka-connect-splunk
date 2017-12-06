@@ -35,35 +35,36 @@ Note: The resulting "kafka-connect-splunk.tar.gz" package is self-contained. Bun
 7. Run the following command to create connector tasks. Adjust `topics` to set the topic, and  `splunk.hec.token`  to set your HEC token.
 
     ```
-curl localhost:8083/connectors -X POST -H "Content-Type: application/json" -d '{
-"name": "kafka-connect-splunk",
-"config": {
-   "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
-   "tasks.max": "3",
-   "topics":"<YOUR_TOPIC>",
-   "splunk.indexes": "",
-   "splunk.sources": "",
-   "splunk.sourcetypes": "",
-   "splunk.hec.uri": "https://localhost:8088",
-   "splunk.hec.token": "<YOUR_TOKEN>",
-   "splunk.hec.raw": "true",
-   "splunk.hec.raw.line.breaker": "",
-   "splunk.hec.json.event.enrichment": "<key value pairs separated by comma, only applicable to /event HEC>",
-   "splunk.hec.ack.enabled": "true",
-   "splunk.hec.ack.poll.interval": "10",
-   "splunk.hec.ack.poll.threads": "2",
-   "splunk.hec.ssl.validate.certs": "false",
-   "splunk.hec.http.keepalive": "true",
-   "splunk.hec.max.http.connection.per.channel": "4",
-   "splunk.hec.total.channels": "8",
-   "splunk.hec.max.batch.size": "1000000",
-   "splunk.hec.threads": "2",
-   "splunk.hec.event.timeout": "60",
-   "splunk.hec.socket.timeout": "120",
-   "splunk.hec.track.data": "true"
-  }
-}'
+	curl localhost:8083/connectors -X POST -H "Content-Type: application/json" -d '{
+	"name": "kafka-connect-splunk",
+	"config": {
+	   "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+	   "tasks.max": "3",
+	   "topics":"<YOUR_TOPIC>",
+	   "splunk.indexes": "",
+	   "splunk.sources": "",
+	   "splunk.sourcetypes": "",
+	   "splunk.hec.uri": "https://localhost:8088",
+	   "splunk.hec.token": "<YOUR_TOKEN>",
+	   "splunk.hec.raw": "true",
+	   "splunk.hec.raw.line.breaker": "",
+	   "splunk.hec.json.event.enrichment": "<key value pairs separated by comma, only applicable to /event HEC>",
+	   "splunk.hec.ack.enabled": "true",
+	   "splunk.hec.ack.poll.interval": "10",
+	   "splunk.hec.ack.poll.threads": "2",
+	   "splunk.hec.ssl.validate.certs": "false",
+	   "splunk.hec.http.keepalive": "true",
+	   "splunk.hec.max.http.connection.per.channel": "4",
+	   "splunk.hec.total.channels": "8",
+	   "splunk.hec.max.batch.size": "1000000",
+	   "splunk.hec.threads": "2",
+	   "splunk.hec.event.timeout": "60",
+	   "splunk.hec.socket.timeout": "120",
+	   "splunk.hec.track.data": "true"
+	  }
+	}'
     ```
+    
 8. Verify that data is flowing into your Splunk platform instance by searching using the index, sourcetype or source from your configuration.
 9. Use the following commands to check status, and manage connectors and tasks:
 
@@ -110,6 +111,7 @@ Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recom
 	```
 	bootstrap.servers=<broker1:9092,broker2:9092,...>  # adjust this setting to the brokers' IP/hostname port
 	```
+	
 3. Revise other optional settings in **config/connect-distributed.properties** as needed. 
 
 	> Note: Do not change the replication factor and partition number at this time.
@@ -138,6 +140,7 @@ Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recom
 	cd kafka-connect-splunk
 	export KAFKA_HEAP_OPTS="-Xmx6G -Xms2G" && ./bin/connect-distributed.sh config/connect-distributed.properties >> kafka-connect-splunk.log 2>&1 
 	```
+	
 	> Note: The **KAFKA\_HEAP\_OPTS** environment variable controls how much memory Kafka Connect can use. Set the **KAFKA\_HEAP\_OPTS** with the recommended value stated in the example above.
 
 ### Connector in an existing Kafka Connect Cluster
@@ -147,6 +150,7 @@ Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recom
     tar xzvf kafka-connect-splunk.tar.gz
     cd kafka-connect-splunk
     ```
+    
 2. Copy the **conectors/kafka-connect-splunk-1.0-SNAPSHOT.jar** to the plugin path specified by **plugin.path** in the existing Kafka Connect on every host.
 3. Copy **libs/commons-logging-1.2.jar** to **libs** of the existing Kafka Connect on each host.
 4. Restart the Kafka Connect cluster.
@@ -297,6 +301,7 @@ sasl.mechanism=SCRAM-SHA-256 (or SCRAM-SHA-512)
 consumer.security.protocol=SASL_SSL
 consumer.sasl.mechanism=SCRAM-SHA-256 (or SCRAM-SHA-512)
 ```
+
 Modify **bin/connect-distributed.sh** by editing the `EXTRA_ARGS` environment variable. Pass in the location of the JAAS conf file.
 
 ```
@@ -365,6 +370,7 @@ Use the below schema to configure Splunk Kafka Connector
 ### Parameters
 
 #### Required Parameters
+
 * `name` - Connector name. A consumer group with this name will be created with tasks to be distributed evenly across the connector cluster nodes. 
 * `connector.class` - The Java class used to perform connector jobs. Keep the default value **com.splunk.kafka.connect.SplunkSinkConnector** unless you modify the connector.
 * `tasks.max` -  The number of tasks generated to handle data collection jobs in parallel. The tasks will be spread evenly across all Splunk Kafka Connector nodes. 
@@ -374,6 +380,7 @@ Use the below schema to configure Splunk Kafka Connector
 * `topics` -  Comma separated list of Kafka topics for Splunk to consume. `prod-topic1,prod-topc2,prod-topic3`
 
 #### General Optional Parameters
+
 * `splunk.indexes` - Target Splunk indexes to send data to. It can be a list of indexes which shall be the same sequence / order as topics.
     > Note: It is possible to inject data from different kafka topics to different splunk indexes. For example, prod-topic1,prod-topic2,prod-topic3 can be sent to index prod-index1,prod-index2,prod-index3. If you would like to index all data from multiple topics to the main index, then "main" can be specified. Leaving this setting unconfigured will result in data being routed to the default index configured against the HEC token being used. Verify the indexes configured here are in the index list of HEC tokens, otherwise Splunk HEC will drop the data. By default, this setting is empty.
 * `splunk.sources` -  Splunk event source metadata for Kafka topic data. The same configuration rules as indexes can be applied. If left unconfigured, the default source binds to the HEC token. By default, this setting is empty.
@@ -387,7 +394,7 @@ Use the below schema to configure Splunk Kafka Connector
 * `splunk.hec.socket.timeout` - Internal TCP socket timeout when connecting to Splunk. By default, it is set to 60 seconds.
 
 ### Acknowledgement Parameters
-##### Use Ack
+#### Use Ack
 * `splunk.hec.ack.enabled` -  Valid settings are `true` or `false`. When set to `true` the Splunk Kafka Connector will poll event ACKs for POST events before check-pointing the Kafka offsets. This is used to prevent data loss, as this setting implements guaranteed delivery. By default, this setting is set to `true`.
     > Note: If this setting is set to `true`, verify that the corresponding HEC token is also enabled with index acknowledgements, otherwise the data injection will fail, due to duplicate data. When set to `false`, the Splunk Kafka Connector will only POST events to your Splunk platform instance. After it receives a HTTP 200 OK response, it assumes the events are indexed by Splunk. Note: In cases where the Splunk platform crashes, there may be some data loss.
 * `splunk.hec.ack.poll.interval` - This setting is only applicable when `splunk.hec.ack.enabled` is set to `true`. Internally it controls the event ACKs polling interval. By default, this setting is 10 seconds.
@@ -413,9 +420,72 @@ Use the below schema to configure Splunk Kafka Connector
 
 ##### Splunk Indexing with Acknowledgment 
     
-1)  Using HEC /raw endpoint:
+1. Using HEC /raw endpoint:
+       
+	```
+	curl <hostname>:8083/connectors -X POST -H "Content-Type: application/json" -d'{
+	  "name": "splunk-prod-financial",
+	    "config": {
+	      "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+	      "tasks.max": "10",
+	      "topics": "t1,t2,t3,t4,t5,t6,t7,t8,t9,t10",
+	      "splunk.hec.uri": "https://idx1:8089,https://idx2:8089,https://idx3:8089",
+	      "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534",
+	      "splunk.hec.ack.enabled : "true",
+	      "splunk.hec.ack.poll.interval" : "20",
+	      "splunk.hec.ack.poll.threads" : "2",
+	      "splunk.hec.event.timeout" : "120",
+	      "splunk.hec.raw" : "true",
+	      "splunk.hec.raw.line.breaker" : "#####"
+	    }
+	}'
+	```
+
+2. Using HEC /event endpoint:
     
-    
+   ```
+   curl <hostname>:8083/connectors -X POST -H "Content-Type: application/json" -d'{
+     "name": "splunk-prod-financial",
+       "config": {
+         "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+         "tasks.max": "10",
+         "topics": "t1,t2,t3,t4,t5,t6,t7,t8,t9,t10",
+         "splunk.hec.uri": "https://idx1:8089,https://idx2:8089,https://idx3:8089",
+         "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534",
+         "splunk.hec.ack.enabled : "true",
+         "splunk.hec.ack.poll.interval" : "20",
+         "splunk.hec.ack.poll.threads" : "2",
+         "splunk.hec.event.timeout" : "120",
+         "splunk.hec.raw" : "false",
+         "splunk.hec.json.event.enrichment" : "org=fin,bu=south-east-us",
+         "splunk.hec.track.data" : "true"
+       }
+   }'
+   ```
+ 
+##### Splunk Indexing without Acknowledgment 
+
+3. Using HEC /raw endpoint:
+   
+    ```
+    curl <hostname>:8083/connectors -X POST -H "Content-Type: application/json" -d'{
+      "name": "splunk-prod-financial",
+        "config": {
+          "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+          "tasks.max": "10",
+          "topics": "t1,t2,t3,t4,t5,t6,t7,t8,t9,t10",
+          "splunk.hec.uri": "https://idx1:8089,https://idx2:8089,https://idx3:8089",
+          "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534"
+          "splunk.hec.ack.enabled : "false",
+          "splunk.hec.raw" : "true",
+          "splunk.hec.raw.line.breaker" : "#####"
+        }
+    }'
+    ```
+
+
+4. Using HEC /event endpoint:
+
     ```
     curl <hostname>:8083/connectors -X POST -H "Content-Type: application/json" -d'{
       "name": "splunk-prod-financial",
@@ -425,83 +495,14 @@ Use the below schema to configure Splunk Kafka Connector
           "topics": "t1,t2,t3,t4,t5,t6,t7,t8,t9,t10",
           "splunk.hec.uri": "https://idx1:8089,https://idx2:8089,https://idx3:8089",
           "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534",
-          "splunk.hec.ack.enabled : "true",
-          "splunk.hec.ack.poll.interval" : "20",
-          "splunk.hec.ack.poll.threads" : "2",
-          "splunk.hec.event.timeout" : "120",
-          "splunk.hec.raw" : "true",
-          "splunk.hec.raw.line.breaker" : "#####"
+          "splunk.hec.ack.enabled : "false",
+          "splunk.hec.raw" : "false",
+          "splunk.hec.json.event.enrichment" : "org=fin,bu=south-east-us",
+          "splunk.hec.track.data" : "true"
+
         }
     }'
     ```
-
-2) Using HEC /event endpoint:
-    
-   
-   ```
-       curl <hostname>:8083/connectors -X POST -H "Content-Type: application/json" -d'{
-         "name": "splunk-prod-financial",
-           "config": {
-             "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
-             "tasks.max": "10",
-             "topics": "t1,t2,t3,t4,t5,t6,t7,t8,t9,t10",
-             "splunk.hec.uri": "https://idx1:8089,https://idx2:8089,https://idx3:8089",
-             "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534",
-             "splunk.hec.ack.enabled : "true",
-             "splunk.hec.ack.poll.interval" : "20",
-             "splunk.hec.ack.poll.threads" : "2",
-             "splunk.hec.event.timeout" : "120",
-             "splunk.hec.raw" : "false",
-             "splunk.hec.json.event.enrichment" : "org=fin,bu=south-east-us",
-             "splunk.hec.track.data" : "true"
-           }
-       }'
-   ```
- 
-##### Splunk Indexing without Acknowledgment 
-
-3)  Using HEC /raw endpoint:
- 
-   
-    ```
-        curl <hostname>:8083/connectors -X POST -H "Content-Type: application/json" -d'{
-          "name": "splunk-prod-financial",
-            "config": {
-              "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
-              "tasks.max": "10",
-              "topics": "t1,t2,t3,t4,t5,t6,t7,t8,t9,t10",
-              "splunk.hec.uri": "https://idx1:8089,https://idx2:8089,https://idx3:8089",
-              "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534"
-              "splunk.hec.ack.enabled : "false",
-              "splunk.hec.raw" : "true",
-              "splunk.hec.raw.line.breaker" : "#####"
-            }
-        }'
-    ```
-
-
-4)  Using HEC /event endpoint:
-
-
-    ```
-        curl <hostname>:8083/connectors -X POST -H "Content-Type: application/json" -d'{
-          "name": "splunk-prod-financial",
-            "config": {
-              "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
-              "tasks.max": "10",
-              "topics": "t1,t2,t3,t4,t5,t6,t7,t8,t9,t10",
-              "splunk.hec.uri": "https://idx1:8089,https://idx2:8089,https://idx3:8089",
-              "splunk.hec.token": "1B901D2B-576D-40CD-AF1E-98141B499534",
-              "splunk.hec.ack.enabled : "false",
-              "splunk.hec.raw" : "false",
-              "splunk.hec.json.event.enrichment" : "org=fin,bu=south-east-us",
-              "splunk.hec.track.data" : "true"
-
-            }
-        }'
-    ```
-
-
 
 * Use the below command to create a connector called `splunk-prod-financial` for 10 topics and 10 parallelized tasks. The connector will use the /event HEC endpoint with acknowledgements enabled. The data is injected into a 3-server Splunk platform indexer cluster.
 
@@ -586,6 +587,10 @@ The Splunk Kafka Connector uses the timestamp of the record to track the time el
 
 > Note: This setting will only work in conjunction with /event HEC endpoint (`"splunk.hec.raw" : "false"`)
 
+### Malformed data
+
+If the raw data of the Kafka records is a JSON object but is not able to be marshaled, or if the raw data is in bytes but it is not UTF-8 encodable, the Splunk Kafka Connector considers these records malformed. It will log the exception with Kafka specific information (topic, partition, offset) for these records within the console, as well as the malformed records information will be indexed in Splunk. Users can search "type=malformed" within Splunk to return any malformed Kafka records encountered.
+
 ## FAQ
 
 1. When should I use HEC acknowledgements?
@@ -639,4 +644,10 @@ The Splunk Kafka Connector uses the timestamp of the record to track the time el
 ## Troubleshooting
 
 1. Append the **log4j.logger.com.splunk=DEBUG** to **config/connect-log4j.properties** file to enable more verbose logging for Splunk Kafka Connector.
-2. Kafka connect encounters an "out of memory" error. Remember to export environment variable **KAFKA\_HEAP\_OPTS="-Xmx6G -Xms2G"**. Refer to the **Deploy** section for more information.
+2. Kafka connect encounters an "out of memory" error. Remember to export environment variable **KAFKA\_HEAP\_OPTS="-Xmx6G -Xms2G"**. Refer to the [Deployment](#deployment) section for more information.
+3. Can't see any Connector information on third party UI. For example, Splunk Kafka Connector is not shown on Confluent Control Center. Make sure cross origin access is enabled for Kafka Connect. Append the following two lines to connect configuration, e.g. `connect-distributed.properties` or `connect-distributed-quickstart.properties` and then restart Kafka Connect.
+
+	```
+	access.control.allow.origin=*
+	access.control.allow.methods=GET,OPTIONS,HEAD,POST,PUT,DELETE
+	```
