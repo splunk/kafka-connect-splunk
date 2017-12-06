@@ -644,7 +644,7 @@ If the raw data of Kafka records is JSON object but it is not JSON marshalable o
 ## Troubleshooting
 
 1. Append the **log4j.logger.com.splunk=DEBUG** to **config/connect-log4j.properties** file to enable more verbose logging for Splunk Kafka Connector.
-2. Kafka connect encounters an "out of memory" error. Remember to export environment variable **KAFKA\_HEAP\_OPTS="-Xmx6G -Xms2G"**. Refer to the [Deploy](#Deploy) section for more information.
+2. Kafka connect encounters an "out of memory" error. Remember to export environment variable **KAFKA\_HEAP\_OPTS="-Xmx6G -Xms2G"**. Refer to the [Deployment](#deployment) section for more information.
 3. Didn't show any Connector information on third party UI, for example, Splunk Kafka Connector is not shown on Confluent Control Center. Make sure cross origin access is enabled for Kafka Connect. Append the following two lines to connect configuration, say `connect-distributed.properties` or `connect-distributed-quickstart.properties` and then restart Kafka Connect.
 
 	```
