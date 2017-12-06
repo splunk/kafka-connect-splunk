@@ -32,37 +32,37 @@ Note: The resulting "kafka-connect-splunk.tar.gz" package is self-contained. Bun
 4. Navigate to kafka-connect-splunk directory `cd kafka-connect-splunk`.
 5. Adjust values for `bootstrap.servers` and `plugin.path` inside `config/connect-distributed-quickstart.properties` to fit your environment. Default values should work for experimentation.
 6. Run `./bin/connect-distributed.sh config/connect-distributed-quickstart.properties` to start Kafka Connect.
-7. Run the following command to create connector tasks. Adjust `topics`, `tasks.max`, `indexes`, `sources`, `sourcetypes` and `hec` settings to fit your deployment.
+7. Run the following command to create connector tasks. Adjust `topics` to set the topic, and  `splunk.hec.token`  to set your HEC token.
 
     ```
-    curl localhost:8083/connectors -X POST -H "Content-Type: application/json" -d '{
-    "name": "kafka-connect-splunk",
-    "config": {
-       "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
-       "tasks.max": "3",
-       "topics": "<list-of-topics-separated-by-comma>",
-       "splunk.indexes": "<list-of-indexes-for-topics-data-separated-by-comma>",
-       "splunk.sources": "<list-of-sources-for-topics-data-separated-by-comma>",
-       "splunk.sourcetypes": "<list-of-sourcetypes-for-topics-data-separated-by-comma>",
-       "splunk.hec.uri": "<Splunk-HEC-URI>",
-       "splunk.hec.token": "<Splunk-HEC-Token>",
-       "splunk.hec.raw": "<true|false>",
-       "splunk.hec.raw.line.breaker": "<line breaker separator>",
-       "splunk.hec.json.event.enrichment": "<key value pairs separated by comma, only applicable to /event HEC>",
-       "splunk.hec.ack.enabled": "<true|false>",
-       "splunk.hec.ack.poll.interval": "<event ack poll interval>",
-       "splunk.hec.ack.poll.threads": "<number of threads used to poll event acks>",
-       "splunk.hec.ssl.validate.certs": "<true|false>",
-       "splunk.hec.http.keepalive": "<true|false>",
-       "splunk.hec.max.http.connection.per.channel": "<max number of http connections per channel>",
-       "splunk.hec.total.channels": "<total number of channels>",
-       "splunk.hec.max.batch.size": "<max number of kafka records post in one batch>",
-       "splunk.hec.threads": "<number of threads to use to do HEC post for single task>",
-       "splunk.hec.event.timeout": "<timeout in seconds>",
-       "splunk.hec.socket.timeout": "<timeout in seconds>",
-       "splunk.hec.track.data": "<true|false, tracking data loss and latency, for debugging lagging and data loss>"
-      }
-    }'
+curl localhost:8083/connectors -X POST -H "Content-Type: application/json" -d '{
+"name": "kafka-connect-splunk",
+"config": {
+   "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+   "tasks.max": "3",
+   "topics":"<YOUR_TOPIC>",
+   "splunk.indexes": "",
+   "splunk.sources": "",
+   "splunk.sourcetypes": "",
+   "splunk.hec.uri": "https://localhost:8088",
+   "splunk.hec.token": "<YOUR_TOKEN>",
+   "splunk.hec.raw": "true",
+   "splunk.hec.raw.line.breaker": "",
+   "splunk.hec.json.event.enrichment": "<key value pairs separated by comma, only applicable to /event HEC>",
+   "splunk.hec.ack.enabled": "true",
+   "splunk.hec.ack.poll.interval": "10",
+   "splunk.hec.ack.poll.threads": "2",
+   "splunk.hec.ssl.validate.certs": "false",
+   "splunk.hec.http.keepalive": "true",
+   "splunk.hec.max.http.connection.per.channel": "4",
+   "splunk.hec.total.channels": "8",
+   "splunk.hec.max.batch.size": "1000000",
+   "splunk.hec.threads": "2",
+   "splunk.hec.event.timeout": "60",
+   "splunk.hec.socket.timeout": "120",
+   "splunk.hec.track.data": "true"
+  }
+}'
     ```
 8. Verify that data is flowing into your Splunk platform instance by searching using the index, sourcetype or source from your configuration.
 9. Use the following commands to check status, and manage connectors and tasks:
