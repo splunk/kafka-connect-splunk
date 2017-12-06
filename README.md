@@ -397,6 +397,7 @@ Use the below schema to configure Splunk Kafka Connector
 
 #### Endpoint Parameters
 * `splunk.hec.raw` - Set to `true` in order for Splunk software to ingest data using the the /raw HEC endpoint. Default is `false`, which will use the /event endpoint.
+
 ##### /raw endpoint only
 * `splunk.hec.raw.line.breaker` - Only applicable to /raw HEC endpoint. The setting is used to specify a custom line breaker to help Splunk separate the events correctly. 
     > Note: For example, you can specify "#####" as a special line breaker. Internally, the Splunk Kafka Connector will append this line breaker to every Kafka record to form a clear event boundary. The connector performs data injection in batch mode. On the Splunk platform side, you can configure **props.conf** to set up line breaker for the sourcetypes. Then the Splunk software will correctly break events for data flowing through /raw HEC endpoint. For questions on how and when to specify line breaker, go to the FAQ section. By default, this setting is empty.
