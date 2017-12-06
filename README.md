@@ -589,7 +589,7 @@ The Splunk Kafka Connector uses the timestamp of the record to track the time el
 
 ### Malformed data
 
-If the raw data of Kafka records is JSON object but it is not JSON marshalable or if the raw data is bytes, but it is not UTF-8 encodable, the Splunk Kafka Connector consider these records malformed. It will log the exception with (topic, partition, offset) information for those records in console and the malformed information will be indexed in Splunk also. User can search "type=malformed" to search if there are any malformed Kafka records encountered.
+If the raw data of the Kafka records is a JSON object but is not able to be marshaled, or if the raw data is in bytes but it is not UTF-8 encodable, the Splunk Kafka Connector considers these records malformed. It will log the exception with Kafka specific information (topic, partition, offset) for these records within the console, as well as the malformed records information will be indexed in Splunk. Users can search "type=malformed" within Splunk to return any malformed Kafka records encountered.
 
 ## FAQ
 
