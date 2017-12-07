@@ -46,6 +46,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String MAX_HTTP_CONNECTION_PER_CHANNEL_CONF = "splunk.hec.max.http.connection.per.channel";
     static final String TOTAL_HEC_CHANNEL_CONF = "splunk.hec.total.channels";
     static final String ENRICHMENT_CONF = "splunk.hec.json.event.enrichment";
+    static final String USE_RECORD_TIMESTAMP_CONF = "splunk.hec.use.record.timestamp";
     static final String MAX_BATCH_SIZE_CONF = "splunk.hec.max.batch.size"; // record count
     static final String HEC_THREDS_CONF = "splunk.hec.threads";
     static final String LINE_BREAKER_CONF = "splunk.hec.raw.line.breaker";
@@ -76,6 +77,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String SOCKET_TIMEOUT_DOC = "Max duration in seconds to read / write data to network before its timeout.";
     static final String ENRICHMENT_DOC = "Enrich the JSON events by specifying key value pairs separated by comma. "
             + "Is only applicable to splunk.hec.raw=false case";
+    static final String USE_RECORD_TIMESTAMP_DOC = "Set event timestamp to Kafka record timestamp";
     static final String MAX_BATCH_SIZE_DOC = "Max number of Kafka record to be sent to Splunk HEC for one POST";
     static final String HEC_THREADS_DOC = "Number of threads used to POST events to Splunk HEC in single task";
     static final String LINE_BREAKER_DOC = "Line breaker for /raw HEC endpoint. The line breaker can help Splunkd to do event breaking";
@@ -101,6 +103,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final int totalHecChannels;
     final int socketTimeout;
     final boolean trackData;
+    final boolean useRecordTimestamp;
     final int maxBatchSize;
     final int numberOfThreads;
     final int maxOutstandingEvents;
@@ -131,6 +134,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         socketTimeout = getInt(SOCKET_TIMEOUT_CONF);
         enrichments = parseEnrichments(getString(ENRICHMENT_CONF));
         trackData = getBoolean(TRACK_DATA_CONF);
+        useRecordTimestamp = getBoolean(USE_RECORD_TIMESTAMP_CONF);
         maxBatchSize = getInt(MAX_BATCH_SIZE_CONF);
         numberOfThreads = getInt(HEC_THREDS_CONF);
         lineBreaker = getString(LINE_BREAKER_CONF);
@@ -160,6 +164,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             .define(SOCKET_TIMEOUT_CONF, ConfigDef.Type.INT, 60, ConfigDef.Importance.LOW, SOCKET_TIMEOUT_DOC)
             .define(ENRICHMENT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.LOW, ENRICHMENT_DOC)
             .define(TRACK_DATA_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.LOW, TRACK_DATA_DOC)
+            .define(USE_RECORD_TIMESTAMP_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.MEDIUM, USE_RECORD_TIMESTAMP_DOC)
             .define(HEC_THREDS_CONF, ConfigDef.Type.INT, 1, ConfigDef.Importance.LOW, HEC_THREADS_DOC)
             .define(LINE_BREAKER_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, LINE_BREAKER_DOC)
             .define(MAX_OUTSTANDING_EVENTS_CONF, ConfigDef.Type.INT, 1000000, ConfigDef.Importance.MEDIUM, MAX_OUTSTANDING_EVENTS_DOC)
@@ -212,6 +217,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 + "lineBreaker: " + lineBreaker + ", "
                 + "maxOutstandingEvents: " + maxOutstandingEvents + ", "
                 + "maxRetries: " + maxRetries + ", "
+                + "useRecordTimestamp: " + useRecordTimestamp + ", "
                 + "trackData: " + trackData;
     }
 
