@@ -20,8 +20,11 @@ public class DoubleSerializerTest {
     @Test
     public void serialize() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-        d = 10000.0;
         byte[] bytes = mapper.writeValueAsBytes(this);
+        Assert.assertEquals(new String("{\"d\":null}"), new String(bytes));
+
+        d = 10000.0;
+        bytes = mapper.writeValueAsBytes(this);
         Assert.assertEquals(new String("{\"d\":10000.000000}"), new String(bytes));
 
         d = 10000.123456;
