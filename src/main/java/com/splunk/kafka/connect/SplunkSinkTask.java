@@ -243,6 +243,11 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
         // meta data for /event endpoint is per event basis
         JsonEvent event = new JsonEvent(record.value(), record);
+        if (connectorConfig.useRecordTimestamp && record.timestamp() != null) {
+            // record timestamp is in milliseconds
+            event.setTime(record.timestamp() / 1000.0);
+        }
+
         Map<String, String> metas = connectorConfig.topicMetas.get(record.topic());
         if (metas != null) {
             event.setIndex(metas.get(SplunkSinkConnectorConfig.INDEX));

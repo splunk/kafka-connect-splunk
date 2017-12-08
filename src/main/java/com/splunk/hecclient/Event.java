@@ -18,6 +18,7 @@ package com.splunk.hecclient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.slf4j.*;
 
 import java.io.*;
@@ -34,7 +35,8 @@ public abstract class Event {
     static final ObjectMapper jsonMapper = new ObjectMapper();
     protected static final Logger log = LoggerFactory.getLogger(Event.class);
 
-    protected Long time = null; // epochMillis
+    @JsonSerialize(using = DoubleSerializer.class)
+    protected Double time = null; // epoch seconds.milliseconds
 
     protected String source;
     protected String sourcetype;
@@ -74,8 +76,8 @@ public abstract class Event {
         return this;
     }
 
-    public final Event setTime(final long epochMillis) {
-        this.time = epochMillis;
+    public final Event setTime(final double etime /* seconds.milliseconds */) {
+        this.time = etime;
         invalidate();
         return this;
     }
@@ -104,7 +106,7 @@ public abstract class Event {
         return this;
     }
 
-    public final Long getTime() {
+    public final Double getTime() {
         return time;
     }
 

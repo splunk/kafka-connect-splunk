@@ -171,8 +171,8 @@ public class JsonEventTest {
         Assert.assertEquals("localhost", event.getHost());
 
         Assert.assertNull(event.getTime());
-        event.setTime(1);
-        Assert.assertEquals(new Long(1), event.getTime());
+        event.setTime(1.0);
+        Assert.assertEquals(new Double(1.0), event.getTime());
 
         event.setEvent("ni");
         Assert.assertEquals("ni", event.getEvent());
@@ -226,7 +226,7 @@ public class JsonEventTest {
         event.setIndex("main");
         event.setSource("test-source");
         event.setSourcetype("test-sourcetype");
-        event.setTime(100000000);
+        event.setTime(100000000.0);
 
         for (int i = 0; i < 2; i++) {
             Event deserialized = sad.serializeAndDeserialize(event);
@@ -237,7 +237,7 @@ public class JsonEventTest {
             Assert.assertEquals("main", deserialized.getIndex());
             Assert.assertEquals("test-source", deserialized.getSource());
             Assert.assertEquals("test-sourcetype", deserialized.getSourcetype());
-            Assert.assertEquals(new Long(100000000), deserialized.getTime());
+            Assert.assertEquals(event.getTime(), deserialized.getTime());
 
             Map<String, String> fieldsGot = deserialized.getFields();
             Assert.assertEquals("hao", fieldsGot.get("ni"));
