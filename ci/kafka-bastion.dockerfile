@@ -7,10 +7,16 @@ RUN wget -q https://archive.apache.org/dist/kafka/${kafkaversion}/kafka_2.11-${k
 
 RUN wget -q https://bootstrap.pypa.io/get-pip.py -P / && python get-pip.py && pip install requests
 
-ADD fix_hosts.sh /fix_hosts.sh
-ADD run_bastion.sh /run_bastion.sh
-ADD perf.py /perf.py
+RUN mkdir -p /root/.ssh
+ADD id_rsa /root/.ssh/id_rsa
+RUN chmod 600 /root/.ssh/id_rsa
 
-WORKDIR /
+ADD id_rsa.pub /root/.ssh/id_rsa.pub
+ADD known_hosts /root/.ssh/known_hosts
 
-CMD ["/bin/bash", "-c", "/run_bastion.sh"]
+RUN mkdir -p /kafka-bastion/
+WORKDIR /kafka-bastion
+
+ADD run_bastion.sh /kafka-bastion/run_bastion.sh
+
+CMD ["/bin/bash", "-c", "/kafka-bastion/run_bastion.sh"]

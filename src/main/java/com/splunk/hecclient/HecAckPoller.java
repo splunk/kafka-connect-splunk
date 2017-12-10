@@ -128,7 +128,7 @@ public final class HecAckPoller implements Poller {
         }
 
         if (channelEvents.get(resp.getAckId()) != null) {
-            log.error("ackId already exists for channel={} index={}", channel, channel.getIndexer());
+            log.error("ackId={} already exists for channel={} index={}", resp.getAckId(), channel, channel.getIndexer());
             return;
         }
 

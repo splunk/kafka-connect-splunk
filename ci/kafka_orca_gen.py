@@ -6,8 +6,8 @@ import kafka_cluster_gen as kcg
 
 DATA_GEN_IMAGE = 'repo.splunk.com/kafka-data-gen:0.4'
 KAFKA_IMAGE = 'repo.splunk.com/kafka-cluster:0.12'
-KAFKA_CONNECT_IMAGE = 'repo.splunk.com/kafka-connect-splunk:1.2'
-KAFKA_BASTION_IMAGE = 'repo.splunk.com/kafka-bastion:1.5'
+KAFKA_CONNECT_IMAGE = 'repo.splunk.com/kafka-connect-splunk:1.4'
+KAFKA_BASTION_IMAGE = 'repo.splunk.com/kafka-bastion:1.7'
 
 
 def gen_depends_from(bootstrap_servers):
@@ -60,6 +60,8 @@ class KafkaConnectYamlGen(object):
     def __init__(self, image, bootstrap_servers):
         self.image = image
         self.bootstrap_servers = bootstrap_servers
+        self.branch = 'develop'
+        self.logging_level = 'DEBUG'
         self.num_of_connect = 3
         self.max_jvm_memory = '6G'
         self.min_jvm_memory = '512M'
@@ -71,6 +73,8 @@ class KafkaConnectYamlGen(object):
         envs = [
             'KAFKA_BOOTSTRAP_SERVERS={}'.format(self.bootstrap_servers),
             jvm_mem,
+            'KAFKA_CONNECT_LOGGING={}'.format(self.logging_level),
+            'KAFKA_CONNECT_BRANCH={}'.format(self.branch),
         ]
         depends = gen_depends_from(self.bootstrap_servers)
         services = kcg.gen_services(
@@ -85,6 +89,7 @@ class KafkaBastionYamlGen(object):
         self.image = image
         self.num_of_indexer = num_of_indexer
         self.num_of_connect = num_of_connect
+        self.branch = 'develop'
         self.batch_size = 500
         self.line_breaker = '@@@@'
         self.hec_mode = 'event'
@@ -100,6 +105,7 @@ class KafkaBastionYamlGen(object):
             'KAFKA_CONNECT_TOPICS={}'.format(self.topic),
             'KAFKA_CONNECT_LINE_BREAKER={}'.format(self.line_breaker),
             'JVM_HEAP_SIZE={}'.format(self.jvm_size),
+            'KAFKA_CONNECT_BRANCH={}'.format(self.branch),
         ]
 
         depends = ['{}{}'.format(KafkaConnectYamlGen.prefix, i)
@@ -147,6 +153,8 @@ class KafkaOrcaYamlGen(object):
         gen.num_of_connect = self.args.kafka_connect_size
         gen.max_jvm_memory = self.args.kafka_connect_max_jvm_memory
         gen.min_jvm_memory = self.args.kafka_connect_min_jvm_memory
+        gen.branch = self.args.kafka_connect_branch
+        gen.logging_level = self.args.kafka_connect_logging
 
         return gen
 
@@ -160,6 +168,7 @@ class KafkaOrcaYamlGen(object):
         gen.jvm_size = self.args.kafka_connect_max_jvm_memory
         gen.topic = self.args.kafka_topic
         gen.line_breaker = self.args.kafka_connect_line_breaker
+        gen.branch = self.args.kafka_connect_branch
 
         return gen
 
@@ -233,6 +242,10 @@ def main():
 
     parser.add_argument('--kafka_connect_image', default=KAFKA_CONNECT_IMAGE,
                         help='Kafka connect docker image')
+    parser.add_argument('--kafka_connect_branch', default='develop',
+                        help='Code repo branch')
+    parser.add_argument('--kafka_connect_logging', default='DEBUG',
+                        help='Logging level')
     parser.add_argument('--kafka_connect_size', type=int, default=3,
                         help='number of Kafka connect')
     parser.add_argument('--kafka_connect_max_jvm_memory', default="8G",

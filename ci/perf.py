@@ -260,7 +260,7 @@ def create_hec_token_with_ack():
         'token': TOKEN_WITH_ACK,
         'index': 'main',
         'indexes': 'main',
-        'useAck': 'true',
+        'useACK': '1',
         'disabled': '0',
     }
 
@@ -272,6 +272,7 @@ def create_hec_token_with_ack():
                 resp = requests.post(uri, data=data, auth=auth, verify=False)
             except Exception:
                 logging.exception('failed to create hec token with ack')
+                time.sleep(2)
             else:
                 if resp.ok:
                     return
