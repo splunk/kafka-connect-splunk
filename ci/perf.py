@@ -153,6 +153,7 @@ def _get_connector_config(hec_uris, hec_raw, hec_ack, test_case):
             'splunk.hec.ack.enabled': hec_ack,
             'splunk.hec.raw': hec_raw,
             'splunk.hec.max.batch.size': test_case['splunk.hec.max.batch.size'],
+            'splunk.hec.threads': test_case['splunk.hec.threads'],
             'splunk.hec.track.data': 'true',
             'splunk.hec.ssl.validate.certs': 'false',
             'splunk.hec.raw.line.breaker': LINE_BREAKER,
