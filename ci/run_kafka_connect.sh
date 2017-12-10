@@ -18,11 +18,20 @@ sed -i"" "s@bootstrap.servers=.*@bootstrap.servers=$KAFKA_BOOTSTRAP_SERVERS@g" c
 debug=${KAFKA_CONNECT_LOGGING:-DEBUG}
 echo "log4j.logger.com.splunk=${debug}" >> config/connect-log4j.properties
 
+git clone https://github.com/chenziliang/proc_monitor && git checkout develop
+
 duration=${SLEEP:-300}
 sleep ${duration}
 
+echo "Run fix hosts"
 bash ${curdir}/kafka-connect-splunk/ci/fix_hosts.sh > /tmp/fixhosts 2>&1 &
 
+echo "Run proc monitor"
+cd proc_monitor
+python proc_monitor.py 2>&1 &
+cd ..
+
+echo "Run connect"
 while :
 do
     ./bin/connect-distributed.sh config/connect-distributed.properties

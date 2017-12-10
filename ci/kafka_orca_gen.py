@@ -75,6 +75,10 @@ class KafkaConnectYamlGen(object):
             jvm_mem,
             'KAFKA_CONNECT_LOGGING={}'.format(self.logging_level),
             'KAFKA_CONNECT_BRANCH={}'.format(self.branch),
+            # for proc monitor
+            'SPLUNK_HOST=https://heclb1:8088',
+            'SPLUNK_TOKEN=00000000-0000-0000-0000-000000000000',
+            'TARGETS=java',
         ]
         depends = gen_depends_from(self.bootstrap_servers)
         services = kcg.gen_services(
@@ -203,6 +207,7 @@ def _gen_orca_file(args, service_file):
     lines = []
     with open('orca.conf', 'w') as f:
         lines.append('[kafka-connect]')
+        lines.append('hec_load_balancers = 1')
         lines.append('search_heads = 1')
         lines.append('indexers = {}'.format(args.indexer_size))
         lines.append('log_token = 00000000-0000-0000-0000-000000000000')
