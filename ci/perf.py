@@ -303,7 +303,7 @@ def create_hec_token_with_ack():
 def config_line_breaker():
     data = {
         'name': 'source::connector-perf...',
-        'LINE_BREAKER': LINE_BREAKER,
+        'LINE_BREAKER': '({})'.format(LINE_BREAKER),
         'SHOULD_LINEMERGE': 'false',
     }
 
