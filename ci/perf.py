@@ -131,12 +131,12 @@ def _get_connector_config(hec_uris, hec_raw, hec_ack, test_case):
     if hec_ack == 'true':
         token = TOKEN_WITH_ACK
 
-    source = 'connector-perf:raw_endpoint={raw}:use_ack={ack}'.format(
+    hec_settings = 'raw_endpoint={raw}:use_ack={ack}'.format(
         raw=hec_raw, ack=hec_ack)
 
     params = ':'.join('{}={}'.format(k, v) for k, v in test_case.iteritems())
-    sourcetype = 'connector-perf:{params}:jvm_heap={jvm}'.format(
-        params=params, jvm=JVM_HEAP_SIZE)
+    sourcetype = 'connector-perf:{hec_settings}:{params}:jvm_heap={jvm}'.format(
+        hec_settings=hec_settings, params=params, jvm=JVM_HEAP_SIZE)
     connector_name = 'splunk-sink-{}'.format(int(time.time() * 1000))
 
     connector_config = {
@@ -146,7 +146,7 @@ def _get_connector_config(hec_uris, hec_raw, hec_ack, test_case):
             'topics': TOPIC,
             'tasks.max': test_case['tasks.max'],
             'splunk.indexes': 'main',
-            'splunk.sources': source,
+            'splunk.sources': 'connector-perf',
             'splunk.sourcetypes': sourcetype,
             'splunk.hec.uri': hec_uris,
             'splunk.hec.token': token,
@@ -251,10 +251,38 @@ def perf():
             _do_perf(hec_uris, hec_raw, hec_ack_enabled)
 
 
-def create_hec_token_with_ack():
+def _do_post(uri, data, auth):
+    logging.info('posting to %s', uri)
+    while 1:
+        try:
+            resp = requests.post(uri, data=data, auth=auth, verify=False)
+        except Exception:
+            logging.exception('failed to post to %s', uri)
+            time.sleep(2)
+        else:
+            if resp.ok:
+                return
+
+            if resp.status_code == 409:
+                # already exists
+                return
+
+            logging.error('failed to post to %s, error=%s', uri, resp.text)
+            time.sleep(2)
+
+
+def splunk_request(uri_data_gen):
     auth = requests.auth.HTTPBasicAuth(
         os.environ.get('SPLUNK_USER', 'admin'),
         os.environ.get('SPLUNK_PASS', 'changed'))
+
+    indxer_cluster_size = int(os.environ['INDEX_CLUSTER_SIZE'])
+    for i in xrange(1, indxer_cluster_size + 1):
+        uri, data = uri_data_gen(i)
+        _do_post(uri, data, auth)
+
+
+def create_hec_token_with_ack():
     data = {
         'name': 'hec-token-ack',
         'token': TOKEN_WITH_ACK,
@@ -264,31 +292,28 @@ def create_hec_token_with_ack():
         'disabled': '0',
     }
 
-    def _do_create_hec_token(i):
+    def uri_data_gen(i):
         uri = 'https://{}{}:8089/servicesNS/nobody/splunk_httpinput/data/inputs/http?output_mode=json'.format(IDX_HOSTNAME_PREFIX, i)
-        logging.info('creating hec token with ack on %s', uri)
-        while 1:
-            try:
-                resp = requests.post(uri, data=data, auth=auth, verify=False)
-            except Exception:
-                logging.exception('failed to create hec token with ack')
-                time.sleep(2)
-            else:
-                if resp.ok:
-                    return
+        return uri, data
 
-                if resp.status_code == 409:
-                    # already exists
-                    return
+    return splunk_request(uri_data_gen)
 
-                logging.error('failed to create hec token, error=%s', resp.text)
-                time.sleep(2)
 
-    indxer_cluster_size = int(os.environ['INDEX_CLUSTER_SIZE'])
-    for i in xrange(1, indxer_cluster_size + 1):
-        _do_create_hec_token(i)
+def config_line_breaker():
+    data = {
+        'name': 'source::connector-perf...',
+        'LINE_BREAKER': LINE_BREAKER,
+        'SHOULD_LINEMERGE': 'false',
+    }
+
+    def uri_data_gen(i):
+        uri = 'https://{}{}:8089/servicesNS/nobody/splunk_httpinput/configs/conf-props?output_mode=json'.format(IDX_HOSTNAME_PREFIX, i)
+        return uri, data
+
+    return splunk_request(uri_data_gen)
 
 
 if __name__ == '__main__':
     create_hec_token_with_ack()
+    config_line_breaker()
     perf()
