@@ -6,8 +6,8 @@ import kafka_cluster_gen as kcg
 
 DATA_GEN_IMAGE = 'repo.splunk.com/kafka-data-gen:0.4'
 KAFKA_IMAGE = 'repo.splunk.com/kafka-cluster:0.12'
-KAFKA_CONNECT_IMAGE = 'repo.splunk.com/kafka-connect-splunk:1.2'
-KAFKA_BASTION_IMAGE = 'repo.splunk.com/kafka-bastion:1.2'
+KAFKA_CONNECT_IMAGE = 'repo.splunk.com/kafka-connect-splunk:1.5'
+KAFKA_BASTION_IMAGE = 'repo.splunk.com/kafka-bastion:1.7'
 
 
 def gen_depends_from(bootstrap_servers):
@@ -60,6 +60,8 @@ class KafkaConnectYamlGen(object):
     def __init__(self, image, bootstrap_servers):
         self.image = image
         self.bootstrap_servers = bootstrap_servers
+        self.branch = 'develop'
+        self.logging_level = 'DEBUG'
         self.num_of_connect = 3
         self.max_jvm_memory = '6G'
         self.min_jvm_memory = '512M'
@@ -71,6 +73,12 @@ class KafkaConnectYamlGen(object):
         envs = [
             'KAFKA_BOOTSTRAP_SERVERS={}'.format(self.bootstrap_servers),
             jvm_mem,
+            'KAFKA_CONNECT_LOGGING={}'.format(self.logging_level),
+            'KAFKA_CONNECT_BRANCH={}'.format(self.branch),
+            # for proc monitor
+            'SPLUNK_HOST=https://heclb1:8088',
+            'SPLUNK_TOKEN=00000000-0000-0000-0000-000000000000',
+            'TARGETS=java',
         ]
         depends = gen_depends_from(self.bootstrap_servers)
         services = kcg.gen_services(
@@ -85,20 +93,23 @@ class KafkaBastionYamlGen(object):
         self.image = image
         self.num_of_indexer = num_of_indexer
         self.num_of_connect = num_of_connect
+        self.branch = 'develop'
         self.batch_size = 500
         self.line_breaker = '@@@@'
-        self.raw = False
+        self.hec_mode = 'event'
+        self.ack_mode = 'no_ack'
         self.topic = 'perf'
-        self.max_tasks = 30
+        self.jvm_size = '8G'
 
     def gen(self):
         envs = [
             'INDEX_CLUSTER_SIZE={}'.format(self.num_of_indexer),
-            'KAFKA_CONNECT_RAW={}'.format(str(self.raw).lower()),
+            'KAFKA_CONNECT_HEC_MODE={}'.format(self.hec_mode.lower()),
+            'KAFKA_CONNECT_ACK_MODE={}'.format(self.ack_mode.lower()),
             'KAFKA_CONNECT_TOPICS={}'.format(self.topic),
-            'KAFKA_CONNECT_TASKS_MAX={}'.format(self.max_tasks),
             'KAFKA_CONNECT_LINE_BREAKER={}'.format(self.line_breaker),
-            'KAFKA_CONNECT_BATCH_SIZE={}'.format(self.batch_size),
+            'JVM_HEAP_SIZE={}'.format(self.jvm_size),
+            'KAFKA_CONNECT_BRANCH={}'.format(self.branch),
         ]
 
         depends = ['{}{}'.format(KafkaConnectYamlGen.prefix, i)
@@ -146,6 +157,8 @@ class KafkaOrcaYamlGen(object):
         gen.num_of_connect = self.args.kafka_connect_size
         gen.max_jvm_memory = self.args.kafka_connect_max_jvm_memory
         gen.min_jvm_memory = self.args.kafka_connect_min_jvm_memory
+        gen.branch = self.args.kafka_connect_branch
+        gen.logging_level = self.args.kafka_connect_logging
 
         return gen
 
@@ -154,11 +167,12 @@ class KafkaOrcaYamlGen(object):
             self.args.kafka_bastion_image, self.args.indexer_size,
             self.args.kafka_connect_size)
 
-        gen.raw = self.args.kafka_connect_raw == 1
-        gen.max_tasks = self.args.kafka_connect_max_tasks
+        gen.hec_mode = self.args.kafka_connect_hec_mode
+        gen.ack_mode = self.args.kafka_connect_ack_mode
+        gen.jvm_size = self.args.kafka_connect_max_jvm_memory
         gen.topic = self.args.kafka_topic
         gen.line_breaker = self.args.kafka_connect_line_breaker
-        gen.batch_size = self.args.kafka_connect_batch_size
+        gen.branch = self.args.kafka_connect_branch
 
         return gen
 
@@ -193,6 +207,7 @@ def _gen_orca_file(args, service_file):
     lines = []
     with open('orca.conf', 'w') as f:
         lines.append('[kafka-connect]')
+        lines.append('hec_load_balancers = 1')
         lines.append('search_heads = 1')
         lines.append('indexers = {}'.format(args.indexer_size))
         lines.append('log_token = 00000000-0000-0000-0000-000000000000')
@@ -232,6 +247,10 @@ def main():
 
     parser.add_argument('--kafka_connect_image', default=KAFKA_CONNECT_IMAGE,
                         help='Kafka connect docker image')
+    parser.add_argument('--kafka_connect_branch', default='develop',
+                        help='Code repo branch')
+    parser.add_argument('--kafka_connect_logging', default='DEBUG',
+                        help='Logging level')
     parser.add_argument('--kafka_connect_size', type=int, default=3,
                         help='number of Kafka connect')
     parser.add_argument('--kafka_connect_max_jvm_memory', default="8G",
@@ -241,12 +260,10 @@ def main():
 
     parser.add_argument('--kafka_bastion_image', default=KAFKA_BASTION_IMAGE,
                         help='Kafka bastion docker image')
-    parser.add_argument('--kafka_connect_raw', type=int, default=0,
-                        help='[0|1] use /raw HEC endpoint')
-    parser.add_argument('--kafka_connect_max_tasks', type=int, default=30,
-                        help='Max number of data collection tasks')
-    parser.add_argument('--kafka_connect_batch_size', type=int, default=500,
-                        help='HEC batch size')
+    parser.add_argument('--kafka_connect_hec_mode', default='event',
+                        help='[raw|event|raw_and_event] test /raw or /event or both')
+    parser.add_argument('--kafka_connect_ack_mode', default='ack',
+                        help='[ack|no_ack|ack_and_no_ack] test HEC with ack')
     parser.add_argument('--kafka_connect_line_breaker', default='@@@@',
                         help='/raw event line breaker')
 

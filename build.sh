@@ -15,7 +15,7 @@ mkdir -p ${builddir}/libs
 
 # Build the package
 echo "Building the connector package ..."
-mvn package -Dmaven.test.skip=true > /dev/null
+mvn package > /dev/null
 
 # Copy over the pacakge
 echo "Copy over kafka-connect-splunk jar ..."
