@@ -228,7 +228,7 @@ public final class HecAckPoller implements Poller {
                 String resp = channel.executeHttpRequest(request);
                 handleAckPollResponse(resp, channel);
             } catch (Exception ex) {
-                String msg = String.format("failed to poll ack for channel={} on indexer={}", channel, channel.getIndexer());
+                String msg = String.format("failed to poll ack for channel=%s on indexer=%s", channel, channel.getIndexer());
                 log.error(msg, ex);
             }
         }

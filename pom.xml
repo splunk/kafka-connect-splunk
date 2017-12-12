@@ -9,14 +9,6 @@
     <version>1.0-SNAPSHOT</version>
     <name>kafka-connect-splunk</name>
 
-    <repositories>
-        <repository>
-            <!-- remove this after cloudfwd is publicly available in maven repo -->
-            <id>local-repo</id>
-            <url>file://${project.basedir}/libs/</url>
-        </repository>
-    </repositories>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -140,6 +132,7 @@
                             <artifactSet>
                                 <excludes>
                                     <exclude>org.apache.kafka:kafka-clients</exclude>
+                                    <exclude>commons-logging:commons-logging</exclude>
                                 </excludes>
                             </artifactSet>
                         </configuration>
