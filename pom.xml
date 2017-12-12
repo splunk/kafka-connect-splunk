@@ -132,6 +132,7 @@
                             <artifactSet>
                                 <excludes>
                                     <exclude>org.apache.kafka:kafka-clients</exclude>
+                                    <exclude>commons-logging:commons-logging</exclude>
                                 </excludes>
                             </artifactSet>
                         </configuration>
