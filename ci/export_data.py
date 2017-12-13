@@ -37,15 +37,16 @@ class ExportData(object):
         returns True/False
         '''
         if not req_obj.ok:
-            raise Exception(str(req_obj.status_code) + '\n' + req_obj.text)
+            raise Exception('status code: {0} \n details: {1}'.format(
+                str(req_obj.status_code), req_obj.text))
 
     def _check_source_connection(self):
         '''
         check if a source server connection is accessible
         returns True/False
         '''
-        service_url = self.src + '/services'
-        logger.info('requesting: ' + service_url)
+        service_url = '{0}/services'.format(self.src)
+        logger.info('requesting: %s', service_url)
 
         res = self._requests_retry_session().get(
             service_url,
@@ -59,8 +60,8 @@ class ExportData(object):
         check if a destination server connection is accessible by sending a test event
         returns True/False
         '''
-        dest_url = self.dest + '/services/collector/event'
-        logger.info('requesting: ' + dest_url)
+        dest_url = '{0}/services/collector/event'.format(self.dest)
+        logger.info('requesting: %s', dest_url)
         headers = {
             'Authorization': 'Splunk {token}'.format(token=self.dest_token),
             'Content-Type': 'application/json',
@@ -79,10 +80,10 @@ class ExportData(object):
         returns job_str
         '''
         for idx, item in enumerate(self.source_types):
-            self.source_types[idx] = 'sourcetype=' + item
+            self.source_types[idx] = 'sourcetype="{0}"'.format(item)
 
         source_type_str = ' OR '.join(self.source_types)
-        job_str = 'search index={index} {source_type_search}' \
+        job_str = 'search index="{index}" {source_type_search}' \
                    .format(index=self.index, source_type_search=source_type_str)
 
         return job_str
@@ -95,8 +96,8 @@ class ExportData(object):
         @param: end_time (search end time)
         returns events
         '''
-        url = self.src + '/services/search/jobs?output_mode=json'
-        logger.info('requesting: ' + url)
+        url = '{0}/services/search/jobs?output_mode=json'.format(self.src)
+        logger.info('requesting: %s', url)
         data = {
             'search': query,
             'earliest_time': start_time,
@@ -122,8 +123,8 @@ class ExportData(object):
         returns events
         '''
         events = []
-        job_url = self.src + '/services/search/jobs/' + str(job_id) + '?output_mode=json'
-        logger.info('requesting: ' + job_url)
+        job_url = '{0}/services/search/jobs/{1}?output_mode=json'.format(self.src, str(job_id))
+        logger.info('requesting: %s', job_url)
 
         for _ in range(self.timeout):
             res = self._requests_retry_session().get(
@@ -150,8 +151,8 @@ class ExportData(object):
         @param: job_id
         returns events
         '''
-        event_url = self.src + '/services/search/jobs/' + str(job_id) + '/events/?output_mode=json'
-        logger.info('requesting: ' + event_url)
+        event_url = '{0}/services/search/jobs/{1}/events/?output_mode=json'.format(self.src, str(job_id))
+        logger.info('requesting: %s',  event_url)
 
         event_job = self._requests_retry_session().get(
             event_url, auth=(self.source_admin_user, self.source_admin_password), verify=False)
@@ -187,8 +188,8 @@ class ExportData(object):
             'Content-Type': 'application/json',
         }
 
-        dest_url = self.dest + '/services/collector/event'
-        logger.info('sending data to : ' + dest_url)
+        dest_url = '{0}/services/collector/event'.format(self.dest)
+        logger.info('sending data to : %s', dest_url)
 
         res = self._requests_retry_session().post(
             dest_url, verify=False, headers=headers, data=data)
