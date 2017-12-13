@@ -1,6 +1,6 @@
 #!/usr/bin/python
+
 import logging
-import sys
 import argparse
 import time
 import json
@@ -18,78 +18,62 @@ class ExportData(object):
     This class handles real time data collection from the source splunk server with given
     index and sourcetype and export the events to destionation splunk server
     '''
-    def __init__(self, src, dest, dest_token, index, source_types, time_window):
-        self.src = src
-        self.dest = dest
-        self.dest_token = dest_token
-        self.index = index
-        self.source_types = source_types
-        self.time_window = time_window
-
-        self.source_admin_user = 'admin'
-        self.source_admin_password = 'changed'
-        self.dest_admin_user = 'admin'
-        self.dest_admin_password = 'changed'
-        self.timeout = 30
+    def __init__(self, config):
+        self.src = config.src
+        self.dest = config.dest
+        self.dest_token = config.dest_token
+        self.index = config.index_name
+        self.source_types = config.source_type
+        self.time_window = config.time_window
+        self.source_admin_user = config.source_admin_user
+        self.source_admin_password = config.source_admin_password
+        self.timeout = config.timeout
 
     # pylint disable=no-self-use
-    def check_request_status(self, req_obj):
+    def _check_request_status(self, req_obj):
         '''
         check if a request is successful
         @param: req_obj
         returns True/False
         '''
         if not req_obj.ok:
-            logger.error(str(req_obj.status_code) + '\n' + req_obj.text)
-            return False
-        return True
+            raise Exception(str(req_obj.status_code) + '\n' + req_obj.text)
 
-    def check_source_connection(self):
+    def _check_source_connection(self):
         '''
         check if a source server connection is accessible
         returns True/False
         '''
         service_url = self.src + '/services'
         logger.info('requesting: ' + service_url)
-        try:
-            res = self.requests_retry_session().get(
-                service_url,
-                auth=(self.source_admin_user, self.source_admin_password),
-                verify=False)
-            if not self.check_request_status(res):
-                raise Exception('source server is not accessible.')
-        except Exception:
-            logger.exception('unable to establish a connection with source server')
-            return False
 
-        return True
+        res = self._requests_retry_session().get(
+            service_url,
+            auth=(self.source_admin_user, self.source_admin_password),
+            verify=False)
+        self._check_request_status(res)
+  
 
-    def check_dest_connection(self):
+    def _check_dest_connection(self):
         '''
         check if a destination server connection is accessible by sending a test event
         returns True/False
         '''
-        try:
-            dest_url = self.dest + '/services/collector/event'
-            logger.info('requesting: ' + dest_url)
-            headers = {
-                'Authorization': 'Splunk {token}'.format(token=self.dest_token),
-                'Content-Type': 'application/json',
-            }
-            data = {
-                'event': 'test',
-            }
-            res = self.requests_retry_session().post(dest_url, headers=headers,
-                                                     data=json.dumps(data), verify=False)
-            if not self.check_request_status(res):
-                raise Exception('destionation server is not accessible.')
-        except Exception:
-            logger.exception('unable to post an event to destination server')
-            return False
+        dest_url = self.dest + '/services/collector/event'
+        logger.info('requesting: ' + dest_url)
+        headers = {
+            'Authorization': 'Splunk {token}'.format(token=self.dest_token),
+            'Content-Type': 'application/json',
+        }
+        data = {
+            'event': 'test',
+        }
 
-        return True
+        res = self._requests_retry_session().post(dest_url, headers=headers,
+                                                  data=json.dumps(data), verify=False)
+        self._check_request_status(res)
 
-    def compose_search_query(self):
+    def _compose_search_query(self):
         '''
         compose a splunk search query with input index and source types
         returns job_str
@@ -103,7 +87,7 @@ class ExportData(object):
 
         return job_str
 
-    def collect_data(self, query, start_time, end_time):
+    def _collect_data(self, query, start_time, end_time):
         '''
         collect events from the source server
         @param: query (search query)
@@ -118,24 +102,20 @@ class ExportData(object):
             'earliest_time': start_time,
             'latest_time': end_time,
         }
-        try:
-            create_job = self.requests_retry_session().post(
-                url,
-                auth=(self.source_admin_user, self.source_admin_password),
-                verify=False, data=data)
-            if not self.check_request_status(create_job):
-                raise Exception('Failed to create search job: ' + url)
 
-            json_res = create_job.json()
-            job_id = json_res['sid']
-            events = self.wait_for_job_and_get_events(job_id)
+        create_job = self._requests_retry_session().post(
+            url,
+            auth=(self.source_admin_user, self.source_admin_password),
+            verify=False, data=data)
+        self._check_request_status(create_job)
 
-        except Exception:
-            logger.exception('Failed to collect data.')
+        json_res = create_job.json()
+        job_id = json_res['sid']
+        events = self._wait_for_job_and__get_events(job_id)
 
         return events
 
-    def wait_for_job_and_get_events(self, job_id):
+    def _wait_for_job_and__get_events(self, job_id):
         '''
         wait for the search job to finish and collect the result events
         @param: job_id
@@ -145,29 +125,26 @@ class ExportData(object):
         job_url = self.src + '/services/search/jobs/' + str(job_id) + '?output_mode=json'
         logger.info('requesting: ' + job_url)
 
-        try:
-            for _ in range(self.timeout):
-                res = self.requests_retry_session().get(
-                    job_url,
-                    auth=(self.source_admin_user, self.source_admin_password),
-                    verify=False)
-                if not self.check_request_status(res):
-                    raise Exception('Search job: {0} is invalid'.format(job_url))
+        for _ in range(self.timeout):
+            res = self._requests_retry_session().get(
+                job_url,
+                auth=(self.source_admin_user, self.source_admin_password),
+                verify=False)
+            self._check_request_status(res)
 
-                job_res = res.json()
-                dispatch_state = job_res['entry'][0]['content']['dispatchState']
-                if dispatch_state == 'DONE':
-                    events = self.get_events(job_id)
-                    break
-                if dispatch_state == 'FAILED':
-                    raise Exception('Search job: {0} failed'.format(job_url))
-                time.sleep(1)
-        except Exception:
-            logger.exception('Failed to run search job.')
+            job_res = res.json()
+            dispatch_state = job_res['entry'][0]['content']['dispatchState']
+
+            if dispatch_state == 'DONE':
+                events = self._get_events(job_id)
+                break
+            if dispatch_state == 'FAILED':
+                raise Exception('Search job: {0} failed'.format(job_url))
+            time.sleep(1)
 
         return events
 
-    def get_events(self, job_id):
+    def _get_events(self, job_id):
         '''
         collect the result events from a search job
         @param: job_id
@@ -175,20 +152,17 @@ class ExportData(object):
         '''
         event_url = self.src + '/services/search/jobs/' + str(job_id) + '/events/?output_mode=json'
         logger.info('requesting: ' + event_url)
-        try:
-            event_job = self.requests_retry_session().get(
-                event_url, auth=(self.source_admin_user, self.source_admin_password), verify=False)
-            if not self.check_request_status(event_job):
-                raise Exception('Failed to get events for search: {0}'.format(event_url))
 
-            event_job_json = event_job.json()
-            events = event_job_json['results']
-        except Exception:
-            logger.exception('Search job %s failed to return events.', job_id)
+        event_job = self._requests_retry_session().get(
+            event_url, auth=(self.source_admin_user, self.source_admin_password), verify=False)
+        self._check_request_status(event_job)
+
+        event_job_json = event_job.json()
+        events = event_job_json['results']
 
         return events
 
-    def send_to_dest_thru_hec(self, events):
+    def _send_to_dest_thru_hec(self, events):
         '''
         send collected events to the destination server
         @param: events
@@ -197,8 +171,6 @@ class ExportData(object):
             logger.info('No events collected.')
             return
 
-        dest_url = self.dest + '/services/collector/event'
-        logger.info('sending data to : ' + dest_url)
         post_obj = []
         for event in events:
             temp = {}
@@ -214,15 +186,15 @@ class ExportData(object):
             'Authorization': 'Splunk {token}'.format(token=self.dest_token),
             'Content-Type': 'application/json',
         }
-        try:
-            res = self.requests_retry_session().post(
-                dest_url, verify=False, headers=headers, data=data)
-            if not self.check_request_status(res):
-                raise Exception('Failed to post events with request: %s', dest_url)
-        except Exception:
-            logger.exception('Failed to post events to the dest.')
 
-    def requests_retry_session(
+        dest_url = self.dest + '/services/collector/event'
+        logger.info('sending data to : ' + dest_url)
+
+        res = self._requests_retry_session().post(
+            dest_url, verify=False, headers=headers, data=data)
+        self._check_request_status(res)
+
+    def _requests_retry_session(
             self,
             retries=10,
             backoff_factor=0.1,
@@ -253,33 +225,31 @@ class ExportData(object):
         '''
         function to run data collection and export
         '''
-        if not self.check_source_connection():
-            logger.error('source is not accessible')
-            sys.exit(0)
-
-        if not self.check_dest_connection():
-            logger.error('dest is not accessible')
-            sys.exit(0)
-
         end_time = time.time()
-        query = self.compose_search_query()
+        query = self._compose_search_query()
         time.sleep(self.time_window)
 
-        while True:
-            start_time = end_time
-            end_time = time.time()
-            events = self.collect_data(query, start_time, end_time)
-            self.send_to_dest_thru_hec(events)
-            time.sleep(self.time_window)
+        try:
+            self._check_source_connection()
+            self._check_dest_connection()
+
+            while True:
+                start_time = end_time
+                end_time = time.time()
+                events = self._collect_data(query, start_time, end_time)
+                self._send_to_dest_thru_hec(events)
+                time.sleep(self.time_window)
+        except Exception:
+            logger.exception('Program exit unexpectedly.')
 
 def main():
     '''
     Main Function
     '''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--source_ip', default='', required=True,
+    parser.add_argument('--src', default='', required=True,
                         help='source splunkd url')
-    parser.add_argument('--dest_ip', default='', required=True,
+    parser.add_argument('--dest', default='', required=True,
                         help='destination splunk server with HEC port')
     parser.add_argument('--dest_token', default='', required=True,
                         help='HEC token used to post data to dest')
@@ -289,14 +259,15 @@ def main():
                         help='List of source types')
     parser.add_argument('--time_window', type=int, default=5, required=False,
                         help='time window to run data collection in seconds')
+    parser.add_argument('--source_admin_user', default='admin', required=False,
+                        help='time window to run data collection in seconds')
+    parser.add_argument('--source_admin_password', default='changed', required=False,
+                        help='time window to run data collection in seconds')
+    parser.add_argument('--timeout', type=int, default=30, required=False,
+                        help='time window to run data collection in seconds')
 
     args = parser.parse_args()
-    data_collector = ExportData(args.source_ip,
-                                args.dest_ip,
-                                args.dest_token,
-                                args.index_name,
-                                args.source_type,
-                                args.time_window)
+    data_collector = ExportData(args)
     data_collector.run()
 
 if __name__ == '__main__':
