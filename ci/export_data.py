@@ -24,6 +24,8 @@ class ExportData(object):
         self.dest_token = config.dest_token
         self.index = config.index_name
         self.source_types = config.source_type
+        self.start_time = config.start_time
+        self.end_time = config.end_time
         self.time_window = config.time_window
         self.source_admin_user = config.source_admin_user
         self.source_admin_password = config.source_admin_password
@@ -86,6 +88,8 @@ class ExportData(object):
         job_str = 'search index="{index}" {source_type_search}' \
                    .format(index=self.index, source_type_search=source_type_str)
 
+        logger.info('job_str: %s', job_str)
+
         return job_str
 
     def _collect_data(self, query, start_time, end_time):
@@ -96,6 +100,7 @@ class ExportData(object):
         @param: end_time (search end time)
         returns events
         '''
+
         url = '{0}/services/search/jobs?output_mode=json'.format(self.src)
         logger.info('requesting: %s', url)
         data = {
@@ -151,7 +156,7 @@ class ExportData(object):
         @param: job_id
         returns events
         '''
-        event_url = '{0}/services/search/jobs/{1}/events/?output_mode=json'.format(self.src, str(job_id))
+        event_url = '{0}/services/search/jobs/{1}/events?output_mode=json'.format(self.src, str(job_id))
         logger.info('requesting: %s',  event_url)
 
         event_job = self._requests_retry_session().get(
@@ -226,20 +231,43 @@ class ExportData(object):
         '''
         function to run data collection and export
         '''
-        end_time = time.time()
+
         query = self._compose_search_query()
-        time.sleep(self.time_window)
+        logger.info('Data collection (%s - %s) starts', self.start_time, self.end_time)
+
+        cur_start_time = self.start_time
+        cur_end_time = self.start_time + self.time_window
+
+        if self.end_time and cur_start_time >= self.end_time:
+            raise Exception('start time should be less than end time')
+
+        # sleep for the time window if end time is not specified
+        # to make sure the data collection always have valid time range
+        if self.end_time is None:
+            time.sleep(self.time_window)
 
         try:
             self._check_source_connection()
             self._check_dest_connection()
 
-            while True:
-                start_time = end_time
-                end_time = time.time()
-                events = self._collect_data(query, start_time, end_time)
+            while cur_start_time < cur_end_time or self.end_time is None:
+                logger.info('Collecting %s - %s', cur_start_time, cur_end_time)
+
+                events = self._collect_data(query, cur_start_time, cur_end_time)
                 self._send_to_dest_thru_hec(events)
-                time.sleep(self.time_window)
+
+                cur_start_time = cur_end_time
+
+                if self.end_time is None:
+                    time.sleep(self.time_window)
+                    cur_end_time += self.time_window
+                else:
+                    if  cur_end_time + self.time_window < self.end_time:
+                        cur_end_time = cur_end_time + self.time_window
+                    else:
+                        cur_end_time = self.end_time
+
+            logger.info('Data collection is DONE')
         except Exception:
             logger.exception('Program exit unexpectedly.')
 
@@ -258,14 +286,18 @@ def main():
                         help='splunk index name')
     parser.add_argument('--source_type', type=list, default=['*'], required=False,
                         help='List of source types')
+    parser.add_argument('--start_time', type=int, default=int(time.time()), required=False,
+                        help='start time in epoch seconds to run search job. default to current time.')
+    parser.add_argument('--end_time', type=int, default=None, required=False,
+                        help='end time in epoch seconds to run search job. default to None.')
     parser.add_argument('--time_window', type=int, default=5, required=False,
                         help='time window to run data collection in seconds')
     parser.add_argument('--source_admin_user', default='admin', required=False,
-                        help='time window to run data collection in seconds')
+                        help='source splunk admin user')
     parser.add_argument('--source_admin_password', default='changed', required=False,
-                        help='time window to run data collection in seconds')
+                        help='source splunk admin password')
     parser.add_argument('--timeout', type=int, default=30, required=False,
-                        help='time window to run data collection in seconds')
+                        help='timeout for search job')
 
     args = parser.parse_args()
     data_collector = ExportData(args)
