@@ -24,9 +24,6 @@ class ExportData(object):
         self.dest_token = config.dest_token
         self.index = config.index_name
         self.source_types = config.source_type
-        self.start_time = config.start_time
-        self.end_time = config.end_time
-        self.time_window = config.time_window
         self.source_admin_user = config.source_admin_user
         self.source_admin_password = config.source_admin_password
         self.timeout = config.timeout
@@ -168,6 +165,26 @@ class ExportData(object):
 
         return events
 
+    def _transform_results_to_hec_events(self, events):
+        '''
+        transform the events collected from the source server to events that can be 
+        accepted by hec event endpoint
+        @param: events
+        returns hec_events
+        '''
+        hec_events = []
+        for event in events:
+            temp = {}
+            temp['event'] = event['_raw']
+            parsed_t = time_parser.parse(event['_time'])
+            temp['time'] = parsed_t.strftime('%s')
+            temp['host'] = event['host']
+            temp['source'] = event['source']
+            temp['sourcetype'] = event['sourcetype']
+            hec_events.append(temp)
+
+        return hec_events
+
     def _send_to_dest_thru_hec(self, events):
         '''
         send collected events to the destination server
@@ -177,17 +194,8 @@ class ExportData(object):
             logger.info('No events collected.')
             return
 
-        post_obj = []
-        for event in events:
-            temp = {}
-            temp['event'] = event['_raw']
-            parsed_t = time_parser.parse(event['_time'])
-            temp['time'] = parsed_t.strftime('%s')
-            temp['host'] = event['host']
-            temp['source'] = event['source']
-            temp['sourcetype'] = event['sourcetype']
-            post_obj.append(temp)
-        data = '\n'.join(json.dumps(event) for event in post_obj)
+        hec_events = self._transform_results_to_hec_events(events)
+        data = '\n'.join(json.dumps(event) for event in hec_events)
         headers = {
             'Authorization': 'Splunk {token}'.format(token=self.dest_token),
             'Content-Type': 'application/json',
@@ -227,49 +235,80 @@ class ExportData(object):
 
         return session
 
-    def run(self):
+    def _initialize_time_range(self, start_time, end_time, time_window):
         '''
-        function to run data collection and export
+        process the input start_time and end_time and validate the values
+        @param: start_time
+        @param: end_time
+        @param: time_window
+        returns [start_time, end_time]
         '''
-
-        query = self._compose_search_query()
-        logger.info('Data collection (%s - %s) starts', self.start_time, self.end_time)
-
-        cur_start_time = self.start_time
-        cur_end_time = self.start_time + self.time_window
-
-        if self.end_time and cur_start_time >= self.end_time:
+        # if start_time is not specified, use current time
+        if not start_time:
+            start_time = int(time.time())
+        if end_time and start_time >= end_time:
             raise Exception('start time should be less than end time')
 
         # sleep for the time window if end time is not specified
         # to make sure the data collection always have valid time range
-        if self.end_time is None:
-            time.sleep(self.time_window)
+        if end_time is None:
+            time.sleep(time_window)
 
-        try:
-            self._check_source_connection()
-            self._check_dest_connection()
+        return [start_time, end_time]
 
-            while cur_start_time < cur_end_time or self.end_time is None:
-                logger.info('Collecting %s - %s', cur_start_time, cur_end_time)
+    def _compute_next_time_range(self, last_end_time, end_time, time_window):
+        '''
+        compute the next time range for data collection
+        @param: last_end_time
+        @param: end_time
+        @oaram: time_window
+        returns [next_start_time, next_end_time]
+        '''
+        next_start_time = last_end_time
+        next_end_time = 0
 
-                events = self._collect_data(query, cur_start_time, cur_end_time)
-                self._send_to_dest_thru_hec(events)
+        if end_time is None:
+            time.sleep(time_window)
+            next_end_time = last_end_time + time_window
+        else:
+            if  last_end_time + time_window < end_time:
+                next_end_time = last_end_time + time_window
+            else:
+                next_end_time = end_time
 
-                cur_start_time = cur_end_time
+        return [next_start_time, next_end_time]
 
-                if self.end_time is None:
-                    time.sleep(self.time_window)
-                    cur_end_time += self.time_window
-                else:
-                    if  cur_end_time + self.time_window < self.end_time:
-                        cur_end_time = cur_end_time + self.time_window
-                    else:
-                        cur_end_time = self.end_time
+    def run(self, start_time=None, end_time=None, time_window=5):
+        '''
+        function to run data collection and export
+        @param: start_time
+                start time in epoch seconds to run search job. If None, current time will be used
+        @oaram: end_time
+                end time in epoch seconds to run search job. If None, job will run forever
+        @oaram: time_window
+                time window in seconds to run search job. Default is 5 seconds
+        '''
+        [start_time, end_time] = self._initialize_time_range(start_time, end_time, time_window)
 
-            logger.info('Data collection is DONE')
-        except Exception:
-            logger.exception('Program exit unexpectedly.')
+        query = self._compose_search_query()
+        logger.info('Data collection (%s - %s) starts', start_time, end_time)
+
+        self._check_source_connection()
+        self._check_dest_connection()
+
+        cur_start_time = start_time
+        cur_end_time = start_time + time_window
+
+        while cur_start_time < cur_end_time or end_time is None:
+            logger.info('Collecting %s - %s', cur_start_time, cur_end_time)
+
+            events = self._collect_data(query, cur_start_time, cur_end_time)
+            self._send_to_dest_thru_hec(events)
+
+            [cur_start_time, cur_end_time] = self._compute_next_time_range(
+                cur_end_time, end_time, time_window)
+
+        logger.info('Data collection is DONE')
 
 def main():
     '''
@@ -286,12 +325,6 @@ def main():
                         help='splunk index name')
     parser.add_argument('--source_type', type=list, default=['*'], required=False,
                         help='List of source types')
-    parser.add_argument('--start_time', type=int, default=int(time.time()), required=False,
-                        help='start time in epoch seconds to run search job. default to current time.')
-    parser.add_argument('--end_time', type=int, default=None, required=False,
-                        help='end time in epoch seconds to run search job. default to None.')
-    parser.add_argument('--time_window', type=int, default=5, required=False,
-                        help='time window to run data collection in seconds')
     parser.add_argument('--source_admin_user', default='admin', required=False,
                         help='source splunk admin user')
     parser.add_argument('--source_admin_password', default='changed', required=False,
@@ -301,7 +334,7 @@ def main():
 
     args = parser.parse_args()
     data_collector = ExportData(args)
-    data_collector.run()
+    data_collector.run(1513278601, 1513278658, 6)
 
 if __name__ == '__main__':
     main()
