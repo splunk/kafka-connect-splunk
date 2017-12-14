@@ -334,7 +334,7 @@ def main():
 
     args = parser.parse_args()
     data_collector = ExportData(args)
-    data_collector.run(1513278601, 1513278658, 6)
+    data_collector.run()
 
 if __name__ == '__main__':
     main()
