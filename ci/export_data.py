@@ -52,7 +52,6 @@ class ExportData(object):
             auth=(self.source_admin_user, self.source_admin_password),
             verify=False)
         self._check_request_status(res)
-  
 
     def _check_dest_connection(self):
         '''
@@ -153,8 +152,9 @@ class ExportData(object):
         @param: job_id
         returns events
         '''
-        event_url = '{0}/services/search/jobs/{1}/events?output_mode=json'.format(self.src, str(job_id))
-        logger.info('requesting: %s',  event_url)
+        event_url = '{0}/services/search/jobs/{1}/events?output_mode=json'.format(
+            self.src, str(job_id))
+        logger.info('requesting: %s', event_url)
 
         event_job = self._requests_retry_session().get(
             event_url, auth=(self.source_admin_user, self.source_admin_password), verify=False)
@@ -167,7 +167,7 @@ class ExportData(object):
 
     def _transform_results_to_hec_events(self, events):
         '''
-        transform the events collected from the source server to events that can be 
+        transform the events collected from the source server to events that can be
         accepted by hec event endpoint
         @param: events
         returns hec_events
@@ -309,6 +309,7 @@ class ExportData(object):
                 cur_end_time, end_time, time_window)
 
         logger.info('Data collection is DONE')
+
 
 def main():
     '''
