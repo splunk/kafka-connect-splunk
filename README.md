@@ -8,13 +8,12 @@ A Kafka Connect Sink for Splunk features:
 ## Requirements
 1. Kafka version 0.9 and above.
 2. Java 8 and above.
-3. A Splunk platform instance configured with valid HTTP Event Collector (HEC) tokens.
+3. A Splunk environment of version 6.4* and above, configured with valid HTTP Event Collector (HEC) tokens. (A minimum Splunk version of 6.5 is required for event annotation)
 	
 	* HEC token settings should be the same on all Splunk Indexers and Heavy Forwarders in your environment.
 	* Task configuration parameters will vary depending on acknowledgement setting (See the [Configuration](#configuration) section for details).
 
 	Note: HEC Acknowledgement prevents potential data loss but may slow down event ingestion. 
-
 
 ## Build
 
@@ -608,9 +607,9 @@ If the raw data of the Kafka records is a JSON object but is not able to be mars
 	In **props.conf**, you can set up the line breaker as follows.
 	
 	```
-	[s1] # sourcetye name
+	[s1] # sourcetype name
 	LINE_BREAKER = (####)
-	SHOULE_LINEMERGE = false
+	SHOULD_LINEMERGE = false
 	```
 	
    If you don't care about the timestamp, or by default, the auto assigned timestamp is good enough, then stick to the /event HEC endpoint.
