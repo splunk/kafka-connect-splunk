@@ -208,6 +208,8 @@ def wait_for_connector_do_data_collection_injection():
 
 
 def _do_perf(hec_uris, hec_raw, hec_ack):
+    metric_exporter = _new_data_exporter()
+    start_time = time.time()
     for test_case in PERF_CASES:
         config = _get_connector_config(hec_uris, hec_raw, hec_ack, test_case)
         logging.info(
@@ -217,6 +219,9 @@ def _do_perf(hec_uris, hec_raw, hec_ack):
         create_connector(CONNECTOR_URI, config)
         wait_for_connector_do_data_collection_injection()
         delete_connector(CONNECTOR_URI, config)
+
+        _export_metric(metric_exporter, start_time)
+        start_time = time.time()
 
 
 def _get_hec_configs():
@@ -279,15 +284,11 @@ def _export_metric(exporter, start_time):
 
 
 def perf():
-    metric_exporter = _new_data_exporter()
     hec_configs = _get_hec_configs()
     hec_uris = get_hec_uris()
-    start_time = time.time()
     for hec_raw, hec_ack_enabled_settings in hec_configs.iteritems():
         for hec_ack_enabled in hec_ack_enabled_settings:
             _do_perf(hec_uris, hec_raw, hec_ack_enabled)
-            _export_metric(metric_exporter, start_time)
-            start_time = time.time()
 
 
 def _do_post(uri, data, auth):
