@@ -24,3 +24,7 @@ target/*
 .idea/*
 
 kafka-connect-splunk/
+buildinfo
+pom.xml.versionsBackup
+.classpath
+.project
