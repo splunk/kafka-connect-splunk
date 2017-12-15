@@ -7,7 +7,7 @@ import kafka_cluster_gen as kcg
 DATA_GEN_IMAGE = 'repo.splunk.com/kafka-data-gen:0.4'
 KAFKA_IMAGE = 'repo.splunk.com/kafka-cluster:0.12'
 KAFKA_CONNECT_IMAGE = 'repo.splunk.com/kafka-connect-splunk:1.5'
-KAFKA_BASTION_IMAGE = 'repo.splunk.com/kafka-bastion:1.7'
+KAFKA_BASTION_IMAGE = 'repo.splunk.com/kafka-bastion:1.8'
 
 
 def gen_depends_from(bootstrap_servers):
@@ -99,6 +99,8 @@ class KafkaBastionYamlGen(object):
         self.hec_mode = 'event'
         self.ack_mode = 'no_ack'
         self.topic = 'perf'
+        self.metric_dest = ''
+        self.metric_dest_token = ''
         self.jvm_size = '8G'
 
     def gen(self):
@@ -110,6 +112,9 @@ class KafkaBastionYamlGen(object):
             'KAFKA_CONNECT_LINE_BREAKER={}'.format(self.line_breaker),
             'JVM_HEAP_SIZE={}'.format(self.jvm_size),
             'KAFKA_CONNECT_BRANCH={}'.format(self.branch),
+            'KAFKA_CONNECT_BRANCH={}'.format(self.branch),
+            'CONNECT_PERF_METRIC_DEST_HEC={}'.format(self.metric_dest),
+            'CONNECT_PERF_METRIC_TOKEN={}'.format(self.metric_dest_token),
         ]
 
         depends = ['{}{}'.format(KafkaConnectYamlGen.prefix, i)
@@ -173,6 +178,8 @@ class KafkaOrcaYamlGen(object):
         gen.topic = self.args.kafka_topic
         gen.line_breaker = self.args.kafka_connect_line_breaker
         gen.branch = self.args.kafka_connect_branch
+        gen.metric_dest = self.args.metric_dest
+        gen.metric_dest_token = self.args.metric_dest_token
 
         return gen
 
@@ -267,10 +274,16 @@ def main():
     parser.add_argument('--kafka_connect_line_breaker', default='@@@@',
                         help='/raw event line breaker')
 
-    parser.add_argument('--kafka_max_jvm_memory', default="8G",
+    parser.add_argument('--kafka_max_jvm_memory', default='8G',
                         help='Max JVM memory, by default it is 8G')
     parser.add_argument('--kafka_min_jvm_memory', default="512M",
                         help='Min JVM memory, by default it is 512M')
+
+    parser.add_argument('--metric_dest', required=True,
+                        help='Splunk HEC destintion where to export the perf metrics')
+    parser.add_argument('--metric_dest_token', required=True,
+                        help='Splunk HEC destintion token')
+
 
     volumes = '["{}"]'.format(kcg.KafkaClusterYamlGen.DATA_DIR_ROOT)
     parser.add_argument('--volumes', default=volumes, help='Volumes to mount')

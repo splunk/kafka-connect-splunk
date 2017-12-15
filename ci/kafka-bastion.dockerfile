@@ -5,7 +5,7 @@ RUN apk update && apk upgrade && apk add git && apk add openssh && apk add opens
 ENV kafkaversion=0.11.0.2
 RUN wget -q https://archive.apache.org/dist/kafka/${kafkaversion}/kafka_2.11-${kafkaversion}.tgz -P / && cd / && tar xzf kafka_2.11-${kafkaversion}.tgz && rm -f kafka_2.11-${kafkaversion}.tgz
 
-RUN wget -q https://bootstrap.pypa.io/get-pip.py -P / && python get-pip.py && pip install requests
+RUN wget -q https://bootstrap.pypa.io/get-pip.py -P / && python get-pip.py && pip install requests && pip install python-dateutil
 
 RUN mkdir -p /root/.ssh
 ADD id_rsa /root/.ssh/id_rsa
