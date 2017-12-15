@@ -16,7 +16,7 @@ logger = logging.getLogger('export_data')
 ExportParams = collections.namedtuple(
     'ExportParams',
     ['src_splunk_uri', 'src_splunk_user', 'src_splunk_password',
-     'dest_splunk_hec', 'dest_hec_token',
+     'dest_splunk_hec_uri', 'dest_splunk_hec_token',
      'src_index', 'src_sourcetypes',
      'timeout'])
 
@@ -35,8 +35,8 @@ class ExportData(object):
         self.src_index = config.src_index
         self.src_source_types = config.src_sourcetypes
 
-        self.dest_splunk_hec = config.dest_splunk_hec
-        self.dest_hec_token = config.dest_hec_token
+        self.dest_splunk_hec_uri = config.dest_splunk_hec_uri
+        self.dest_splunk_hec_token = config.dest_splunk_hec_token
 
         self.timeout = config.timeout
 
@@ -71,10 +71,10 @@ class ExportData(object):
         sending a test event returns True/False
         '''
         dest_splunk_hec_url = '{0}/services/collector/event'.format(
-            self.dest_splunk_hec)
+            self.dest_splunk_hec_uri)
         logger.info('requesting: %s', dest_splunk_hec_url)
         headers = {
-            'Authorization': 'Splunk {token}'.format(token=self.dest_hec_token),
+            'Authorization': 'Splunk {token}'.format(token=self.dest_splunk_hec_token),
             'Content-Type': 'application/json',
         }
         data = {
@@ -215,12 +215,12 @@ class ExportData(object):
         data = '\n'.join(json.dumps(event) for event in hec_events)
         headers = {
             'Authorization': 'Splunk {token}'.format(
-                token=self.dest_hec_token),
+                token=self.dest_splunk_hec_token),
             'Content-Type': 'application/json',
         }
 
         dest_splunk_hec_url = '{0}/services/collector/event'.format(
-            self.dest_splunk_hec)
+            self.dest_splunk_hec_uri)
         logger.info('sending %d events to : %s',
                     len(events), dest_splunk_hec_url)
 
@@ -315,11 +315,11 @@ class ExportData(object):
         @oaram: time_window
                 time window in seconds to run search job. Default is 5 seconds
         '''
-        self._check_source_connection()
-        self._check_dest_connection()
-
         start_time, end_time = self._initialize_time_range(
             start_time, end_time, time_window)
+
+        self._check_source_connection()
+        self._check_dest_connection()
 
         query = self._compose_search_query()
         logger.info('Data collection (%s - %s) starts', start_time, end_time)
@@ -335,7 +335,7 @@ class ExportData(object):
             cur_start_time, cur_end_time = self._compute_next_time_range(
                 cur_end_time, end_time, time_window)
 
-        logger.info('Data collection is DONE')
+        logger.info('done with run')
 
 
 def main():
@@ -343,7 +343,7 @@ def main():
     Main Function
     '''
     parser = argparse.ArgumentParser()
-    parser.add_argument('--src_splunk_uri', default='', required=True,
+    parser.add_argument('--src_splunk_uri', required=True,
                         help='Source splunkd url. For example, https://localhost:8089')
     parser.add_argument('--src_splunk_user', default='admin', required=False,
                         help='Source splunk user')
@@ -354,11 +354,11 @@ def main():
     parser.add_argument('--src_sourcetypes', type=list, default=['*'], required=False,
                         help='List of sourcetypes to query from. For example ["metric", "perf"]')
 
-    parser.add_argument('--dest_splunk_hec', default='', required=True,
+    parser.add_argument('--dest_splunk_hec_uri', required=True,
                         help='Destination splunk server with HEC port. For example, https://localhost:8088')
-    parser.add_argument('--dest_hec_token', default='', required=True,
-                        help='HEC token for destination splunk used to post data to dest_splunk_hec Splunk HEC')
-    parser.add_argument('--timeout', type=int, default=300, required=False,
+    parser.add_argument('--dest_splunk_hec_token', required=True,
+                        help='HEC token for destination splunk used to post data to destination Splunk HEC')
+    parser.add_argument('--timeout', type=int, default=30, required=False,
                         help='timeout for search job')
 
     args = parser.parse_args()

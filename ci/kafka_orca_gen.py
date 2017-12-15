@@ -99,7 +99,7 @@ class KafkaBastionYamlGen(object):
         self.hec_mode = 'event'
         self.ack_mode = 'no_ack'
         self.topic = 'perf'
-        self.metric_dest_hec = ''
+        self.metric_dest_hec_uri = ''
         self.metric_dest_hec_token = ''
         self.jvm_size = '8G'
 
@@ -112,7 +112,7 @@ class KafkaBastionYamlGen(object):
             'KAFKA_CONNECT_LINE_BREAKER={}'.format(self.line_breaker),
             'JVM_HEAP_SIZE={}'.format(self.jvm_size),
             'KAFKA_CONNECT_BRANCH={}'.format(self.branch),
-            'CONNECT_PERF_METRIC_DEST_HEC={}'.format(self.metric_dest_hec),
+            'CONNECT_PERF_METRIC_DEST_HEC={}'.format(self.metric_dest_hec_uri),
             'CONNECT_PERF_METRIC_TOKEN={}'.format(self.metric_dest_hec_token),
         ]
 
@@ -177,7 +177,7 @@ class KafkaOrcaYamlGen(object):
         gen.topic = self.args.kafka_topic
         gen.line_breaker = self.args.kafka_connect_line_breaker
         gen.branch = self.args.kafka_connect_branch
-        gen.metric_dest_hec = self.args.metric_dest_hec
+        gen.metric_dest_hec_uri = self.args.metric_dest_hec_uri
         gen.metric_dest_hec_token = self.args.metric_dest_hec_token
 
         return gen
@@ -278,7 +278,7 @@ def main():
     parser.add_argument('--kafka_min_jvm_memory', default="512M",
                         help='Min JVM memory, by default it is 512M')
 
-    parser.add_argument('--metric_dest_hec', required=True,
+    parser.add_argument('--metric_dest_hec_uri', required=True,
                         help='Splunk HEC destintion where to export the perf metrics')
     parser.add_argument('--metric_dest_hec_token', required=True,
                         help='Splunk HEC destintion token')
