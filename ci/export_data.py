@@ -303,7 +303,7 @@ class ExportData(object):
         events = self._collect_data(query, start_time, end_time)
         self._send_to_dest_thru_hec(events)
 
-    def run(self, start_time=None, end_time=None, time_window=300):
+    def run(self, start_time=None, end_time=None, time_window=30):
         '''
         function to run data collection and export
         @param: start_time
