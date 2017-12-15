@@ -17,12 +17,12 @@ fi
 
 packagename=kafka-connect-splunk-${gitversion}.tar.gz
 
-# record git info in version.property file under resources folder
+# record git info in version.properties file under resources folder
 resourcedir='src/main/resources'
-/bin/rm -f ${resourcedir}/version.property
-echo githash=${githash} >> ${resourcedir}/version.property
-echo gitbranch=${gitbranch} >> ${resourcedir}/version.property
-echo gitversion=${gitversion} >> ${resourcedir}/version.property
+/bin/rm -f ${resourcedir}/version.properties
+echo githash=${githash} >> ${resourcedir}/version.properties
+echo gitbranch=${gitbranch} >> ${resourcedir}/version.properties
+echo gitversion=${gitversion} >> ${resourcedir}/version.properties
 
 
 curdir=`pwd`
