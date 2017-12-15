@@ -260,7 +260,7 @@ class ExportData(object):
         @param: start_time
         @param: end_time
         @param: time_window
-        returns [start_time, end_time]
+        returns start_time, end_time
         '''
         # if start_time is not specified, use current time
         if not start_time:
