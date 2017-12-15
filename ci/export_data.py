@@ -65,9 +65,9 @@ class ExportData(object):
             verify=False)
         self._check_request_status(res)
 
-    def _check_dest_splunk_hec_connection(self):
+    def _check_dest_connection(self):
         '''
-        Check if a dest_splunk_hecination server connection is accessible by
+        Check if a destination server connection is accessible by
         sending a test event returns True/False
         '''
         dest_splunk_hec_url = '{0}/services/collector/event'.format(
@@ -202,9 +202,9 @@ class ExportData(object):
 
         return hec_events
 
-    def _send_to_dest_splunk_hec_thru_hec(self, events):
+    def _send_to_dest_thru_hec(self, events):
         '''
-        send collected events to the dest_splunk_hecination server
+        send collected events to the destination server
         @param: events
         '''
         if not events:
@@ -301,7 +301,7 @@ class ExportData(object):
 
     def export(self, query, start_time, end_time):
         events = self._collect_data(query, start_time, end_time)
-        self._send_to_dest_splunk_hec_thru_hec(events)
+        self._send_to_dest_thru_hec(events)
 
     def run(self, start_time=None, end_time=None, time_window=300):
         '''
@@ -316,7 +316,7 @@ class ExportData(object):
                 time window in seconds to run search job. Default is 5 seconds
         '''
         self._check_source_connection()
-        self._check_dest_splunk_hec_connection()
+        self._check_dest_connection()
 
         start_time, end_time = self._initialize_time_range(
             start_time, end_time, time_window)
