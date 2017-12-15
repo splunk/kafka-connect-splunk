@@ -112,7 +112,6 @@ class KafkaBastionYamlGen(object):
             'KAFKA_CONNECT_LINE_BREAKER={}'.format(self.line_breaker),
             'JVM_HEAP_SIZE={}'.format(self.jvm_size),
             'KAFKA_CONNECT_BRANCH={}'.format(self.branch),
-            'KAFKA_CONNECT_BRANCH={}'.format(self.branch),
             'CONNECT_PERF_METRIC_DEST_HEC={}'.format(self.metric_dest_hec),
             'CONNECT_PERF_METRIC_TOKEN={}'.format(self.metric_dest_hec_token),
         ]
