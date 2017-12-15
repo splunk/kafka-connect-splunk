@@ -9,6 +9,7 @@ gitbranch=`git rev-parse --abbrev-ref HEAD` # get current git branch
 gitversion=`git describe --abbrev=0 --tags 2>/dev/null` # returns the latest tag from current commit
 jarversion=${gitversion}
 
+# if no version found from git tag, it is a dev build
 if [[ -z "$gitversion" ]]; then
   gitversion="dev"
   jarversion=${gitversion}-SNAPSHOT
