@@ -3,7 +3,27 @@
 # variables
 kafkaversion=0.11.0.2
 builddir=/tmp/kafka-connect-splunk-build/kafka-connect-splunk
-packagename=kafka-connect-splunk.tar.gz
+
+githash=`git rev-parse --short HEAD 2>/dev/null | sed "s/\(.*\)/@\1/"` # get current git hash
+gitbranch=`git rev-parse --abbrev-ref HEAD` # get current git branch
+gitversion=`git describe --abbrev=0 --tags 2>/dev/null` # returns the latest tag from current commit
+jarversion=${gitversion}
+
+# if no version found from git tag, it is a dev build
+if [[ -z "$gitversion" ]]; then
+  gitversion="dev"
+  jarversion=${gitversion}-SNAPSHOT
+fi
+
+packagename=kafka-connect-splunk-${gitversion}.tar.gz
+
+# record git info in version.properties file under resources folder
+resourcedir='src/main/resources'
+/bin/rm -f ${resourcedir}/version.properties
+echo githash=${githash} >> ${resourcedir}/version.properties
+echo gitbranch=${gitbranch} >> ${resourcedir}/version.properties
+echo gitversion=${gitversion} >> ${resourcedir}/version.properties
+
 
 curdir=`pwd`
 
@@ -15,11 +35,12 @@ mkdir -p ${builddir}/libs
 
 # Build the package
 echo "Building the connector package ..."
+mvn versions:set -DnewVersion=${jarversion}
 mvn package > /dev/null
 
 # Copy over the pacakge
 echo "Copy over kafka-connect-splunk jar ..."
-cp target/kafka-connect-splunk-1.0-SNAPSHOT.jar ${builddir}/connectors
+cp target/kafka-connect-splunk-${jarversion}.jar ${builddir}/connectors
 cp config/* ${builddir}/config
 cp README.md ${builddir}
 cp LICENSE ${builddir}

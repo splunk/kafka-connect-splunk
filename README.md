@@ -21,13 +21,13 @@ A Kafka Connect Sink for Splunk features:
 2. Verify that Java8 JRE or JDK is installed.
 3. Run `bash build.sh`. The build script will download all dependencies and build the Splunk Kafka Connector.
 
-Note: The resulting "kafka-connect-splunk.tar.gz" package is self-contained. Bundled within it are the Kafka Connect framework, all 3rd party libraries, and the Splunk Kafka Connector.
+Note: The resulting "kafka-connect-splunk-*.tar.gz" package is self-contained. Bundled within it are the Kafka Connect framework, all 3rd party libraries, and the Splunk Kafka Connector.
 
 ## Quick Start
 
 1. [Start](https://kafka.apache.org/quickstart) your Kafka Cluster and Zookeeper on your local host. Confirm both are running.
 2. If this is a new install, create a test topic (eg: `perf`). Inject events into the topic. This can be done using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen) or the Kafka bundle [kafka-console-producer](https://kafka.apache.org/quickstart#quickstart_send).
-3. Untar the package created from the build script: `tar xzvf kafka-connect-splunk.tar.gz` (Default target location is /tmp/kafka-connect-splunk-build/kafka-connect-splunk).
+3. Untar the package created from the build script: `tar xzvf kafka-connect-splunk-*.tar.gz` (Default target location is /tmp/kafka-connect-splunk-build/kafka-connect-splunk).
 4. Navigate to kafka-connect-splunk directory `cd kafka-connect-splunk`.
 5. Adjust values for `bootstrap.servers` and `plugin.path` inside `config/connect-distributed-quickstart.properties` to fit your environment. Default values should work for experimentation.
 6. Run `./bin/connect-distributed.sh config/connect-distributed-quickstart.properties` to start Kafka Connect.
@@ -98,10 +98,10 @@ Use the following connector deployment options:
 ### Connector in a dedicated Kafka Connect Cluster
 Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recommended. Isolating the Splunk connector from other Kafka connectors results in significant performance benefits in high throughput environments. 
 
-1. Untar the **kafka-connect-splunk.tar.gz** package and navigate to the **kafka-connect-splunk** directory.
+1. Untar the **kafka-connect-splunk-*.tar.gz** package and navigate to the **kafka-connect-splunk** directory.
 
     ``` 
-    tar xzvf kafka-connect-splunk.tar.gz
+    tar xzvf kafka-connect-splunk-*.tar.gz
     cd kafka-connect-splunk
     ```
 
@@ -143,14 +143,14 @@ Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recom
 	> Note: The **KAFKA\_HEAP\_OPTS** environment variable controls how much memory Kafka Connect can use. Set the **KAFKA\_HEAP\_OPTS** with the recommended value stated in the example above.
 
 ### Connector in an existing Kafka Connect Cluster
-1. Untar the **kafka-connect-splunk.tar.gz** installation package and go to the **kafka-connect-splunk** directory.
+1. Untar the **kafka-connect-splunk-*.tar.gz** installation package and go to the **kafka-connect-splunk** directory.
 
     ``` 
-    tar xzvf kafka-connect-splunk.tar.gz
+    tar xzvf kafka-connect-splunk-*.tar.gz
     cd kafka-connect-splunk
     ```
     
-2. Copy the **conectors/kafka-connect-splunk-1.0-SNAPSHOT.jar** to the plugin path specified by **plugin.path** in the existing Kafka Connect on every host.
+2. Copy the **conectors/kafka-connect-splunk-*.jar** to the plugin path specified by **plugin.path** in the existing Kafka Connect on every host.
 3. Copy **libs/commons-logging-1.2.jar** to **libs** of the existing Kafka Connect on each host.
 4. Restart the Kafka Connect cluster.
 
