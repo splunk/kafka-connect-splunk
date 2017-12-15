@@ -4,9 +4,9 @@
 kafkaversion=0.11.0.2
 builddir=/tmp/kafka-connect-splunk-build/kafka-connect-splunk
 
-githash=`git rev-parse --short HEAD 2> /dev/null | sed "s/\(.*\)/@\1/"` # get current git hash
+githash=`git rev-parse --short HEAD 2>/dev/null | sed "s/\(.*\)/@\1/"` # get current git hash
 gitbranch=`git rev-parse --abbrev-ref HEAD` # get current git branch
-gitversion=`git describe --abbrev=0 --tags` # returns the latest tag from current commit
+gitversion=`git describe --abbrev=0 --tags 2>/dev/null` # returns the latest tag from current commit
 jarversion=${gitversion}
 
 if [[ -z "$gitversion" ]]; then
@@ -16,11 +16,12 @@ fi
 
 packagename=kafka-connect-splunk-${gitversion}.tar.gz
 
-# record git info in buildinfo file
-/bin/rm -f buildinfo
-echo githash=${githash} >> buildinfo
-echo gitbranch=${gitbranch} >> buildinfo
-echo gitversion=${gitversion} >> buildinfo
+# record git info in version.property file under resources folder
+resourcedir='src/main/resources'
+/bin/rm -f ${resourcedir}/version.property
+echo githash=${githash} >> ${resourcedir}/version.property
+echo gitbranch=${gitbranch} >> ${resourcedir}/version.property
+echo gitversion=${gitversion} >> ${resourcedir}/version.property
 
 
 curdir=`pwd`
@@ -42,7 +43,6 @@ cp target/kafka-connect-splunk-${jarversion}.jar ${builddir}/connectors
 cp config/* ${builddir}/config
 cp README.md ${builddir}
 cp LICENSE ${builddir}
-cp buildinfo ${builddir}
 
 # Download kafka
 echo "Downloading kafka_2.11-${kafkaversion} ..."
