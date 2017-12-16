@@ -270,7 +270,7 @@ def _export_metric(exporter, start_time):
     end_time = time.time()
     queries = [
         'search index="_internal" source="*metrics*.log" group=per_sourcetype_thruput series="connector-perf*"',
-        'search index="main" source="source" sourcetype="metric"',
+        'search index="main" source="proc_monitor" sourcetype="metric"',
     ]
     for query in queries:
         for _ in xrange(3):
