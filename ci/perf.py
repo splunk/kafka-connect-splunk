@@ -4,6 +4,7 @@ import os
 import time
 import logging
 import requests
+import export_data
 
 try:
     import urllib3
@@ -17,7 +18,9 @@ try:
 except:
     pass
 
-logging.basicConfig(format='%(asctime)-15s %(message)s', level=logging.INFO)
+logging.basicConfig(
+    format='%(asctime)-15s mod=%(module)s func=%(funcName)s line=%(lineno)d %(message)s',
+    level=logging.INFO)
 
 # envs
 # KAFKA_CONNECT_HEC_MODE
@@ -205,6 +208,8 @@ def wait_for_connector_do_data_collection_injection():
 
 
 def _do_perf(hec_uris, hec_raw, hec_ack):
+    metric_exporter = _new_data_exporter()
+    start_time = time.time()
     for test_case in PERF_CASES:
         config = _get_connector_config(hec_uris, hec_raw, hec_ack, test_case)
         logging.info(
@@ -214,6 +219,9 @@ def _do_perf(hec_uris, hec_raw, hec_ack):
         create_connector(CONNECTOR_URI, config)
         wait_for_connector_do_data_collection_injection()
         delete_connector(CONNECTOR_URI, config)
+
+        _export_metric(metric_exporter, start_time)
+        start_time = time.time()
 
 
 def _get_hec_configs():
@@ -242,6 +250,37 @@ def _get_hec_configs():
         }
 
     return hec_configs
+
+
+def _new_data_exporter():
+    config = export_data.ExportParams(
+        src_splunk_uri='https://sh1:8089',
+        src_splunk_user='admin',
+        src_splunk_password='changed',
+        dest_splunk_hec_uri='{}'.format(os.environ['CONNECT_PERF_METRIC_DEST_HEC']),
+        dest_splunk_hec_token='{}'.format(os.environ['CONNECT_PERF_METRIC_TOKEN']),
+        src_index='',
+        src_sourcetypes=[],
+        timeout=600,
+    )
+    return export_data.ExportData(config)
+
+
+def _export_metric(exporter, start_time):
+    end_time = time.time()
+    queries = [
+        'search index="_internal" source="*metrics*.log" group=per_sourcetype_thruput series="connector-perf*"',
+        'search index="main" source="proc_monitor" sourcetype="metric"',
+    ]
+    for query in queries:
+        for _ in xrange(3):
+            try:
+                exporter.export(query, start_time, end_time)
+            except Exception:
+                logging.exception(
+                    'failed to export perf metrics, query=%s', query)
+            else:
+                break
 
 
 def perf():
