@@ -254,7 +254,8 @@ class ExportData(object):
 
         return session
 
-    def _initialize_time_range(self, start_time, end_time, time_window):
+    @staticmethod
+    def _initialize_time_range(start_time, end_time, time_window):
         '''
         process the input start_time and end_time and validate the values
         @param: start_time
@@ -278,7 +279,8 @@ class ExportData(object):
 
         return start_time, end_time
 
-    def _compute_next_time_range(self, last_end_time, end_time, time_window):
+    @staticmethod
+    def _compute_next_time_range(last_end_time, end_time, time_window):
         '''
         compute the next time range for data collection
         @param: last_end_time
@@ -299,9 +301,23 @@ class ExportData(object):
 
         return last_end_time, next_end_time
 
-    def export(self, query, start_time, end_time):
-        events = self._collect_data(query, start_time, end_time)
-        self._send_to_dest_thru_hec(events)
+    def export(self, query, start_time, end_time, time_window):
+        start_time, end_time = self._initialize_time_range(
+            start_time, end_time, time_window)
+
+        cur_start_time = start_time
+        cur_end_time = start_time + time_window
+
+        while cur_start_time < cur_end_time or end_time is None:
+            logger.info(
+                'query=%s start_time=%s  endtime=%s',
+                query, cur_start_time, cur_end_time)
+
+            events = self._collect_data(query, start_time, end_time)
+            self._send_to_dest_thru_hec(events)
+
+            cur_start_time, cur_end_time = self._compute_next_time_range(
+                cur_end_time, end_time, time_window)
 
     def run(self, start_time=None, end_time=None, time_window=30):
         '''
@@ -309,31 +325,19 @@ class ExportData(object):
         @param: start_time
                 start time in epoch seconds to run search job. If None, current
                 time will be used
-        @oaram: end_time
+        @param: end_time
                 end time in epoch seconds to run search job. If None,
                 job will run forever
-        @oaram: time_window
+        @param: time_window
                 time window in seconds to run search job. Default is 5 seconds
         '''
-        start_time, end_time = self._initialize_time_range(
-            start_time, end_time, time_window)
-
         self._check_source_connection()
         self._check_dest_connection()
 
         query = self._compose_search_query()
-        logger.info('Data collection (%s - %s) starts', start_time, end_time)
+        logger.info('data collection (%s - %s) starts', start_time, end_time)
 
-        cur_start_time = start_time
-        cur_end_time = start_time + time_window
-
-        while cur_start_time < cur_end_time or end_time is None:
-            logger.info('Collecting %s - %s', cur_start_time, cur_end_time)
-
-            self.export(query, cur_start_time, cur_end_time)
-
-            cur_start_time, cur_end_time = self._compute_next_time_range(
-                cur_end_time, end_time, time_window)
+        self.export(query, start_time, end_time, time_window)
 
         logger.info('done with run')
 
