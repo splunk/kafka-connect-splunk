@@ -16,16 +16,13 @@
 package com.splunk.kafka.connect;
 
 import com.splunk.hecclient.*;
+import com.splunk.kafka.connect.Utils;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.connect.errors.RetriableException;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTask;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.*;
 
 import org.slf4j.Logger;
@@ -34,8 +31,6 @@ import org.slf4j.LoggerFactory;
 public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class);
     private static final long flushWindow = 30 * 1000; // 30 seconds
-    private static final String versionPropertiesFile = "/version.properties";
-    private static final String defaultVersion = "dev";
 
     private HecInf hec;
     private KafkaRecordTracker tracker;
@@ -225,49 +220,8 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
     @Override
     public String version() {
-        List<String> versionProperties = readVersionProperties();
-        String version = getVersionString(versionProperties);
-
-        return version;
+        return Utils.getVersionString();
     }
-
-    private String getVersionString(List<String> properties) {
-        String versionStr = defaultVersion;
-        if (properties.size() > 0) {
-            for(String item : properties){
-                String[] res = item.split("gitversion=");
-                if (res.length > 1) {
-                    versionStr = res[1];
-                    log.info("found git version string={} in version.properties file", versionStr);
-                    break;
-                }
-            }
-        }
-
-        return versionStr;
-    }
-
-    private List<String> readVersionProperties() {
-        String line = null;
-        List<String> properties = new ArrayList<String>();
-        
-        try {
-            InputStream in = getClass().getResourceAsStream(versionPropertiesFile);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-
-            while ((line = reader.readLine()) != null)
-            {
-                properties.add(line);
-            }
-
-            // close the BufferedReader when we're done
-            reader.close();
-        } catch (IOException ex) {
-            log.error("Failed to read properties file {}.", versionPropertiesFile, ex);
-        }
-
-        return properties;
-}
 
     public void onEventCommitted(final List<EventBatch> batches) {
         // for (final EventBatch batch: batches) {

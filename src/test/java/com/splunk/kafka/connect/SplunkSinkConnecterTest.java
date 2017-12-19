@@ -27,12 +27,6 @@ import java.util.*;
 class SplunkSinkConnecterTest {
 
     @Test
-    void version() {
-        SinkConnector connector = new SplunkSinkConnector();
-        Assert.assertEquals("1.0.0", connector.version());
-    }
-
-    @Test
     void startStop() {
         SinkConnector connector = new SplunkSinkConnector();
         Map<String, String> taskConfig = new HashMap<>();
