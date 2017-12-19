@@ -21,29 +21,29 @@ import java.util.ArrayList;
 import org.junit.Assert;
 import org.junit.Test;
 
-public final class UtilsTest {
+public final class VersionUtilsTest {
 
     @Test
     public void  getVersionFromProperties() {
-        String version = Utils.getVersionFromProperties(null);
+        String version = VersionUtils.getVersionFromProperties(null);
         Assert.assertEquals(version, "dev");
 
-        version = Utils.getVersionFromProperties(new ArrayList<String>());
+        version = VersionUtils.getVersionFromProperties(new ArrayList<String>());
         Assert.assertEquals(version, "dev");
 
-        List<String> properties = Utils.readResourceFile("/testversion.properties");
-        version = Utils.getVersionFromProperties(properties);
+        List<String> properties = VersionUtils.readResourceFile("/testversion.properties");
+        version = VersionUtils.getVersionFromProperties(properties);
         Assert.assertEquals(version, "0.1.3");
     }
 
     @Test
     public void readResourceFile() {
         // test when the resource file does not exist 
-        List<String> res = Utils.readResourceFile("/randomFile");
+        List<String> res = VersionUtils.readResourceFile("/randomFile");
         Assert.assertEquals(res.size(), 0);
 
 
-        res = Utils.readResourceFile("/testversion.properties");
+        res = VersionUtils.readResourceFile("/testversion.properties");
         Assert.assertEquals(res.size(), 3);
     }
 }

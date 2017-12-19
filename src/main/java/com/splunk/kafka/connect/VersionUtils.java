@@ -25,10 +25,10 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class Utils {
+public final class VersionUtils {
     private static final String VERSION_PROPERTIES_FILE = "/version.properties";
     private static final String DEFAULT_VERSION = "dev";
-    private static final Logger log = LoggerFactory.getLogger(Utils.class);
+    private static final Logger log = LoggerFactory.getLogger(VersionUtils.class);
 
     /**
      * Returns the version string that is set in the version.properties
@@ -52,14 +52,16 @@ public final class Utils {
     public static String getVersionFromProperties(List<String> properties) {
         String versionStr = DEFAULT_VERSION;
 
-        if (properties != null && properties.size() > 0) {
-            for (String item : properties) {
-                String[] res = item.split("gitversion=");
-                if (res.length > 1) {
-                    versionStr = res[1].trim();
-                    log.debug("found git version string={} in version.properties file", versionStr);
-                    break;
-                }
+        if (properties == null) {
+            return versionStr;
+        }
+
+        for (String item : properties) {
+            String[] res = item.split("gitversion=");
+            if (res.length > 1) {
+                versionStr = res[1].trim();
+                log.debug("found git version string={} in version.properties file", versionStr);
+                break;
             }
         }
 
@@ -86,7 +88,7 @@ public final class Utils {
         List<String> properties = new ArrayList<>();
 
         try {
-            InputStream in = Utils.class.getResourceAsStream(resourceFileName);
+            InputStream in = VersionUtils.class.getResourceAsStream(resourceFileName);
 
             // if the resource file can't be found, return an empty list
             if (in == null) {

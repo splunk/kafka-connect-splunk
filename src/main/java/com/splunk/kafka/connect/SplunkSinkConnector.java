@@ -15,7 +15,7 @@
  */
 package com.splunk.kafka.connect;
 
-import com.splunk.kafka.connect.Utils;
+import com.splunk.kafka.connect.VersionUtils;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.Task;
 import org.apache.kafka.connect.sink.SinkConnector;
@@ -59,7 +59,7 @@ public final class SplunkSinkConnector extends SinkConnector {
 
     @Override
     public String version() {
-        return Utils.getVersionString();
+        return VersionUtils.getVersionString();
     }
 
     @Override
