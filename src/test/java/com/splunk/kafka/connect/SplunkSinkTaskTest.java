@@ -52,12 +52,6 @@ public class SplunkSinkTaskTest {
     }
 
     @Test
-    public void version() {
-        SplunkSinkTask task = new SplunkSinkTask();
-        Assert.assertEquals("1.0.0", task.version());
-    }
-
-    @Test
     public void startStopConcurrent() {
         SplunkSinkTask task = new SplunkSinkTask();
         UnitUtil uu = new UnitUtil();

@@ -16,6 +16,7 @@
 package com.splunk.kafka.connect;
 
 import com.splunk.hecclient.*;
+import com.splunk.kafka.connect.VersionUtils;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.connect.errors.RetriableException;
@@ -219,7 +220,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
     @Override
     public String version() {
-        return "1.0.0";
+        return VersionUtils.getVersionString();
     }
 
     public void onEventCommitted(final List<EventBatch> batches) {
