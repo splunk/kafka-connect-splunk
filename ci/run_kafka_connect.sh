@@ -10,7 +10,7 @@ branch=${KAFKA_CONNECT_BRANCH:-develop}
 cd kafka-connect-splunk && git checkout ${branch} && bash build.sh
 
 # untar the package
-tar xzf kafka-connect-splunk.tar.gz
+tar xzf kafka-connect-splunk*.tar.gz
 cd kafka-connect-splunk
 
 sed -i"" "s@bootstrap.servers=.*@bootstrap.servers=$KAFKA_BOOTSTRAP_SERVERS@g" config/connect-distributed.properties
