@@ -98,8 +98,7 @@ public final class VersionUtils {
             BufferedReader reader = new BufferedReader(new InputStreamReader(in));
             String line;
 
-            while ((line = reader.readLine()) != null)
-            {
+            while ((line = reader.readLine()) != null) {
                 properties.add(line);
             }
 
