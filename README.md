@@ -25,7 +25,7 @@ Note: The resulting "kafka-connect-splunk-*.tar.gz" package is self-contained. B
 
 ## Quick Start
 
-1. [Start](https://kafka.apache.org/quickstart) your Kafka Cluster and Zookeeper on your local host. Confirm both are running.
+1. [Start](https://kafka.apache.org/quickstart) your Kafka Cluster and confirm it is running.
 2. If this is a new install, create a test topic (eg: `perf`). Inject events into the topic. This can be done using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen) or the Kafka bundle [kafka-console-producer](https://kafka.apache.org/quickstart#quickstart_send).
 3. Untar the package created from the build script: `tar xzvf kafka-connect-splunk-*.tar.gz` (Default target location is /tmp/kafka-connect-splunk-build/kafka-connect-splunk).
 4. Navigate to kafka-connect-splunk directory `cd kafka-connect-splunk`.
