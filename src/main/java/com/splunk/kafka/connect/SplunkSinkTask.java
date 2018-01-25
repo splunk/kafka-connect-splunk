@@ -52,7 +52,11 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
     @Override
     public void put(Collection<SinkRecord> records) {
-        log.debug("received {} records with total {} outstanding events tracked", records.size(), tracker.totalEvents());
+        Thread currentThread = Thread.currentThread();
+        long threadId = currentThread.getId();
+        long startTime = System.currentTimeMillis();
+        log.debug("Thread {} start time: {}", threadId, startTime);
+        log.debug("Thread {} received {} records with total {} outstanding events tracked", threadId, records.size(), tracker.totalEvents());
 
         handleFailedBatches();
 
@@ -61,12 +65,14 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         bufferedRecords.addAll(records);
         if (bufferedRecords.size() < connectorConfig.maxBatchSize) {
             if (System.currentTimeMillis() - lastFlushed < flushWindow) {
+                logTimeDurationforThread(startTime, threadId);
                 // still in flush window, buffer the records and return
                 return;
             }
 
             if (bufferedRecords.isEmpty()) {
                 lastFlushed = System.currentTimeMillis();
+                logTimeDurationforThread(startTime, threadId);
                 return;
             }
         }
@@ -83,6 +89,13 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             /* /event endpoint */
             handleEvent(records);
         }
+        logTimeDurationforThread(startTime, threadId);
+    }
+
+    private void logTimeDurationforThread(long startTime, long ThreadId) {
+        long endTime = System.currentTimeMillis();
+        log.debug("Thread {} end time: {}", ThreadId, endTime);
+        log.debug("Thread {} time used {} ms", ThreadId, endTime - startTime);
     }
 
     // for testing hook
