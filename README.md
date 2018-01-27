@@ -57,7 +57,7 @@ Note: The resulting "kafka-connect-splunk-*.tar.gz" package is self-contained. B
 	   "splunk.hec.total.channels": "8",
 	   "splunk.hec.max.batch.size": "1000000",
 	   "splunk.hec.threads": "2",
-	   "splunk.hec.event.timeout": "60",
+	   "splunk.hec.event.timeout": "300",
 	   "splunk.hec.socket.timeout": "120",
 	   "splunk.hec.track.data": "true"
 	  }
@@ -399,7 +399,7 @@ Use the below schema to configure Splunk Kafka Connector
 * `splunk.hec.ack.poll.interval` - This setting is only applicable when `splunk.hec.ack.enabled` is set to `true`. Internally it controls the event ACKs polling interval. By default, this setting is 10 seconds.
 * `splunk.hec.ack.poll.threads` - This setting is used for performance tuning and is only applicable when `splunk.hec.ack.enabled` is set to `true`. It controls how many threads should be spawned to poll event ACKs. By default, it is set to `1`.
     > Note: For large Splunk indexer clusters (For example, 100 indexers) you need to increase this number. Recommended increase to speed up ACK polling is 4 threads.
-* `splunk.hec.event.timeout` - This setting is applicable when `splunk.hec.ack.enabled` is set to `true`. When events are POSTed to Splunk and before they are ACKed, this setting determines how long the connector will wait before timing out and resending. By default, it is set to 120 seconds.
+* `splunk.hec.event.timeout` - This setting is applicable when `splunk.hec.ack.enabled` is set to `true`. When events are POSTed to Splunk and before they are ACKed, this setting determines how long the connector will wait before timing out and resending. By default, it is set to 300 seconds.
 
 #### Endpoint Parameters
 * `splunk.hec.raw` - Set to `true` in order for Splunk software to ingest data using the the /raw HEC endpoint. Default is `false`, which will use the /event endpoint.
@@ -433,7 +433,7 @@ Use the below schema to configure Splunk Kafka Connector
 	      "splunk.hec.ack.enabled : "true",
 	      "splunk.hec.ack.poll.interval" : "20",
 	      "splunk.hec.ack.poll.threads" : "2",
-	      "splunk.hec.event.timeout" : "120",
+	      "splunk.hec.event.timeout" : "300",
 	      "splunk.hec.raw" : "true",
 	      "splunk.hec.raw.line.breaker" : "#####"
 	    }
@@ -454,7 +454,7 @@ Use the below schema to configure Splunk Kafka Connector
          "splunk.hec.ack.enabled : "true",
          "splunk.hec.ack.poll.interval" : "20",
          "splunk.hec.ack.poll.threads" : "2",
-         "splunk.hec.event.timeout" : "120",
+         "splunk.hec.event.timeout" : "300",
          "splunk.hec.raw" : "false",
          "splunk.hec.json.event.enrichment" : "org=fin,bu=south-east-us",
          "splunk.hec.track.data" : "true"
