@@ -68,7 +68,11 @@ public final class HecAckPoller implements Poller {
         scheduler.setRemoveOnCancelPolicy(true);
 
         Runnable poller = () -> {
-            poll();
+            try {
+                poll();
+            } catch (HecException e) {
+                log.error("failed to poll", e);
+            }
         };
         scheduler.scheduleWithFixedDelay(poller, ackPollInterval, ackPollInterval, TimeUnit.SECONDS);
 
@@ -239,6 +243,7 @@ public final class HecAckPoller implements Poller {
         while (iterator.hasNext()) {
             EventBatch batch = iterator.next().getValue();
             if (batch.isTimedout(eventBatchTimeout)) {
+                batch.fail();
                 timeouts.add(batch);
                 iterator.remove();
             }
@@ -246,7 +251,7 @@ public final class HecAckPoller implements Poller {
     }
 
     private void handleAckPollResponse(String resp, HecChannel channel) {
-        log.debug("ackPollResponse={}", resp);
+        log.debug("ackPollResponse={}, channel={}", resp, channel);
         HecAckPollResponse ackPollResult;
         try {
             ackPollResult = jsonMapper.readValue(resp, HecAckPollResponse.class);

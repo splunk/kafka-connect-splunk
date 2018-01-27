@@ -240,6 +240,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     }
 
     public void onEventFailure(final List<EventBatch> batches, Exception ex) {
+        log.info("add {} failed batches", batches.size());
         for (EventBatch batch: batches) {
             tracker.addFailedEventBatch(batch);
         }
