@@ -23,7 +23,7 @@ A Kafka Connect Sink for Splunk features:
 
 Note: The resulting "kafka-connect-splunk-*.tar.gz" package is self-contained. Bundled within it are the Kafka Connect framework, all 3rd party libraries, and the Splunk Kafka Connector.
 
-## Quick Start build from source
+## Quick Start(Build from source)
 
 1. [Start](https://kafka.apache.org/quickstart) your Kafka Cluster and confirm it is running.
 2. If this is a new install, create a test topic (eg: `perf`). Inject events into the topic. This can be done using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen) or the Kafka bundle [kafka-console-producer](https://kafka.apache.org/quickstart#quickstart_send).
@@ -87,19 +87,19 @@ Note: The resulting "kafka-connect-splunk-*.tar.gz" package is self-contained. B
     See the [the Confluent doucumentation](https://docs.confluent.io/current/connect/managing.html#common-rest-examples) for additional REST examples.
 
 
-#Quick start from uber-jar
+## Quick start(Deploy uber-jar)
 1. [Start](https://kafka.apache.org/quickstart) your Kafka Cluster and confirm it is running.
 
 2. Navigate to Splunk Base and download the latest version of [Splunk Kafka Connect](https://splunkbase.splunk.com/app/3862/)
  
-3. Copy downloaded file into the directory that contains your other connectors or create a folder to house them. ex. \opt\connectors\splunk-kafka-connect
+3. Copy downloaded file into the directory that contains your other connectors or create a folder to store them in. (ex. `\opt\connectors\splunk-kafka-connect`)
 
 3. Create a properties file called `splunk-kafka-connect.properties.` File should be created in directory `\kafka\config\`.
     Copy the following contents into the file and modify the <BOOTSTRAP_SERVERS> to point to one of your kafka brokers (ex. `localhost:9092`): and 
     modify <PLUGIN_PATH> to point to the top level directory of where you are storing your connectors. (ex. `\opt\connectors`)
     
-    *note* - If running Kafka Version 0.10.x - PLUGIN_PATH is not a valid configuration property. To make the connector visible to 
-    kafka connect the connectors folder must be added to the classpath. (ex. export `CLASSPATH=\opt\connectors\*`)
+    > Note: - If running Kafka Version 0.10.x - PLUGIN_PATH is not a valid configuration property. To make the connector visible to 
+    Kafka Connect the connectors folder must be added to the classpath. (ex. export `CLASSPATH=\opt\connectors\*`)
 
 
 ```
