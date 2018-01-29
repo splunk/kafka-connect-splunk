@@ -23,7 +23,7 @@ A Kafka Connect Sink for Splunk features:
 
 Note: The resulting "kafka-connect-splunk-*.tar.gz" package is self-contained. Bundled within it are the Kafka Connect framework, all 3rd party libraries, and the Splunk Kafka Connector.
 
-## Quick Start(Build from source)
+## Quick Start
 
 1. [Start](https://kafka.apache.org/quickstart) your Kafka Cluster and confirm it is running.
 2. If this is a new install, create a test topic (eg: `perf`). Inject events into the topic. This can be done using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen) or the Kafka bundle [kafka-console-producer](https://kafka.apache.org/quickstart#quickstart_send).
@@ -87,7 +87,76 @@ Note: The resulting "kafka-connect-splunk-*.tar.gz" package is self-contained. B
     See the [the Confluent doucumentation](https://docs.confluent.io/current/connect/managing.html#common-rest-examples) for additional REST examples.
 
 
-## Quick start(Deploy uber-jar)
+## Deployment
+Splunk Kafka Connector can run in containers, virtual machines or on physical machines.
+You can leverage any automation tools for deployment.
+
+Use the following connector deployment options:
+* Splunk Kafka Connector in a dedicated Kafka Connect Cluster (recommended)
+* Splunk Kafka Connector in an existing Kafka Connect Cluster (tar.gz or uber jar)
+
+### Connector in a dedicated Kafka Connect Cluster 
+Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recommended. Isolating the Splunk connector from other Kafka connectors results in significant performance benefits in high throughput environments.
+
+1. Untar the **kafka-connect-splunk-*.tar.gz** package and navigate to the **kafka-connect-splunk** directory.
+
+    ```
+    tar xzvf kafka-connect-splunk-*.tar.gz
+    cd kafka-connect-splunk
+    ```
+
+2. Update config/connect-distributed.properties to match your environment.
+
+	```
+	bootstrap.servers=<broker1:9092,broker2:9092,...>  # adjust this setting to the brokers' IP/hostname port
+	```
+
+3. Revise other optional settings in **config/connect-distributed.properties** as needed.
+
+	> Note: Do not change the replication factor and partition number at this time.
+
+	> Note: The below topics should be created by Kafka Connect when deploying the Splunk Connector. If the Kafka Connect cluster **does not have permission** to create these topics, create these manually before starting Kafka Connect cluster.
+
+    ```
+	group.id=kafka-connect-splunk-hec-sink    # consumer group id of Kafka Connect, which is used to form a Kafka Connect cluster
+
+	config.storage.topic=__kafka-connect-splunk-task-configs # kafka topic used to persistent connector task configurations
+	config.storage.replication.factor=3
+
+	offset.storage.topic=__kafka-connect-splunk-offsets # kafka topic used to persistent task checkpoints
+	offset.storage.replication.factor=3
+	offset.storage.partitions=25
+
+	status.storage.topic=__kafka-connect-splunk-statuses # kafka topic used to persistent task statuses
+	status.storage.replication.factor=3
+	status.storage.partitions=5
+	```
+
+4. Deploy/Copy the **kafka-connect-splunk** directory to all target hosts (virtual machines, physical machines or containers).
+5. Start Kafka Connect on all target hosts using the below commands:
+
+	```
+	cd kafka-connect-splunk
+	export KAFKA_HEAP_OPTS="-Xmx6G -Xms2G" && ./bin/connect-distributed.sh config/connect-distributed.properties >> kafka-connect-splunk.log 2>&1
+	```
+
+	> Note: The **KAFKA\_HEAP\_OPTS** environment variable controls how much memory Kafka Connect can use. Set the **KAFKA\_HEAP\_OPTS** with the recommended value stated in the example above.
+
+### Connector in an existing Kafka Connect Cluster (tar.gz)
+1. Untar the **kafka-connect-splunk-*.tar.gz** installation package and go to the **kafka-connect-splunk** directory.
+
+    ```
+    tar xzvf kafka-connect-splunk-*.tar.gz
+    cd kafka-connect-splunk
+    ```
+
+2. Copy the **connectors/kafka-connect-splunk-*.jar** to the plugin path specified by **plugin.path** in the existing Kafka Connect on every host.
+    > Note: - If running Kafka Version 0.10.x - PLUGIN_PATH is not a valid configuration property. To make the connector visible to 
+    Kafka Connect the connectors folder must be added to the classpath. (ex. export `CLASSPATH=\opt\connectors\*`)
+
+3. Restart the Kafka Connect cluster.
+
+### Connector in an existing Kafka Connect Cluster (uber-jar)
 1. [Start](https://kafka.apache.org/quickstart) your Kafka Cluster and confirm it is running.
 
 2. Navigate to Splunk Base and download the latest version of [Splunk Kafka Connect](https://splunkbase.splunk.com/app/3862/)
@@ -176,74 +245,7 @@ rest.host.name=localhost
     
 4. Run `./bin/connect-distributed.sh config/splunk-kafka-connect.properties` to start Kafka Connect.
 
-5. Follow steps 7 to 9 as above for Quick Start build from source
-
-## Deployment
-Splunk Kafka Connector can run in containers, virtual machines or on physical machines.
-You can leverage any automation tools for deployment.
-
-Use the following connector deployment options:
-* Splunk Kafka Connector in a dedicated Kafka Connect Cluster (recommended)
-* Splunk Kafka Connector in an existing Kafka Connect Cluster
-
-### Connector in a dedicated Kafka Connect Cluster
-Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recommended. Isolating the Splunk connector from other Kafka connectors results in significant performance benefits in high throughput environments.
-
-1. Untar the **kafka-connect-splunk-*.tar.gz** package and navigate to the **kafka-connect-splunk** directory.
-
-    ```
-    tar xzvf kafka-connect-splunk-*.tar.gz
-    cd kafka-connect-splunk
-    ```
-
-2. Update config/connect-distributed.properties to match your environment.
-
-	```
-	bootstrap.servers=<broker1:9092,broker2:9092,...>  # adjust this setting to the brokers' IP/hostname port
-	```
-
-3. Revise other optional settings in **config/connect-distributed.properties** as needed.
-
-	> Note: Do not change the replication factor and partition number at this time.
-
-	> Note: The below topics should be created by Kafka Connect when deploying the Splunk Connector. If the Kafka Connect cluster **does not have permission** to create these topics, create these manually before starting Kafka Connect cluster.
-
-    ```
-	group.id=kafka-connect-splunk-hec-sink    # consumer group id of Kafka Connect, which is used to form a Kafka Connect cluster
-
-	config.storage.topic=__kafka-connect-splunk-task-configs # kafka topic used to persistent connector task configurations
-	config.storage.replication.factor=3
-
-	offset.storage.topic=__kafka-connect-splunk-offsets # kafka topic used to persistent task checkpoints
-	offset.storage.replication.factor=3
-	offset.storage.partitions=25
-
-	status.storage.topic=__kafka-connect-splunk-statuses # kafka topic used to persistent task statuses
-	status.storage.replication.factor=3
-	status.storage.partitions=5
-	```
-
-4. Deploy/Copy the **kafka-connect-splunk** directory to all target hosts (virtual machines, physical machines or containers).
-5. Start Kafka Connect on all target hosts using the below commands:
-
-	```
-	cd kafka-connect-splunk
-	export KAFKA_HEAP_OPTS="-Xmx6G -Xms2G" && ./bin/connect-distributed.sh config/connect-distributed.properties >> kafka-connect-splunk.log 2>&1
-	```
-
-	> Note: The **KAFKA\_HEAP\_OPTS** environment variable controls how much memory Kafka Connect can use. Set the **KAFKA\_HEAP\_OPTS** with the recommended value stated in the example above.
-
-### Connector in an existing Kafka Connect Cluster
-1. Untar the **kafka-connect-splunk-*.tar.gz** installation package and go to the **kafka-connect-splunk** directory.
-
-    ```
-    tar xzvf kafka-connect-splunk-*.tar.gz
-    cd kafka-connect-splunk
-    ```
-
-2. Copy the **conectors/kafka-connect-splunk-*.jar** to the plugin path specified by **plugin.path** in the existing Kafka Connect on every host.
-3. Copy **libs/commons-logging-1.2.jar** to **libs** of the existing Kafka Connect on each host.
-4. Restart the Kafka Connect cluster.
+5. Follow steps 7 to 9 as above for Quick Start 
 
 ## Security
 The Kafka Connect Splunk Sink supports the following security mechanisms
