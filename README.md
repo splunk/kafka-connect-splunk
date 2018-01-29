@@ -241,7 +241,7 @@ rest.host.name=localhost
 
 ```    
     
-4. Run `./$KAFKA_CONNECT_HOME/bin/connect-distributed.sh $KAFKA_CONNECT_HOME/config/splunk-kafka-connect.properties` to start Kafka Connect.
+4. Run `$KAFKA_CONNECT_HOME/bin/connect-distributed.sh $KAFKA_CONNECT_HOME/config/splunk-kafka-connect.properties` to start Kafka Connect.
 
 ## Security
 The Kafka Connect Splunk Sink supports the following security mechanisms
