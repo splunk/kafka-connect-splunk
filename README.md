@@ -8,7 +8,7 @@ A Kafka Connect Sink for Splunk features:
 ## Requirements
 1. Kafka version 0.10 and above.
 2. Java 8 and above.
-3. A Splunk environment of version 6.5(required for event annotation) and above, configured with valid HTTP Event Collector (HEC) tokens.
+3. A Splunk environment of version 6.5 and above, configured with valid HTTP Event Collector (HEC) tokens.
 
 	* HEC token settings should be the same on all Splunk Indexers and Heavy Forwarders in your environment.
 	* Task configuration parameters will vary depending on acknowledgement setting (See the [Configuration](#configuration) section for details).
@@ -93,7 +93,7 @@ You can leverage any automation tools for deployment.
 
 Use the following connector deployment options:
 * Splunk Kafka Connector in a dedicated Kafka Connect Cluster (recommended)
-* Splunk Kafka Connector in an existing Kafka Connect Cluster (tar.gz or uber jar)
+* Splunk Kafka Connector in an existing Kafka Connect Cluster
 
 ### Connector in a dedicated Kafka Connect Cluster 
 Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recommended. Isolating the Splunk connector from other Kafka connectors results in significant performance benefits in high throughput environments.
@@ -142,27 +142,13 @@ Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recom
 
 	> Note: The **KAFKA\_HEAP\_OPTS** environment variable controls how much memory Kafka Connect can use. Set the **KAFKA\_HEAP\_OPTS** with the recommended value stated in the example above.
 
-### Connector in an existing Kafka Connect Cluster (tar.gz)
-1. Untar the **kafka-connect-splunk-*.tar.gz** installation package and go to the **kafka-connect-splunk** directory.
+### Connector in an existing Kafka Connect Cluster
 
-    ```
-    tar xzvf kafka-connect-splunk-*.tar.gz
-    cd kafka-connect-splunk
-    ```
-
-2. Copy the **connectors/kafka-connect-splunk-*.jar** to the plugin path specified by **plugin.path** in the existing Kafka Connect on every host.
-    > Note: - If running Kafka Version 0.10.x - PLUGIN_PATH is not a valid configuration property. To make the connector visible to 
-    Kafka Connect the connectors folder must be added to the classpath. (ex. export `CLASSPATH=/opt/connectors/*`)
-
-3. Restart the Kafka Connect cluster.
-
-### Connector in an existing Kafka Connect Cluster (uber-jar)
-
-1. Navigate to SplunkBase and download the latest version of [Splunk Kafka Connect](https://splunkbase.splunk.com/app/3862/)
+1. Navigate to Splunkbase and download the latest version of [Splunk Kafka Connect](https://splunkbase.splunk.com/app/3862/)
  
 2. Copy downloaded file onto every host into the directory that contains your other connectors or create a folder to store them in. (ex. `/opt/connectors/splunk-kafka-connect`)
 
-3. Create a properties file called `splunk-kafka-connect.properties.` File should be created in directory `$KAFKA_CONNECT_HOME/config/`.
+3. Create a properties file called `kafka-connect.properties.` File should be created in directory `$KAFKA_CONNECT_HOME/config/`.
     Copy the following contents into the file and modify the <BOOTSTRAP_SERVERS> to point to one of your kafka brokers (ex. `localhost:9092`): and 
     modify <PLUGIN_PATH> to point to the top level directory of where you are storing your connectors. (ex. `/opt/connectors`)
     
@@ -170,78 +156,34 @@ Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recom
     Kafka Connect the connectors folder must be added to the classpath. (ex. export `CLASSPATH=/opt/connectors/*`)
 
 ```
-# These are defaults. This file just demonstrates how to override some settings.
 bootstrap.servers=<BOOTSTRAP_SERVERS>
-
-# The converters specify the format of data in Kafka and how to translate it into Connect data. Every Connect user will
-# need to configure these based on the format they want their data in when loaded from or stored into Kafka
 #key.converter=org.apache.kafka.connect.json.JsonConverter
 #value.converter=org.apache.kafka.connect.json.JsonConverter
-
 key.converter=org.apache.kafka.connect.storage.StringConverter
 value.converter=org.apache.kafka.connect.storage.StringConverter
-
 key.converter.schemas.enable=false
 value.converter.schemas.enable=false
-
-# The internal converter used for offsets and config data is configurable and must be specified, but most users will
-# always want to use the built-in default. Offset and config data is never visible outside of Copcyat in this format.
 internal.key.converter=org.apache.kafka.connect.json.JsonConverter
 internal.value.converter=org.apache.kafka.connect.json.JsonConverter
-
 internal.key.converter.schemas.enable=false
 internal.value.converter.schemas.enable=false
-
-# Flush much faster (10s) than normal, which is useful for testing/debugging
 offset.flush.interval.ms=10000
-
 plugin.path=<PLUGIN_PATH>
-
 group.id=kafka-connect-splunk-hec-sink
 config.storage.topic=__kafka-connect-splunk-task-configs
 config.storage.replication.factor=1
-
 offset.storage.topic=__kafka-connect-splunk-offsets
 offset.storage.replication.factor=1
 offset.storage.partitions=1
-
 status.storage.topic=__kafka-connect-splunk-statuses
 status.storage.replication.factor=1
 status.storage.partitions=1
-
-
-#ssl.key.password=
-#
-#ssl.keystore.type=JKS
-#ssl.keystore.location=
-#ssl.keystore.password=
-#
-#ssl.truststore.type=
-#ssl.truststore.password=
-#ssl.truststore.location=
-#
-#sasl.kerberos.service.name=
-#security.protocol=
-#
-#ssl.enabled.protocols=
-#ssl.protocol=TLS
-#ssl.provider=
-#
-#sasl.kerberos.kinit.cmd=
-#
-#
-#ssl.cipher.suites=
-#ssl.endpoint.identification.algorithm=
-#ssl.keymanager.algorithm=SunX509
-#ssl.trustmanager.algorithm=PKIX
-
 rest.advertised.host.name=localhost
 rest.host.name=localhost
 
-
 ```    
     
-4. Run `$KAFKA_CONNECT_HOME/bin/connect-distributed.sh $KAFKA_CONNECT_HOME/config/splunk-kafka-connect.properties` to start Kafka Connect.
+4. Run `$KAFKA_CONNECT_HOME/bin/connect-distributed.sh $KAFKA_CONNECT_HOME/config/kafka-connect.properties` to start Kafka Connect or restart Kafka Connect with existing configuration file.
 
 ## Security
 The Kafka Connect Splunk Sink supports the following security mechanisms
