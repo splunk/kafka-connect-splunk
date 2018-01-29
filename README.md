@@ -158,9 +158,9 @@ Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recom
 
 ### Connector in an existing Kafka Connect Cluster (uber-jar)
 
-1. Navigate to Splunk Base and download the latest version of [Splunk Kafka Connect](https://splunkbase.splunk.com/app/3862/)
+1. Navigate to SplunkBase and download the latest version of [Splunk Kafka Connect](https://splunkbase.splunk.com/app/3862/)
  
-2. Copy downloaded file into the directory that contains your other connectors or create a folder to store them in. (ex. `\opt\connectors\splunk-kafka-connect`)
+2. Copy downloaded file onto every host into the directory that contains your other connectors or create a folder to store them in. (ex. `\opt\connectors\splunk-kafka-connect`)
 
 3. Create a properties file called `splunk-kafka-connect.properties.` File should be created in directory `\kafka\config\`.
     Copy the following contents into the file and modify the <BOOTSTRAP_SERVERS> to point to one of your kafka brokers (ex. `localhost:9092`): and 
