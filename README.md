@@ -152,7 +152,7 @@ Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recom
 
 2. Copy the **connectors/kafka-connect-splunk-*.jar** to the plugin path specified by **plugin.path** in the existing Kafka Connect on every host.
     > Note: - If running Kafka Version 0.10.x - PLUGIN_PATH is not a valid configuration property. To make the connector visible to 
-    Kafka Connect the connectors folder must be added to the classpath. (ex. export `CLASSPATH=/opt/connectors\*`)
+    Kafka Connect the connectors folder must be added to the classpath. (ex. export `CLASSPATH=/opt/connectors/*`)
 
 3. Restart the Kafka Connect cluster.
 
@@ -167,7 +167,7 @@ Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recom
     modify <PLUGIN_PATH> to point to the top level directory of where you are storing your connectors. (ex. `/opt/connectors`)
     
     > Note: - If running Kafka Version 0.10.x - PLUGIN_PATH is not a valid configuration property. To make the connector visible to 
-    Kafka Connect the connectors folder must be added to the classpath. (ex. export `CLASSPATH=/opt/connectors\*`)
+    Kafka Connect the connectors folder must be added to the classpath. (ex. export `CLASSPATH=/opt/connectors/*`)
 
 ```
 # These are defaults. This file just demonstrates how to override some settings.
