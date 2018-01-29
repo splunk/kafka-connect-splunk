@@ -157,11 +157,10 @@ Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recom
 3. Restart the Kafka Connect cluster.
 
 ### Connector in an existing Kafka Connect Cluster (uber-jar)
-1. [Start](https://kafka.apache.org/quickstart) your Kafka Cluster and confirm it is running.
 
-2. Navigate to Splunk Base and download the latest version of [Splunk Kafka Connect](https://splunkbase.splunk.com/app/3862/)
+1. Navigate to Splunk Base and download the latest version of [Splunk Kafka Connect](https://splunkbase.splunk.com/app/3862/)
  
-3. Copy downloaded file into the directory that contains your other connectors or create a folder to store them in. (ex. `\opt\connectors\splunk-kafka-connect`)
+2. Copy downloaded file into the directory that contains your other connectors or create a folder to store them in. (ex. `\opt\connectors\splunk-kafka-connect`)
 
 3. Create a properties file called `splunk-kafka-connect.properties.` File should be created in directory `\kafka\config\`.
     Copy the following contents into the file and modify the <BOOTSTRAP_SERVERS> to point to one of your kafka brokers (ex. `localhost:9092`): and 
@@ -169,7 +168,6 @@ Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recom
     
     > Note: - If running Kafka Version 0.10.x - PLUGIN_PATH is not a valid configuration property. To make the connector visible to 
     Kafka Connect the connectors folder must be added to the classpath. (ex. export `CLASSPATH=\opt\connectors\*`)
-
 
 ```
 # These are defaults. This file just demonstrates how to override some settings.
@@ -244,8 +242,6 @@ rest.host.name=localhost
 ```    
     
 4. Run `./bin/connect-distributed.sh config/splunk-kafka-connect.properties` to start Kafka Connect.
-
-5. Follow steps 7 to 9 as above for Quick Start 
 
 ## Security
 The Kafka Connect Splunk Sink supports the following security mechanisms
