@@ -179,7 +179,7 @@ status.storage.topic=__kafka-connect-splunk-statuses
 status.storage.replication.factor=3
 status.storage.partitions=5
 ```    
-    > Note: - For more information on the worker paramaters please refer to documentation https://kafka.apache.org/documentation/#connect_running
+    > Note: - For more information on the worker paramaters please refer to [documentation](https://kafka.apache.org/documentation/#connect_running)
     
 4. Run `$KAFKA_CONNECT_HOME/bin/connect-distributed.sh $KAFKA_CONNECT_HOME/config/kafka-connect.properties` to start Kafka Connect or restart Kafka Connect with existing configuration file.
 
