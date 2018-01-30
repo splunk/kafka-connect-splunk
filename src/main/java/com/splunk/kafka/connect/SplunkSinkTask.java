@@ -37,6 +37,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     private SplunkSinkConnectorConfig connectorConfig;
     private List<SinkRecord> bufferedRecords;
     private long lastFlushed = System.currentTimeMillis();
+    private long threadId = Thread.currentThread().getId();
 
     @Override
     public void start(Map<String, String> taskConfig) {
@@ -52,7 +53,8 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
     @Override
     public void put(Collection<SinkRecord> records) {
-        log.debug("received {} records with total {} outstanding events tracked", records.size(), tracker.totalEvents());
+        long startTime = System.currentTimeMillis();
+        log.debug("tid={} received {} records with total {} outstanding events tracked", threadId, records.size(), tracker.totalEvents());
 
         handleFailedBatches();
 
@@ -61,12 +63,14 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         bufferedRecords.addAll(records);
         if (bufferedRecords.size() < connectorConfig.maxBatchSize) {
             if (System.currentTimeMillis() - lastFlushed < flushWindow) {
+                logDuration(startTime);
                 // still in flush window, buffer the records and return
                 return;
             }
 
             if (bufferedRecords.isEmpty()) {
                 lastFlushed = System.currentTimeMillis();
+                logDuration(startTime);
                 return;
             }
         }
@@ -83,6 +87,12 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             /* /event endpoint */
             handleEvent(records);
         }
+        logDuration(startTime);
+    }
+
+    private void logDuration(long startTime) {
+        long endTime = System.currentTimeMillis();
+        log.debug("tid={} cost={} ms", threadId, endTime - startTime);
     }
 
     // for testing hook
@@ -230,6 +240,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     }
 
     public void onEventFailure(final List<EventBatch> batches, Exception ex) {
+        log.info("add {} failed batches", batches.size());
         for (EventBatch batch: batches) {
             tracker.addFailedEventBatch(batch);
         }
