@@ -6,7 +6,7 @@ import com.splunk.tool.plugin.docker.extension.BadDockerExitCode;
 def dockerReq = new DockerRequest(steps,
                                   currentBuild,
                                   env,
-                                  [imageName: "repo.splunk.com/splunk/products/splact",
+                                  [imageName: "repo.splunk.com/splunk/products/splact:1.0.9",
                                    userId: "10777",
                                    repoName: "git@github.com:splunk/kafka-connect-splunk.git",
                                    runner: "yarn",
