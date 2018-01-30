@@ -171,17 +171,15 @@ offset.flush.interval.ms=10000
 plugin.path=<PLUGIN_PATH>
 group.id=kafka-connect-splunk-hec-sink
 config.storage.topic=__kafka-connect-splunk-task-configs
-config.storage.replication.factor=1
+config.storage.replication.factor=3
 offset.storage.topic=__kafka-connect-splunk-offsets
-offset.storage.replication.factor=1
-offset.storage.partitions=1
+offset.storage.replication.factor=3
+offset.storage.partitions=25
 status.storage.topic=__kafka-connect-splunk-statuses
-status.storage.replication.factor=1
-status.storage.partitions=1
-rest.advertised.host.name=localhost
-rest.host.name=localhost
-
+status.storage.replication.factor=3
+status.storage.partitions=5
 ```    
+    > Note: - For more information on the worker paramaters please refer to documentation https://kafka.apache.org/documentation/#connect_running
     
 4. Run `$KAFKA_CONNECT_HOME/bin/connect-distributed.sh $KAFKA_CONNECT_HOME/config/kafka-connect.properties` to start Kafka Connect or restart Kafka Connect with existing configuration file.
 
