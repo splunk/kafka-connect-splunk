@@ -148,9 +148,7 @@ Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recom
  
 2. Copy downloaded file onto every host into the directory that contains your other connectors or create a folder to store them in. (ex. `/opt/connectors/splunk-kafka-connect`)
 
-3. Create a properties file called `kafka-connect.properties.` File should be created in directory `$KAFKA_CONNECT_HOME/config/`.
-    Copy the following contents into the file and modify the <BOOTSTRAP_SERVERS> to point to one of your kafka brokers (ex. `localhost:9092`): and 
-    modify <PLUGIN_PATH> to point to the top level directory of where you are storing your connectors. (ex. `/opt/connectors`)
+3. Create or modify a Kafka Connect worker properties file to contain the below listed paramaters (ex. `kafka-connect.properties`). Default location is `$KAFKA_CONNECT_HOME/config/`. Ensure to replace `<BOOTSTRAP_SERVERS>` to point to your kafka brokers (ex. `localhost:9092`) and modify `<PLUGIN_PATH>` to point to the top level directory of where you are storing your connectors. (ex. `/opt/connectors`).
     
     > Note: - If running Kafka Version 0.10.x - PLUGIN_PATH is not a valid configuration property. To make the connector visible to 
     Kafka Connect the connectors folder must be added to the classpath. (ex. export `CLASSPATH=/opt/connectors/*`)
@@ -182,7 +180,7 @@ status.storage.partitions=5
 
 > Note - For more information on the worker paramaters please refer to Kafka Connect [documentation](https://kafka.apache.org/documentation/#connect_running).
     
-4. Run `$KAFKA_CONNECT_HOME/bin/connect-distributed.sh $KAFKA_CONNECT_HOME/config/kafka-connect.properties` to start Kafka Connect or restart Kafka Connect with existing configuration file.
+4.  Start/ Restart Kafka Connect - (for ex. `$KAFKA_CONNECT_HOME/bin/connect-distributed.sh $KAFKA_CONNECT_HOME/config/kafka-connect.properties`)
 
 ## Security
 The Kafka Connect Splunk Sink supports the following security mechanisms
