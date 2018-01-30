@@ -8,7 +8,7 @@ A Kafka Connect Sink for Splunk features:
 ## Requirements
 1. Kafka version 0.10 and above.
 2. Java 8 and above.
-3. A Splunk environment of version 6.4* and above, configured with valid HTTP Event Collector (HEC) tokens. (A minimum Splunk version of 6.5 is required for event annotation)
+3. A Splunk environment of version 6.5 and above, configured with valid HTTP Event Collector (HEC) tokens.
 
 	* HEC token settings should be the same on all Splunk Indexers and Heavy Forwarders in your environment.
 	* Task configuration parameters will vary depending on acknowledgement setting (See the [Configuration](#configuration) section for details).
@@ -25,7 +25,7 @@ Note: The resulting "kafka-connect-splunk-*.tar.gz" package is self-contained. B
 
 ## Quick Start
 
-1. [Start](https://kafka.apache.org/quickstart) your Kafka Cluster and Zookeeper on your local host. Confirm both are running.
+1. [Start](https://kafka.apache.org/quickstart) your Kafka Cluster and confirm it is running.
 2. If this is a new install, create a test topic (eg: `perf`). Inject events into the topic. This can be done using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen) or the Kafka bundle [kafka-console-producer](https://kafka.apache.org/quickstart#quickstart_send).
 3. Untar the package created from the build script: `tar xzvf kafka-connect-splunk-*.tar.gz` (Default target location is /tmp/kafka-connect-splunk-build/kafka-connect-splunk).
 4. Navigate to kafka-connect-splunk directory `cd kafka-connect-splunk`.
@@ -57,7 +57,7 @@ Note: The resulting "kafka-connect-splunk-*.tar.gz" package is self-contained. B
 	   "splunk.hec.total.channels": "8",
 	   "splunk.hec.max.batch.size": "1000000",
 	   "splunk.hec.threads": "2",
-	   "splunk.hec.event.timeout": "60",
+	   "splunk.hec.event.timeout": "300",
 	   "splunk.hec.socket.timeout": "120",
 	   "splunk.hec.track.data": "true"
 	  }
@@ -95,7 +95,7 @@ Use the following connector deployment options:
 * Splunk Kafka Connector in a dedicated Kafka Connect Cluster (recommended)
 * Splunk Kafka Connector in an existing Kafka Connect Cluster
 
-### Connector in a dedicated Kafka Connect Cluster
+### Connector in a dedicated Kafka Connect Cluster 
 Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recommended. Isolating the Splunk connector from other Kafka connectors results in significant performance benefits in high throughput environments.
 
 1. Untar the **kafka-connect-splunk-*.tar.gz** package and navigate to the **kafka-connect-splunk** directory.
@@ -143,16 +143,46 @@ Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recom
 	> Note: The **KAFKA\_HEAP\_OPTS** environment variable controls how much memory Kafka Connect can use. Set the **KAFKA\_HEAP\_OPTS** with the recommended value stated in the example above.
 
 ### Connector in an existing Kafka Connect Cluster
-1. Untar the **kafka-connect-splunk-*.tar.gz** installation package and go to the **kafka-connect-splunk** directory.
 
-    ```
-    tar xzvf kafka-connect-splunk-*.tar.gz
-    cd kafka-connect-splunk
-    ```
+1. Navigate to Splunkbase and download the latest version of [Splunk Kafka Connect](https://splunkbase.splunk.com/app/3862/)
+ 
+2. Copy downloaded file onto every host into the directory that contains your other connectors or create a folder to store them in. (ex. `/opt/connectors/splunk-kafka-connect`)
 
-2. Copy the **conectors/kafka-connect-splunk-*.jar** to the plugin path specified by **plugin.path** in the existing Kafka Connect on every host.
-3. Copy **libs/commons-logging-1.2.jar** to **libs** of the existing Kafka Connect on each host.
-4. Restart the Kafka Connect cluster.
+3. Create a properties file called `kafka-connect.properties.` File should be created in directory `$KAFKA_CONNECT_HOME/config/`.
+    Copy the following contents into the file and modify the <BOOTSTRAP_SERVERS> to point to one of your kafka brokers (ex. `localhost:9092`): and 
+    modify <PLUGIN_PATH> to point to the top level directory of where you are storing your connectors. (ex. `/opt/connectors`)
+    
+    > Note: - If running Kafka Version 0.10.x - PLUGIN_PATH is not a valid configuration property. To make the connector visible to 
+    Kafka Connect the connectors folder must be added to the classpath. (ex. export `CLASSPATH=/opt/connectors/*`)
+
+```
+bootstrap.servers=<BOOTSTRAP_SERVERS>
+#key.converter=org.apache.kafka.connect.json.JsonConverter
+#value.converter=org.apache.kafka.connect.json.JsonConverter
+key.converter=org.apache.kafka.connect.storage.StringConverter
+value.converter=org.apache.kafka.connect.storage.StringConverter
+key.converter.schemas.enable=false
+value.converter.schemas.enable=false
+internal.key.converter=org.apache.kafka.connect.json.JsonConverter
+internal.value.converter=org.apache.kafka.connect.json.JsonConverter
+internal.key.converter.schemas.enable=false
+internal.value.converter.schemas.enable=false
+offset.flush.interval.ms=10000
+plugin.path=<PLUGIN_PATH>
+group.id=kafka-connect-splunk-hec-sink
+config.storage.topic=__kafka-connect-splunk-task-configs
+config.storage.replication.factor=3
+offset.storage.topic=__kafka-connect-splunk-offsets
+offset.storage.replication.factor=3
+offset.storage.partitions=25
+status.storage.topic=__kafka-connect-splunk-statuses
+status.storage.replication.factor=3
+status.storage.partitions=5
+```    
+
+> Note - For more information on the worker paramaters please refer to Kafka Connect [documentation](https://kafka.apache.org/documentation/#connect_running).
+    
+4. Run `$KAFKA_CONNECT_HOME/bin/connect-distributed.sh $KAFKA_CONNECT_HOME/config/kafka-connect.properties` to start Kafka Connect or restart Kafka Connect with existing configuration file.
 
 ## Security
 The Kafka Connect Splunk Sink supports the following security mechanisms
@@ -399,7 +429,7 @@ Use the below schema to configure Splunk Kafka Connector
 * `splunk.hec.ack.poll.interval` - This setting is only applicable when `splunk.hec.ack.enabled` is set to `true`. Internally it controls the event ACKs polling interval. By default, this setting is 10 seconds.
 * `splunk.hec.ack.poll.threads` - This setting is used for performance tuning and is only applicable when `splunk.hec.ack.enabled` is set to `true`. It controls how many threads should be spawned to poll event ACKs. By default, it is set to `1`.
     > Note: For large Splunk indexer clusters (For example, 100 indexers) you need to increase this number. Recommended increase to speed up ACK polling is 4 threads.
-* `splunk.hec.event.timeout` - This setting is applicable when `splunk.hec.ack.enabled` is set to `true`. When events are POSTed to Splunk and before they are ACKed, this setting determines how long the connector will wait before timing out and resending. By default, it is set to 120 seconds.
+* `splunk.hec.event.timeout` - This setting is applicable when `splunk.hec.ack.enabled` is set to `true`. When events are POSTed to Splunk and before they are ACKed, this setting determines how long the connector will wait before timing out and resending. By default, it is set to 300 seconds.
 
 #### Endpoint Parameters
 * `splunk.hec.raw` - Set to `true` in order for Splunk software to ingest data using the the /raw HEC endpoint. Default is `false`, which will use the /event endpoint.
@@ -433,7 +463,7 @@ Use the below schema to configure Splunk Kafka Connector
 	      "splunk.hec.ack.enabled : "true",
 	      "splunk.hec.ack.poll.interval" : "20",
 	      "splunk.hec.ack.poll.threads" : "2",
-	      "splunk.hec.event.timeout" : "120",
+	      "splunk.hec.event.timeout" : "300",
 	      "splunk.hec.raw" : "true",
 	      "splunk.hec.raw.line.breaker" : "#####"
 	    }
@@ -454,7 +484,7 @@ Use the below schema to configure Splunk Kafka Connector
          "splunk.hec.ack.enabled : "true",
          "splunk.hec.ack.poll.interval" : "20",
          "splunk.hec.ack.poll.threads" : "2",
-         "splunk.hec.event.timeout" : "120",
+         "splunk.hec.event.timeout" : "300",
          "splunk.hec.raw" : "false",
          "splunk.hec.json.event.enrichment" : "org=fin,bu=south-east-us",
          "splunk.hec.track.data" : "true"
