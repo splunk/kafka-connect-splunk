@@ -187,9 +187,7 @@ Kafka Connect the connectors folder must be added to your Java classpath.
 
 4.  Start/ Restart Kafka Connect - (for ex. `$KAFKA_CONNECT_HOME/bin/connect-distributed.sh $KAFKA_CONNECT_HOME/config/connect-distrubuted.properties`)
 
-5. Validate your connector deployment by running the following command curl `http://<KAFKA_CONNECT_HOST>:8083/connector-plugins`
-Response should have an entry named `com.splunk.kafka.connect.SplunkSinkConnector`.
-
+5. Validate your connector deployment by running the following command curl `http://<KAFKA_CONNECT_HOST>:8083/connector-plugins`. Response should have an entry named `com.splunk.kafka.connect.SplunkSinkConnector`.
 
 ## Security
 The Kafka Connect Splunk Sink supports the following security mechanisms
