@@ -154,28 +154,25 @@ Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recom
     Kafka Connect the connectors folder must be added to the classpath. (ex. export `CLASSPATH=/opt/connectors/*`)
 
 ```
+#These settings may already be configured if you have deployed a connector in your Kafka Connect Environment
 bootstrap.servers=<BOOTSTRAP_SERVERS>
+plugin.path=<PLUGIN_PATH>
+
+#Splunk Kafka Connect required paramaters
 #key.converter=org.apache.kafka.connect.json.JsonConverter
 #value.converter=org.apache.kafka.connect.json.JsonConverter
+
 key.converter=org.apache.kafka.connect.storage.StringConverter
 value.converter=org.apache.kafka.connect.storage.StringConverter
 key.converter.schemas.enable=false
 value.converter.schemas.enable=false
+
 internal.key.converter=org.apache.kafka.connect.json.JsonConverter
 internal.value.converter=org.apache.kafka.connect.json.JsonConverter
 internal.key.converter.schemas.enable=false
 internal.value.converter.schemas.enable=false
 offset.flush.interval.ms=10000
-plugin.path=<PLUGIN_PATH>
-group.id=kafka-connect-splunk-hec-sink
-config.storage.topic=__kafka-connect-splunk-task-configs
-config.storage.replication.factor=3
-offset.storage.topic=__kafka-connect-splunk-offsets
-offset.storage.replication.factor=3
-offset.storage.partitions=25
-status.storage.topic=__kafka-connect-splunk-statuses
-status.storage.replication.factor=3
-status.storage.partitions=5
+
 ```    
 
 > Note - For more information on the worker paramaters please refer to Kafka Connect [documentation](https://kafka.apache.org/documentation/#connect_running).
