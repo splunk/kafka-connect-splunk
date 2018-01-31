@@ -146,38 +146,50 @@ Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recom
 
 1. Navigate to Splunkbase and download the latest version of [Splunk Kafka Connect](https://splunkbase.splunk.com/app/3862/)
  
-2. Copy downloaded file onto every host into the directory that contains your other connectors or create a folder to store them in. (ex. `/opt/connectors/splunk-kafka-connect`)
+2. Copy downloaded file onto every host running Kafka Connect into the directory that contains your other connectors or create a folder to store them in. (ex. `/opt/connectors/splunk-kafka-connect`)
 
-3. Create or modify a Kafka Connect worker properties file to contain the below listed paramaters (ex. `kafka-connect.properties`). Default location is `$KAFKA_CONNECT_HOME/config/`. Ensure to replace `<BOOTSTRAP_SERVERS>` to point to your kafka brokers (ex. `localhost:9092`) and modify `<PLUGIN_PATH>` to point to the top level directory of where you are storing your connectors. (ex. `/opt/connectors`).
-    
-    > Note: - If running Kafka Version 0.10.x - PLUGIN_PATH is not a valid configuration property. To make the connector visible to 
-    Kafka Connect the connectors folder must be added to the classpath. (ex. export `CLASSPATH=/opt/connectors/*`)
+3.The Splunk Connector requires the below worker properties to function correctly.
 
 ```
 #These settings may already be configured if you have deployed a connector in your Kafka Connect Environment
 bootstrap.servers=<BOOTSTRAP_SERVERS>
 plugin.path=<PLUGIN_PATH>
 
-#Splunk Kafka Connect required paramaters
-#key.converter=org.apache.kafka.connect.json.JsonConverter
-#value.converter=org.apache.kafka.connect.json.JsonConverter
-
+#Required
 key.converter=org.apache.kafka.connect.storage.StringConverter
 value.converter=org.apache.kafka.connect.storage.StringConverter
 key.converter.schemas.enable=false
 value.converter.schemas.enable=false
-
 internal.key.converter=org.apache.kafka.connect.json.JsonConverter
 internal.value.converter=org.apache.kafka.connect.json.JsonConverter
 internal.key.converter.schemas.enable=false
 internal.value.converter.schemas.enable=false
 offset.flush.interval.ms=10000
 
-```    
+#Recommended
+group.id=kafka-connect-splunk-hec-sink
+config.storage.topic=__kafka-connect-splunk-task-configs
+config.storage.replication.factor=3
+offset.storage.topic=__kafka-connect-splunk-offsets
+offset.storage.replication.factor=3
+offset.storage.partitions=25
+status.storage.topic=__kafka-connect-splunk-statuses
+status.storage.replication.factor=3
+status.storage.partitions=5
 
+```  
 > Note - For more information on the worker paramaters please refer to Kafka Connect [documentation](https://kafka.apache.org/documentation/#connect_running).
+
+Please create or modify a Kafka Connect worker properties file to contain these parameters. The default worker properties file is `$KAFKA_CONNECT_HOME/config/connect-distrubuted.properties`. Ensure to replace `<BOOTSTRAP_SERVERS>` to point to your Kafka brokers (ex. `localhost:9092`) and ensure `<PLUGIN_PATH>` points to the top-level directory of where you are storing your connectors. (ex. `/opt/connectors/`).
     
-4.  Start/ Restart Kafka Connect - (for ex. `$KAFKA_CONNECT_HOME/bin/connect-distributed.sh $KAFKA_CONNECT_HOME/config/kafka-connect.properties`)
+> Note: - If running Kafka Version 0.10.x - PLUGIN_PATH is not a valid configuration property. To make the connector visible to 
+Kafka Connect the connectors folder must be added to your Java classpath.
+
+4.  Start/ Restart Kafka Connect - (for ex. `$KAFKA_CONNECT_HOME/bin/connect-distributed.sh $KAFKA_CONNECT_HOME/config/connect-distrubuted.properties`)
+
+5. Validate your connector deployment by running the following command curl `http://<KAFKA_CONNECT_HOST>:8083/connector-plugins`
+Response should have an entry named `com.splunk.kafka.connect.SplunkSinkConnector`.
+
 
 ## Security
 The Kafka Connect Splunk Sink supports the following security mechanisms
