@@ -144,11 +144,11 @@ Running the Splunk Kafka Connector in a dedicated Kafka Connect Cluster is recom
 
 ### Connector in an existing Kafka Connect Cluster
 
-1. Navigate to Splunkbase and download the latest version of [Splunk Kafka Connect](https://splunkbase.splunk.com/app/3862/)
+1. Navigate to Splunkbase and download the latest version of [Splunk Kafka Connect](https://splunkbase.splunk.com/app/3862/).
  
 2. Copy downloaded file onto every host running Kafka Connect into the directory that contains your other connectors or create a folder to store them in. (ex. `/opt/connectors/splunk-kafka-connect`)
 
-3.The Splunk Connector requires the below worker properties to function correctly.
+3. The Splunk Connector requires the below worker properties to function correctly.
 
 ```
 #These settings may already be configured if you have deployed a connector in your Kafka Connect Environment
@@ -182,15 +182,14 @@ status.storage.partitions=5
 
 Please create or modify a Kafka Connect worker properties file to contain these parameters. The default worker properties file is `$KAFKA_CONNECT_HOME/config/connect-distrubuted.properties`. Ensure to replace `<BOOTSTRAP_SERVERS>` to point to your Kafka brokers (ex. `localhost:9092`) and ensure `<PLUGIN_PATH>` points to the top-level directory of where you are storing your connectors. (ex. `/opt/connectors/`).
     
-> Note: - If running Kafka Version 0.10.x - PLUGIN_PATH is not a valid configuration property. To make the connector visible to 
-Kafka Connect the connectors folder must be added to your Java classpath.
+> Note: - If running Kafka Version 0.10.x - PLUGIN_PATH is not a valid configuration property. To make the connector visible to Kafka Connect the connectors folder must be added to your Java classpath.
 
-4.  Start/ Restart Kafka Connect - (for ex. `$KAFKA_CONNECT_HOME/bin/connect-distributed.sh $KAFKA_CONNECT_HOME/config/connect-distrubuted.properties`)
+4. Start/Restart Kafka Connect - (for ex. `$KAFKA_CONNECT_HOME/bin/connect-distributed.sh $KAFKA_CONNECT_HOME/config/connect-distrubuted.properties`).
 
 5. Validate your connector deployment by running the following command curl `http://<KAFKA_CONNECT_HOST>:8083/connector-plugins`. Response should have an entry named `com.splunk.kafka.connect.SplunkSinkConnector`.
 
 ## Security
-The Kafka Connect Splunk Sink supports the following security mechanisms
+The Kafka Connect Splunk Sink supports the following security mechanisms:
 * `SSL`
 * `SASL/GSSAPI (Kerberos)` - starting at version 0.9.0.0
 * `SASL/PLAIN` - starting at version 0.10.0.0
