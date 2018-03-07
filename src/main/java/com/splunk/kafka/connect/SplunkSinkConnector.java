@@ -34,12 +34,12 @@ public final class SplunkSinkConnector extends SinkConnector {
     @Override
     public void start(Map<String, String> taskConfig) {
         this.taskConfig = taskConfig;
-        log.info("kafka-connect-splunk starts");
+        log.info("splunk-kafka-connect starts");
     }
 
     @Override
     public void stop() {
-        log.info("kafka-connect-splunk stops");
+        log.info("splunk-kafka-connect stops");
     }
 
     @Override
@@ -48,7 +48,7 @@ public final class SplunkSinkConnector extends SinkConnector {
         for (int i = 0; i < maxTasks; i++) {
             tasks.add(taskConfig);
         }
-        log.info("kafka-connect-splunk discovered {} tasks", tasks.size());
+        log.info("splunk-kafka-connect discovered {} tasks", tasks.size());
         return tasks;
     }
 

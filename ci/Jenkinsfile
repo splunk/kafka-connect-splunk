@@ -8,7 +8,7 @@ def dockerReq = new DockerRequest(steps,
                                   env,
                                   [imageName: "repo.splunk.com/splunk/products/splact:1.0.9",
                                    userId: "10777",
-                                   repoName: "git@github.com:splunk/kafka-connect-splunk.git",
+                                   repoName: "git@github.com:splunk/splunk-kafka-connect.git",
                                    runner: "yarn",
                                    remotePath: "/build"])
 

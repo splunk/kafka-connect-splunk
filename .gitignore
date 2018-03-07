@@ -23,7 +23,7 @@ hs_err_pid*
 target/*
 .idea/*
 
-kafka-connect-splunk/
+splunk-kafka-connect/
 pom.xml.versionsBackup
 .classpath
 .project

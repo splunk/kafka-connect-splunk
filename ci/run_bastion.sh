@@ -1,15 +1,15 @@
 #!/bin/bash
 
 curdir=`pwd`
-git clone git@github.com:splunk/kafka-connect-splunk.git
+git clone git@github.com:splunk/splunk-kafka-connect.git
 branch=${KAFKA_CONNECT_BRANCH:-develop}
-cd kafka-connect-splunk && git checkout ${branch}
+cd splunk-kafka-connect && git checkout ${branch}
 
 duration=${SLEEP:-600}
 sleep ${duration}
 
-bash ${curdir}/kafka-connect-splunk/ci/fix_hosts.sh > /tmp/fixhosts 2>&1 &
+bash ${curdir}/splunk-kafka-connect/ci/fix_hosts.sh > /tmp/fixhosts 2>&1 &
 
-python ${curdir}/kafka-connect-splunk/ci/perf.py
+python ${curdir}/splunk-kafka-connect/ci/perf.py
 
 tail -f /dev/null
