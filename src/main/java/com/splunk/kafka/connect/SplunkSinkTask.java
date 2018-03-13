@@ -48,7 +48,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         tracker = new KafkaRecordTracker();
         bufferedRecords = new ArrayList<>();
 
-        log.info("splunk-kafka-connect task starts with config={}", connectorConfig);
+        log.info("kafka-connect-splunk task starts with config={}", connectorConfig);
     }
 
     @Override
@@ -225,7 +225,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         if (hec != null) {
             hec.close();
         }
-        log.info("splunk-kafka-connect task ends with config={}", connectorConfig);
+        log.info("kafka-connect-splunk task ends with config={}", connectorConfig);
     }
 
     @Override

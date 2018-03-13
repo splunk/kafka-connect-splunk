@@ -1,17 +1,17 @@
 #!/bin/bash
 
-# Checkout, build and run splunk-kafka-connect in the fight
+# Checkout, build and run kafka-connect-splunk in the fight
 
 curdir=`pwd`
-git clone git@github.com:splunk/splunk-kafka-connect.git
+git clone git@github.com:splunk/kafka-connect-splunk.git
 
 branch=${KAFKA_CONNECT_BRANCH:-develop}
 # build the package
-cd splunk-kafka-connect && git checkout ${branch} && bash build.sh
+cd kafka-connect-splunk && git checkout ${branch} && bash build.sh
 
 # untar the package
-tar xzf splunk-kafka-connect*.tar.gz
-cd splunk-kafka-connect
+tar xzf kafka-connect-splunk*.tar.gz
+cd kafka-connect-splunk
 
 sed -i"" "s@bootstrap.servers=.*@bootstrap.servers=$KAFKA_BOOTSTRAP_SERVERS@g" config/connect-distributed.properties
 
@@ -24,7 +24,7 @@ duration=${SLEEP:-300}
 sleep ${duration}
 
 echo "Run fix hosts"
-bash ${curdir}/splunk-kafka-connect/ci/fix_hosts.sh > /tmp/fixhosts 2>&1 &
+bash ${curdir}/kafka-connect-splunk/ci/fix_hosts.sh > /tmp/fixhosts 2>&1 &
 
 echo "Run proc monitor"
 cd proc_monitor

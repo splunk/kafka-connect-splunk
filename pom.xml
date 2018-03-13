@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.splunk.kafka.connect</groupId>
-    <artifactId>splunk-kafka-connect</artifactId>
+    <artifactId>kafka-connect-splunk</artifactId>
     <version>v1.0.0-LAR</version>
-    <name>splunk-kafka-connect</name>
+    <name>kafka-connect-splunk</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
