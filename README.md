@@ -1,6 +1,6 @@
 ## Splunk Connect for Kafka
 
-A Kafka Connect Sink for Splunk features:
+Splunk Connect for Kafka is a Kafka Connect Sink for Splunk with the following features:
 
 * Data ingestion from Kafka topics into Splunk via [Splunk HTTP Event Collector(HEC)](http://dev.splunk.com/view/event-collector/SP-CAAAE6M).
 * In-flight data transformation and enrichment.
@@ -144,7 +144,7 @@ Running Splunk Connect for Kafka in a dedicated Kafka Connect Cluster is recomme
 
 ### Connector in an existing Kafka Connect Cluster
 
-1. Navigate to Splunkbase and download the latest version of [Splunk Kafka Connect](https://splunkbase.splunk.com/app/3862/).
+1. Navigate to Splunkbase and download the latest version of [Splunk Connect for Kafka](https://splunkbase.splunk.com/app/3862/).
  
 2. Copy downloaded file onto every host running Kafka Connect into the directory that contains your other connectors or create a folder to store them in. (ex. `/opt/connectors/splunk-kafka-connect`)
 
