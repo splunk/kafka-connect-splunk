@@ -2,7 +2,7 @@
 
 # variables
 kafkaversion=0.11.0.2
-builddir=/tmp/kafka-connect-splunk-build/kafka-connect-splunk
+builddir=/tmp/splunk-kafka-connect-build/splunk-kafka-connect
 
 githash=`git rev-parse --short HEAD 2>/dev/null | sed "s/\(.*\)/@\1/"` # get current git hash
 gitbranch=`git rev-parse --abbrev-ref HEAD` # get current git branch
@@ -15,7 +15,7 @@ if [[ -z "$gitversion" ]]; then
   jarversion=${gitversion}-SNAPSHOT
 fi
 
-packagename=kafka-connect-splunk-${gitversion}.tar.gz
+packagename=splunk-kafka-connect-${gitversion}.tar.gz
 
 # record git info in version.properties file under resources folder
 resourcedir='src/main/resources'
@@ -39,8 +39,8 @@ mvn versions:set -DnewVersion=${jarversion}
 mvn package > /dev/null
 
 # Copy over the pacakge
-echo "Copy over kafka-connect-splunk jar ..."
-cp target/kafka-connect-splunk-${jarversion}.jar ${builddir}/connectors
+echo "Copy over splunk-kafka-connect jar ..."
+cp target/splunk-kafka-connect-${jarversion}.jar ${builddir}/connectors
 cp config/* ${builddir}/config
 cp README.md ${builddir}
 cp LICENSE ${builddir}
@@ -64,19 +64,19 @@ echo "Clean up ..."
 
 # Package up
 echo "Package ${packagename} ..."
-cd .. && tar czf ${packagename} kafka-connect-splunk
+cd .. && tar czf ${packagename} splunk-kafka-connect
 
 echo "Copy package ${packagename} to ${curdir} ..."
 cp ${packagename} ${curdir}
 
-/bin/rm -rf kafka-connect-splunk ${packagename}
+/bin/rm -rf splunk-kafka-connect ${packagename}
 echo "Done with build & packaging"
 
 echo
 
 cat << EOP
-To run the kafka-connect-splunk, do the following steps:
-1. untar the package: tar xzf kafka-connect-splunk.tar.gz
+To run the splunk-kafka-connect, do the following steps:
+1. untar the package: tar xzf splunk-kafka-connect.tar.gz
 2. config config/connect-distributed.properties according to your env
 3. run: bash bin/connect-distributed.sh config/connect-distributed.properties
 4. Use Kafka Connect REST api to create data collection tasks
