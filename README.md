@@ -143,7 +143,6 @@ Running Splunk Connect for Kafka in a dedicated Kafka Connect Cluster is recomme
 bootstrap.servers=<BOOTSTRAP_SERVERS>
 plugin.path=<PLUGIN_PATH>
 
-
 #Required
 key.converter=org.apache.kafka.connect.storage.StringConverter
 value.converter=org.apache.kafka.connect.storage.StringConverter
@@ -155,6 +154,7 @@ internal.key.converter.schemas.enable=false
 internal.value.converter.schemas.enable=false
 offset.flush.interval.ms=10000
 
+#Recommended
 group.id=kafka-connect-splunk-hec-sink
 
 ```  
