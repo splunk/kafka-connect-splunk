@@ -113,23 +113,11 @@ Running Splunk Connect for Kafka in a dedicated Kafka Connect Cluster is recomme
 
 3. Revise other optional settings in **config/connect-distributed.properties** as needed.
 
-	> Note: Do not change the replication factor and partition number at this time.
-
-	> Note: The below topics should be created by Kafka Connect when deploying the Splunk Connector. If the Kafka Connect cluster **does not have permission** to create these topics, create these manually before starting Kafka Connect cluster.
+	> Note: Modify group ID name if needed.
 
     ```
 	group.id=kafka-connect-splunk-hec-sink    # consumer group id of Kafka Connect, which is used to form a Kafka Connect cluster
 
-	config.storage.topic=__kafka-connect-splunk-task-configs # kafka topic used to persistent connector task configurations
-	config.storage.replication.factor=3
-
-	offset.storage.topic=__kafka-connect-splunk-offsets # kafka topic used to persistent task checkpoints
-	offset.storage.replication.factor=3
-	offset.storage.partitions=25
-
-	status.storage.topic=__kafka-connect-splunk-statuses # kafka topic used to persistent task statuses
-	status.storage.replication.factor=3
-	status.storage.partitions=5
 	```
 
 4. Deploy/Copy the **splunk-kafka-connect** directory to all target hosts (virtual machines, physical machines or containers).
@@ -168,14 +156,6 @@ offset.flush.interval.ms=10000
 
 #Recommended
 group.id=kafka-connect-splunk-hec-sink
-config.storage.topic=__kafka-connect-splunk-task-configs
-config.storage.replication.factor=3
-offset.storage.topic=__kafka-connect-splunk-offsets
-offset.storage.replication.factor=3
-offset.storage.partitions=25
-status.storage.topic=__kafka-connect-splunk-statuses
-status.storage.replication.factor=3
-status.storage.partitions=5
 
 ```  
 > Note - For more information on the worker paramaters please refer to Kafka Connect [documentation](https://kafka.apache.org/documentation/#connect_running).
