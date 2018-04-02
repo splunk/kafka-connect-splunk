@@ -24,94 +24,153 @@ import org.apache.kafka.common.config.ConfigDef;
 import java.util.*;
 
 public final class SplunkSinkConnectorConfig extends AbstractConfig {
+    // General
     static final String INDEX = "index";
-    static final String SOURCETYPE = "sourcetype";
     static final String SOURCE = "source";
-
-    static final String TOKEN_CONF = "splunk.hec.token";
+    static final String SOURCETYPE = "sourcetype";
+    // Required Parameters
     static final String URI_CONF = "splunk.hec.uri";
-    static final String RAW_CONF = "splunk.hec.raw";
-    static final String ACK_CONF = "splunk.hec.ack.enabled";
+    static final String TOKEN_CONF = "splunk.hec.token";
+    // General Parameters
     static final String INDEX_CONF = "splunk.indexes";
-    static final String SOURCETYPE_CONF = "splunk.sourcetypes";
     static final String SOURCE_CONF = "splunk.sources";
+    static final String SOURCETYPE_CONF = "splunk.sourcetypes";
+    static final String TOTAL_HEC_CHANNEL_CONF = "splunk.hec.total.channels";
+    static final String MAX_HTTP_CONNECTION_PER_CHANNEL_CONF = "splunk.hec.max.http.connection.per.channel";
+    static final String MAX_BATCH_SIZE_CONF = "splunk.hec.max.batch.size"; // record count
     static final String HTTP_KEEPALIVE_CONF = "splunk.hec.http.keepalive";
-    static final String SSL_VALIDATE_CERTIFICATES_CONF = "splunk.hec.ssl.validate.certs";
-    static final String SSL_TRUSTSTORE_PATH_CONF = "splunk.hec.ssl.trust.store.path";
-    static final String SSL_TRUSTSTORE_PASSWORD_CONF = "splunk.hec.ssl.trust.store.password";
+    static final String HEC_THREDS_CONF = "splunk.hec.threads";
     static final String SOCKET_TIMEOUT_CONF = "splunk.hec.socket.timeout"; // seconds
-    static final String EVENT_TIMEOUT_CONF = "splunk.hec.event.timeout"; // seconds
+    static final String SSL_VALIDATE_CERTIFICATES_CONF = "splunk.hec.ssl.validate.certs";
+    // Acknowledgement Parameters
+    // Use Ack
+    static final String ACK_CONF = "splunk.hec.ack.enabled";
     static final String ACK_POLL_INTERVAL_CONF = "splunk.hec.ack.poll.interval"; // seconds
     static final String ACK_POLL_THREADS_CONF = "splunk.hec.ack.poll.threads";
-    static final String MAX_HTTP_CONNECTION_PER_CHANNEL_CONF = "splunk.hec.max.http.connection.per.channel";
-    static final String TOTAL_HEC_CHANNEL_CONF = "splunk.hec.total.channels";
-    static final String ENRICHMENT_CONF = "splunk.hec.json.event.enrichment";
-    static final String USE_RECORD_TIMESTAMP_CONF = "splunk.hec.use.record.timestamp";
-    static final String MAX_BATCH_SIZE_CONF = "splunk.hec.max.batch.size"; // record count
-    static final String HEC_THREDS_CONF = "splunk.hec.threads";
-    static final String LINE_BREAKER_CONF = "splunk.hec.raw.line.breaker";
+    static final String EVENT_TIMEOUT_CONF = "splunk.hec.event.timeout"; // seconds
     static final String MAX_OUTSTANDING_EVENTS_CONF = "splunk.hec.max.outstanding.events";
     static final String MAX_RETRIES_CONF = "splunk.hec.max.retries";
+    // Endpoint Parameters
+    static final String RAW_CONF = "splunk.hec.raw";
+    // /raw endpoint only
+    static final String LINE_BREAKER_CONF = "splunk.hec.raw.line.breaker";
+    // /event endpoint only
+    static final String USE_RECORD_TIMESTAMP_CONF = "splunk.hec.use.record.timestamp";
+    static final String ENRICHMENT_CONF = "splunk.hec.json.event.enrichment";
     static final String TRACK_DATA_CONF = "splunk.hec.track.data";
+    // TBD
+    static final String SSL_TRUSTSTORE_PATH_CONF = "splunk.hec.ssl.trust.store.path";
+    static final String SSL_TRUSTSTORE_PASSWORD_CONF = "splunk.hec.ssl.trust.store.password";
 
-     // Kafka configuration description strings
-    static final String TOKEN_DOC = "The authorization token to use when writing data to splunk.";
-    static final String URI_DOC = "The URI of the remote splunk to write data do.";
-    static final String RAW_DOC = "Flag to determine if use /raw HEC endpoint when indexing data to Splunk.";
-    static final String ACK_DOC = "Flag to determine if use turn on HEC ACK when indexing data to Splunk.";
-    static final String INDEX_DOC = "Splunk index names for Kafka topic data, separated by comma";
-    static final String SOURCETYPE_DOC = "Splunk sourcetype names for Kafka topic data, separated by comma";
-    static final String SOURCE_DOC = "Splunk source names for Kafka topic data, separated by comma";
-    static final String HTTP_KEEPALIVE_DOC = "Keepalive HTTP Connection to HEC server";
-    static final String SSL_VALIDATE_CERTIFICATES_DOC = "Flag to determine if ssl connections should validate the "
-            + "certificate of the remote host.";
-    static final String SSL_TRUSTSTORE_PATH_DOC = "Path on the local disk to the certificate trust store.";
-    static final String SSL_TRUSTSTORE_PASSWORD_DOC = "Password for the trust store.";
-    static final String EVENT_TIMEOUT_DOC = "Max duration in seconds to wait commit response after sending to Splunk.";
-    static final String ACK_POLL_INTERVAL_DOC = "Interval in seconds to poll event ACKs from Splunk.";
-    static final String ACK_POLL_THREADS_DOC = "Number of threads used to query ACK for single task.";
-    static final String MAX_HTTP_CONNECTION_PER_CHANNEL_DOC = "Max HTTP connections pooled for one HEC Channel "
-            + "when posting events to Splunk.";
+
+    // Kafka configuration description strings
+    // Required Parameters
+    static final String URI_DOC = "Splunk HEC URIs. Either a list of FQDNs or IPs of all Splunk indexers, separated "
+            + "with a \",\", or a load balancer. The connector will load balance to indexers using "
+            + "round robin. Splunk Connector will round robin to this list of indexers. "
+            + "https://hec1.splunk.com:8088,https://hec2.splunk.com:8088,https://hec3.splunk.com:8088";
+    static final String TOKEN_DOC = "Splunk Http Event Collector token.";
+    // General Parameters
+    static final String INDEX_DOC = "Splunk index names for Kafka topic data separated by comma for multiple topics to "
+                                  + "indexers (\"prod-index1,prod-index2,prod-index3\").";
+    static final String SOURCE_DOC = "Splunk event source metadata for Kafka topic data. The same configuration rules "
+            + "as indexes can be applied. If left unconfigured, the default source binds to"
+            + " the HEC token. By default, this setting is empty.";
+    static final String SOURCETYPE_DOC = "Splunk event source metadata for Kafka topic data. The same configuration "
+                                       + "rules as indexes can be applied here. If left unconfigured, the default source"
+                                       + " binds to the HEC token. By default, this setting is empty";
     static final String TOTAL_HEC_CHANNEL_DOC = "Total HEC Channels used to post events to Splunk. When enabling HEC ACK, "
             + "setting to the same or 2X number of indexers is generally good.";
-    static final String SOCKET_TIMEOUT_DOC = "Max duration in seconds to read / write data to network before its timeout.";
-    static final String ENRICHMENT_DOC = "Enrich the JSON events by specifying key value pairs separated by comma. "
-            + "Is only applicable to splunk.hec.raw=false case";
-    static final String USE_RECORD_TIMESTAMP_DOC = "Set event timestamp to Kafka record timestamp";
-    static final String MAX_BATCH_SIZE_DOC = "Max number of Kafka record to be sent to Splunk HEC for one POST";
-    static final String HEC_THREADS_DOC = "Number of threads used to POST events to Splunk HEC in single task";
-    static final String LINE_BREAKER_DOC = "Line breaker for /raw HEC endpoint. The line breaker can help Splunkd to do event breaking";
-    static final String MAX_OUTSTANDING_EVENTS_DOC = "Number of outstanding events which are not ACKed kept in memory";
-    static final String MAX_RETRIES_DOC = "Number of retries for failed batches before giving up";
-    static final String TRACK_DATA_DOC = "Track data loss, latency or not. Is only applicable to splunk.hec.raw=false case";
+    static final String MAX_HTTP_CONNECTION_PER_CHANNEL_DOC = "Max HTTP connections pooled for one HEC Channel "
+            + "when posting events to Splunk.";
+    static final String MAX_BATCH_SIZE_DOC = "Maximum batch size when posting events to Splunk. The size is the actual number of "
+            + "Kafka events not the byte size. By default, this is set to 100.";
+    static final String HTTP_KEEPALIVE_DOC = "Valid settings are true or false. Enables or disables HTTP connection "
+                                           + "keep-alive. By default, this is set to true";
+    static final String HEC_THREADS_DOC = "Controls how many threads are spawned to do data injection via HEC in a single "
+            + "connector task. By default, this is set to 1.";
+    static final String SOCKET_TIMEOUT_DOC = "Max duration in seconds to read / write data to network before internal TCP "
+            + "Socket timeout.By default, this is set to 60 seconds.";
+
+    static final String SSL_VALIDATE_CERTIFICATES_DOC = "Valid settings are true or false. Enables or disables HTTPS "
+                                                      + "certification validation. By default, this is set to true.";
+    // Acknowledgement Parameters
+    // Use Ack
+    static final String ACK_DOC = "Valid settings are true or false. When set to true Splunk Connect for Kafka will "
+            + "poll event ACKs for POST events before check-pointing the Kafka offsets. This is used "
+            + "to prevent data loss, as this setting implements guaranteed delivery. By default, this "
+            + "setting is set to true.";
+    static final String ACK_POLL_INTERVAL_DOC = "This setting is only applicable when splunk.hec.ack.enabled is set to "
+            + "true. Internally it controls the event ACKs polling interval. By default, "
+            + "this setting is 10 seconds.";
+    static final String ACK_POLL_THREADS_DOC = "This setting is used for performance tuning and is only applicable when "
+            + "splunk.hec.ack.enabled is set to true. It controls how many threads "
+            + "should be spawned to poll event ACKs. By default, this is set to 1.";
+    static final String EVENT_TIMEOUT_DOC = "This setting is applicable when splunk.hec.ack.enabled is set to true. "
+            + "When events are POSTed to Splunk and before they are ACKed, this setting "
+            + "determines how long the connector will wait before timing out and resending. "
+            + "By default, this is set to 300 seconds.";
+    static final String MAX_OUTSTANDING_EVENTS_DOC = "Maximum amount of un-acknowledged events kept in memory by connector. "
+            + "Will trigger back-pressure event to slow collection. By default, this "
+            + "is set to 1000000.";
+    static final String MAX_RETRIES_DOC = "Number of retries for failed batches before giving up. By default this is set to "
+            + "-1 which will retry indefinitely.";
+    // Endpoint Parameters
+    static final String RAW_DOC = "Set to true in order for Splunk software to ingest data using the the /raw HEC "
+            + "endpoint. Default is false, which will use the /event endpoint.";
+    // /raw endpoint only
+    static final String LINE_BREAKER_DOC = "Only applicable to /raw HEC endpoint. The setting is used to specify a custom "
+            + "line breaker to help Splunk separate the events correctly. Note: For example"
+            + "you can specify \"#####\" as a special line breaker.By default, this setting is "
+            + "empty.";
+    // /event endpoint only
+    static final String USE_RECORD_TIMESTAMP_DOC = "Valid settings are true or false. When set to `true`, The timestamp "
+            + "is retrieved from the Kafka record and passed to Splunk as a HEC meta-data "
+            + "override. This will index events in Splunk with the record timestamp. By "
+            + "default, this is set to true.";
+    static final String ENRICHMENT_DOC = "Only applicable to /event HEC endpoint. This setting is used to enrich raw data "
+            + "with extra metadata fields. It contains a list of key value pairs separated by \",\"."
+            + " The configured enrichment metadata will be indexed along with raw event data "
+            + "by Splunk software. Note: Data enrichment for /event HEC endpoint is only available "
+            + "in Splunk Enterprise 6.5 and above. By default, this setting is empty.";
+    static final String TRACK_DATA_DOC = "Valid settings are true or false. When set to true, data loss and data injection "
+            + "latency metadata will be indexed along with raw data. This setting only works in "
+            + "conjunction with /event HEC endpoint (\"splunk.hec.raw\" : \"false\"). By default"
+            + ", this is set to false.";
+    // TBD
+    static final String SSL_TRUSTSTORE_PATH_DOC = "Path on the local disk to the certificate trust store.";
+    static final String SSL_TRUSTSTORE_PASSWORD_DOC = "Password for the trust store.";
 
     final String splunkToken;
     final String splunkURI;
-    final boolean raw; // /raw or /event HEC
-    final boolean ack; // use HEC ACK ?
+    final Map<String, Map<String, String>> topicMetas;
+
     final String indexes;
     final String sourcetypes;
     final String sources;
-    final boolean validateCertificates;
+    final int totalHecChannels;
+    final int maxHttpConnPerChannel;
+    final int maxBatchSize;
     final boolean httpKeepAlive;
-    final String trustStorePath;
-    final String trustStorePassword;
-    final int eventBatchTimeout;
+    final int numberOfThreads;
+    final int socketTimeout;
+    final boolean validateCertificates;
+
+    final boolean ack;
     final int ackPollInterval;
     final int ackPollThreads;
-    final int maxHttpConnPerChannel;
-    final int totalHecChannels;
-    final int socketTimeout;
-    final boolean trackData;
-    final boolean useRecordTimestamp;
-    final int maxBatchSize;
-    final int numberOfThreads;
+    final int eventBatchTimeout;
     final int maxOutstandingEvents;
     final int maxRetries;
-    final String lineBreaker;
-    final Map<String, String> enrichments;
 
-    final Map<String, Map<String, String>> topicMetas;
+    final boolean raw;
+    final String lineBreaker;
+    final boolean useRecordTimestamp;
+    final Map<String, String> enrichments;
+    final boolean trackData;
+
+    final String trustStorePath;
+    final String trustStorePassword;
 
     SplunkSinkConnectorConfig(Map<String, String> taskConfig) {
         super(conf(), taskConfig);

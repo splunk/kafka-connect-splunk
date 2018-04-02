@@ -387,33 +387,35 @@ Use the below schema to configure Splunk Connect for Kafka
 * `name` - Connector name. A consumer group with this name will be created with tasks to be distributed evenly across the connector cluster nodes.
 * `connector.class` - The Java class used to perform connector jobs. Keep the default value **com.splunk.kafka.connect.SplunkSinkConnector** unless you modify the connector.
 * `tasks.max` -  The number of tasks generated to handle data collection jobs in parallel. The tasks will be spread evenly across all Splunk Connect for Kafka nodes.
+* `topics` -  Comma separated list of Kafka topics for Splunk to consume. `prod-topic1,prod-topc2,prod-topic3`
 * `splunk.hec.uri` -  Splunk HEC URIs. Either a list of FQDNs or IPs of all Splunk indexers, separated with a ",", or a load balancer. The connector will load balance to indexers using round robin. Splunk Connector will round robin to this list of indexers.
 ```https://hec1.splunk.com:8088,https://hec2.splunk.com:8088,https://hec3.splunk.com:8088```
-* `splunk.hec.token` -  [Splunk Http Event Collector token] (http://docs.splunk.com/Documentation/SplunkCloud/6.6.3/Data/UsetheHTTPEventCollector#About_Event_Collector_tokens).
-* `topics` -  Comma separated list of Kafka topics for Splunk to consume. `prod-topic1,prod-topc2,prod-topic3`
+* `splunk.hec.token` -  [Splunk Http Event Collector token](http://docs.splunk.com/Documentation/SplunkCloud/6.6.3/Data/UsetheHTTPEventCollector#About_Event_Collector_tokens).
 
 #### General Optional Parameters
 
-* `splunk.indexes` - Target Splunk indexes to send data to. It can be a list of indexes which shall be the same sequence / order as topics.
+* `splunk.indexes` - Splunk index names for Kafka topic data separated by comma for multiple topics to indexers ("prod-index1,prod-index2,prod-index3"). 
     > Note: It is possible to inject data from different kafka topics to different splunk indexes. For example, prod-topic1,prod-topic2,prod-topic3 can be sent to index prod-index1,prod-index2,prod-index3. If you would like to index all data from multiple topics to the main index, then "main" can be specified. Leaving this setting unconfigured will result in data being routed to the default index configured against the HEC token being used. Verify the indexes configured here are in the index list of HEC tokens, otherwise Splunk HEC will drop the data. By default, this setting is empty.
 * `splunk.sources` -  Splunk event source metadata for Kafka topic data. The same configuration rules as indexes can be applied. If left unconfigured, the default source binds to the HEC token. By default, this setting is empty.
 * `splunk.sourcetypes` - Splunk event source metadata for Kafka topic data. The same configuration rules as indexes can be applied here. If left unconfigured, the default source binds to the HEC token. By default, this setting is empty.
-* `splunk.hec.ssl.validate.certs` - Valid settings are `true` or `false`. Enables or disables HTTPS certification validation. By default, it is set to `true`.
-* `splunk.hec.http.keepalive` - Valid settings are `true` or `false`. Enables or disables HTTP connection keep-alive. By default, it is set to `true`
-* `splunk.hec.max.http.connection.per.channel` - Controls how many HTTP connections will be created and cached in the HTTP pool for one HEC channel. By default, it is set to `2`.
-* `splunk.hec.total.channels` - Controls the total channels created to perform HEC event POSTs. See the Load balancer section for more details. By default, it is set to `2`.
-* `splunk.hec.max.batch.size` - Maximum batch size when posting events to Splunk. The size is the actual number of Kafka events, and not byte size. By default, it is set to `100`.
-* `splunk.hec.threads` - Controls how many threads are spawned to do data injection via HEC in a **single** connector task. By default, it is set to `1`.
-* `splunk.hec.socket.timeout` - Internal TCP socket timeout when connecting to Splunk. By default, it is set to 60 seconds.
+* `splunk.hec.total.channels` - Controls the total channels created to perform HEC event POSTs. See the Load balancer section for more details. By default, this is set to `2`.
+* `splunk.hec.max.http.connection.per.channel` - Controls how many HTTP connections will be created and cached in the HTTP pool for one HEC channel. By default, this is set to `2`.
+* `splunk.hec.max.batch.size` - Maximum batch size when posting events to Splunk. The size is the actual number of Kafka events, and not byte size. By default, this is set to `100`.
+* `splunk.hec.http.keepalive` - Valid settings are `true` or `false`. Enables or disables HTTP connection keep-alive. By default, this is set to `true`
+* `splunk.hec.threads` - Controls how many threads are spawned to do data injection via HEC in a **single** connector task. By default, this is set to `1`.
+* `splunk.hec.socket.timeout` - "Max duration in seconds to read / write data to network before internal TCP Socket timeout.By default, this is set to `60` seconds."
+* `splunk.hec.ssl.validate.certs` - Valid settings are `true` or `false`. Enables or disables HTTPS certification validation. By default, this is set to `true`.
 
 ### Acknowledgement Parameters
 #### Use Ack
 * `splunk.hec.ack.enabled` -  Valid settings are `true` or `false`. When set to `true` Splunk Connect for Kafka will poll event ACKs for POST events before check-pointing the Kafka offsets. This is used to prevent data loss, as this setting implements guaranteed delivery. By default, this setting is set to `true`.
     > Note: If this setting is set to `true`, verify that the corresponding HEC token is also enabled with index acknowledgements, otherwise the data injection will fail, due to duplicate data. When set to `false`, Splunk Connect for Kafka will only POST events to your Splunk platform instance. After it receives a HTTP 200 OK response, it assumes the events are indexed by Splunk. Note: In cases where the Splunk platform crashes, there may be some data loss.
 * `splunk.hec.ack.poll.interval` - This setting is only applicable when `splunk.hec.ack.enabled` is set to `true`. Internally it controls the event ACKs polling interval. By default, this setting is 10 seconds.
-* `splunk.hec.ack.poll.threads` - This setting is used for performance tuning and is only applicable when `splunk.hec.ack.enabled` is set to `true`. It controls how many threads should be spawned to poll event ACKs. By default, it is set to `1`.
+* `splunk.hec.ack.poll.threads` - This setting is used for performance tuning and is only applicable when `splunk.hec.ack.enabled` is set to `true`. It controls how many threads should be spawned to poll event ACKs. By default, this is set to `1`.
     > Note: For large Splunk indexer clusters (For example, 100 indexers) you need to increase this number. Recommended increase to speed up ACK polling is 4 threads.
-* `splunk.hec.event.timeout` - This setting is applicable when `splunk.hec.ack.enabled` is set to `true`. When events are POSTed to Splunk and before they are ACKed, this setting determines how long the connector will wait before timing out and resending. By default, it is set to 300 seconds.
+* `splunk.hec.event.timeout` - This setting is applicable when `splunk.hec.ack.enabled` is set to `true`. When events are POSTed to Splunk and before they are ACKed, this setting determines how long the connector will wait before timing out and resending. By default, this is set to `300` seconds.
+* `splunk.hec.max.outstanding.events` - "Maximum amount of un-acknowledged events kept in memory by connector. Will trigger back-pressure event to slow collection. By default, this is set to `1000000`.
+* `splunk.hec.max.retries` - Number of retries for failed batches before giving up. By default this is set to `-1` which will retry indefinitely.
 
 #### Endpoint Parameters
 * `splunk.hec.raw` - Set to `true` in order for Splunk software to ingest data using the the /raw HEC endpoint. Default is `false`, which will use the /event endpoint.
@@ -425,7 +427,8 @@ Use the below schema to configure Splunk Connect for Kafka
 ##### /event endpoint only
 * `splunk.hec.json.event.enrichment` -  Only applicable to /event HEC endpoint. This setting is used to enrich raw data with extra metadata fields. It contains a list of key value pairs separated by ",". The configured enrichment metadata will be indexed along with raw event data by Splunk software. Note: Data enrichment for /event HEC endpoint is only available in Splunk Enterprise 6.5 and above. By default, this setting is empty. See ([Documentation](http://dev.splunk.com/view/event-collector/SP-CAAAE8Y#indexedfield)) for more information.
     > Note: For example, `org=fin,bu=south-east-us`
-* `splunk.hec.track.data` -  Valid settings are `true` or `false`. When set to `true`, data loss and data injection latency metadata will be indexed along with raw data. This setting only works in conjunction with /event HEC endpoint (`"splunk.hec.raw" : "false"`). By default, it is set to `false`.
+* `splunk.hec.track.data` -  Valid settings are `true` or `false`. When set to `true`, data loss and data injection latency metadata will be indexed along with raw data. This setting only works in conjunction with /event HEC endpoint (`"splunk.hec.raw" : "false"`). By default, this is set to `false`.
+* `splunk.hec.use.record.timestamp` - Valid settings are `true` or `false`. When set to `true`, The timestamp is retrieved from the Kafka record and passed to Splunk as a HEC meta-data override. This will index events in Splunk with the record timestamp. By default, this is set to `true`.
 
 #### Configuration Examples
  Two parameters which affect that core functionality of how the Connector works are:
