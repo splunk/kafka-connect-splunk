@@ -403,15 +403,15 @@ Use the below schema to configure Splunk Connect for Kafka
 | `splunk.hec.total.channels` | Controls the total channels created to perform HEC event POSTs. See the Load balancer section for more details. |`2`|
 | `splunk.hec.max.batch.size` | Maximum batch size when posting events to Splunk. The size is the actual number of Kafka events, and not byte size. |`100`|
 | `splunk.hec.threads` | Controls how many threads are spawned to do data injection via HEC in a **single** connector task. |`1`|
-| `splunk.hec.socket.timeout` | Internal TCP socket timeout when connecting to Splunk. |`60`|
+| `splunk.hec.socket.timeout` | Internal TCP socket timeout when connecting to Splunk. Value is in seconds. |`60`|
 ### Acknowledgement Parameters
 #### Use Ack
 | Name              | Description                | Default Value  |
 |--------           |----------------------------|-----------------------|
 | `splunk.hec.ack.enabled` -| Valid settings are `true` or `false`. When set to `true` the Splunk Kafka Connector will poll event ACKs for POST events before check-pointing the Kafka offsets. This is used to prevent data loss, as this setting implements guaranteed delivery. > Note: If this setting is set to `true`, verify that the corresponding HEC token is also enabled with index acknowledgements, otherwise the data injection will fail, due to duplicate data. When set to `false`, the Splunk Kafka Connector will only POST events to your Splunk platform instance. After it receives a HTTP 200 OK response, it assumes the events are indexed by Splunk. Note: In cases where the Splunk platform crashes, there may be some data loss.|`true`|
-| `splunk.hec.ack.poll.interval` | This setting is only applicable when `splunk.hec.ack.enabled` is set to `true`. Internally it controls the event ACKs polling interval. |`10`|
+| `splunk.hec.ack.poll.interval` | This setting is only applicable when `splunk.hec.ack.enabled` is set to `true`. Internally it controls the event ACKs polling interval. Value is in seconds. |`10`|
 | `splunk.hec.ack.poll.threads` | This setting is used for performance tuning and is only applicable when `splunk.hec.ack.enabled` is set to `true`. It controls how many threads should be spawned to poll event ACKs. > Note: For large Splunk indexer clusters (For example, 100 indexers) you need to increase this number. Recommended increase to speed up ACK polling is 4 threads.| `1`|
-| `splunk.hec.event.timeout` | This setting is applicable when `splunk.hec.ack.enabled` is set to `true`. When events are POSTed to Splunk and before they are ACKed, this setting determines how long the connector will wait before timing out and resending. |`300`|
+| `splunk.hec.event.timeout` | This setting is applicable when `splunk.hec.ack.enabled` is set to `true`. When events are POSTed to Splunk and before they are ACKed, this setting determines how long the connector will wait before timing out and resending. Value is in seconds. |`300`|
 #### Endpoint Parameters
 | Name              | Description                | Default Value  |
 |--------           |----------------------------|-----------------------|
