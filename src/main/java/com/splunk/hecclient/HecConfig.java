@@ -30,6 +30,8 @@ public final class HecConfig {
     private int socketTimeout = 60; // in seconds
     private int socketSendBufferSize = 8 * 1024 * 1024; // in byte
     private boolean enableChannelTracking = false;
+    private String customJavaKTrustStorePath;
+    private String customJavaKTrustStorePassword;
 
     public HecConfig(List<String> uris, String token) {
         this.uris = uris;
@@ -82,6 +84,15 @@ public final class HecConfig {
 
     public boolean getEnableChannelTracking() {
         return enableChannelTracking;
+    }
+
+    public HecConfig setCustomJavaKeystore(String customJavaKTrustStorePath, String customJavaKTrustStorePassword) {
+        if(customJavaKTrustStorePath != "") {
+        //validate path
+            this.customJavaKTrustStorePath = customJavaKTrustStorePath;
+            this.customJavaKTrustStorePassword = customJavaKTrustStorePassword;
+        }
+        return this;
     }
 
     public HecConfig setDisableSSLCertVerification(boolean disableVerfication) {

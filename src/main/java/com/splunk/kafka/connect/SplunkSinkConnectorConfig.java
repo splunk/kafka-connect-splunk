@@ -20,6 +20,7 @@ import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.sink.SinkConnector;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
@@ -94,6 +95,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final String sources;
     final boolean validateCertificates;
     final boolean httpKeepAlive;
+    final boolean hasTrustStorePath;
     final String trustStorePath;
     final String trustStorePassword;
     final int eventBatchTimeout;
@@ -125,6 +127,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         httpKeepAlive = getBoolean(HTTP_KEEPALIVE_CONF);
         validateCertificates = getBoolean(SSL_VALIDATE_CERTIFICATES_CONF);
         trustStorePath = getString(SSL_TRUSTSTORE_PATH_CONF);
+        hasTrustStorePath = StringUtils.isEmpty(trustStorePath);
         trustStorePassword = getPassword(SSL_TRUSTSTORE_PASSWORD_CONF).value();
         eventBatchTimeout = getInt(EVENT_TIMEOUT_CONF);
         ackPollInterval = getInt(ACK_POLL_INTERVAL_CONF);
@@ -186,6 +189,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .setAckPollInterval(ackPollInterval)
                 .setAckPollThreads(ackPollThreads)
                 .setEnableChannelTracking(trackData);
+           //     .setCustomJavaKeystore(trustStorePath,trustStorePassword);
         return config;
     }
 
@@ -204,7 +208,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 + "sources:" + sources + ", "
                 + "httpKeepAlive:" + httpKeepAlive + ", "
                 + "validateCertificates:" + validateCertificates + ", "
-                + "trustStorePath:" + trustStorePath + ", "
+              //  + "trustStorePath:" + trustStorePath + ", "
                 + "socketTimeout:" + socketTimeout + ", "
                 + "eventBatchTimeout:" + eventBatchTimeout + ", "
                 + "ackPollInterval:" + ackPollInterval + ", "

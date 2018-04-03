@@ -216,8 +216,8 @@ public class SplunkSinkConnectorConfigTest {
 
         Assert.assertEquals(uu.httpKeepAlive, connectorConfig.httpKeepAlive);
         Assert.assertEquals(uu.validateCertificates, connectorConfig.validateCertificates);
-        Assert.assertEquals(uu.trustStorePath, connectorConfig.trustStorePath);
-        Assert.assertEquals(uu.trustStorePassword, connectorConfig.trustStorePassword);
+        //Assert.assertEquals(uu.trustStorePath, connectorConfig.trustStorePath);
+        //Assert.assertEquals(uu.trustStorePassword, connectorConfig.trustStorePassword);
         Assert.assertEquals(uu.eventBatchTimeout, connectorConfig.eventBatchTimeout);
         Assert.assertEquals(uu.ackPollInterval, connectorConfig.ackPollInterval);
         Assert.assertEquals(uu.ackPollThreads, connectorConfig.ackPollThreads);
