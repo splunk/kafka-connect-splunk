@@ -76,7 +76,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String SOURCE_DOC = "Splunk event source metadata for Kafka topic data. The same configuration rules "
             + "as indexes can be applied. If left unconfigured, the default source binds to"
             + " the HEC token. By default, this setting is empty.";
-    static final String SOURCETYPE_DOC = "Splunk event source metadata for Kafka topic data. The same configuration "
+    static final String SOURCETYPE_DOC = "Splunk event sourcetype metadata for Kafka topic data. The same configuration "
                                        + "rules as indexes can be applied here. If left unconfigured, the default source"
                                        + " binds to the HEC token. By default, this setting is empty";
     static final String TOTAL_HEC_CHANNEL_DOC = "Total HEC Channels used to post events to Splunk. When enabling HEC ACK, "
