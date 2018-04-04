@@ -127,7 +127,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         httpKeepAlive = getBoolean(HTTP_KEEPALIVE_CONF);
         validateCertificates = getBoolean(SSL_VALIDATE_CERTIFICATES_CONF);
         trustStorePath = getString(SSL_TRUSTSTORE_PATH_CONF);
-        hasTrustStorePath = StringUtils.isEmpty(trustStorePath);
+        hasTrustStorePath = StringUtils.isNotEmpty(SSL_TRUSTSTORE_PATH_CONF);
         trustStorePassword = getPassword(SSL_TRUSTSTORE_PASSWORD_CONF).value();
         eventBatchTimeout = getInt(EVENT_TIMEOUT_CONF);
         ackPollInterval = getInt(ACK_POLL_INTERVAL_CONF);
@@ -188,8 +188,10 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .setHttpKeepAlive(httpKeepAlive)
                 .setAckPollInterval(ackPollInterval)
                 .setAckPollThreads(ackPollThreads)
-                .setEnableChannelTracking(trackData);
-           //     .setCustomJavaKeystore(trustStorePath,trustStorePassword);
+                .setEnableChannelTracking(trackData)
+                .setTrustStorePath(trustStorePath)
+                .setTrustStorePassword(trustStorePassword)
+                .setHasCustomTrustStore(hasTrustStorePath);
         return config;
     }
 
@@ -208,7 +210,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 + "sources:" + sources + ", "
                 + "httpKeepAlive:" + httpKeepAlive + ", "
                 + "validateCertificates:" + validateCertificates + ", "
-              //  + "trustStorePath:" + trustStorePath + ", "
+                + "trustStorePath:" + trustStorePath + ", "
                 + "socketTimeout:" + socketTimeout + ", "
                 + "eventBatchTimeout:" + eventBatchTimeout + ", "
                 + "ackPollInterval:" + ackPollInterval + ", "

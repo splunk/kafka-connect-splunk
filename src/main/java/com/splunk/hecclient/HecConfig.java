@@ -30,8 +30,9 @@ public final class HecConfig {
     private int socketTimeout = 60; // in seconds
     private int socketSendBufferSize = 8 * 1024 * 1024; // in byte
     private boolean enableChannelTracking = false;
-    private String customJavaKTrustStorePath;
-    private String customJavaKTrustStorePassword;
+    private boolean hasCustomTrustStore = false;
+    private String trustStorePath;
+    private String trustStorePassword;
 
     public HecConfig(List<String> uris, String token) {
         this.uris = uris;
@@ -86,14 +87,12 @@ public final class HecConfig {
         return enableChannelTracking;
     }
 
-    public HecConfig setCustomJavaKeystore(String customJavaKTrustStorePath, String customJavaKTrustStorePassword) {
-        if(customJavaKTrustStorePath != "") {
-        //validate path
-            this.customJavaKTrustStorePath = customJavaKTrustStorePath;
-            this.customJavaKTrustStorePassword = customJavaKTrustStorePassword;
-        }
-        return this;
-    }
+    public boolean getHasCustomTrustStore() { return hasCustomTrustStore; }
+
+    public String getTrustStorePath() { return trustStorePath; }
+
+    public String getTrustStorePassword() { return trustStorePassword; }
+
 
     public HecConfig setDisableSSLCertVerification(boolean disableVerfication) {
         disableSSLCertVerification = disableVerfication;
@@ -137,6 +136,21 @@ public final class HecConfig {
 
     public HecConfig setTotalChannels(int channels) {
         totalChannels = channels;
+        return this;
+    }
+
+    public HecConfig setTrustStorePath(String path) {
+        trustStorePath = path;
+        return this;
+    }
+
+    public HecConfig setTrustStorePassword(String password) {
+        trustStorePassword = password;
+        return this;
+    }
+
+    public HecConfig setHasCustomTrustStore(boolean hasStore) {
+        hasCustomTrustStore = hasStore;
         return this;
     }
 

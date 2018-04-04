@@ -15,24 +15,34 @@
  */
 package com.splunk.kafka.connect;
 
+import com.splunk.hecclient.Hec;
 import com.splunk.hecclient.HecConfig;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.sink.SinkConnector;
+import java.security.KeyStore;
+
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.xml.crypto.KeySelectorException;
+import java.security.KeyStoreException;
 import java.util.HashMap;
 import java.util.Map;
 
+
 public class SplunkSinkConnectorConfigTest {
+    private static final Logger log = LoggerFactory.getLogger(SplunkSinkConnectorConfigTest.class);
 
     @Test
     public void create() {
         UnitUtil uu = new UnitUtil();
-        uu.enrichementMap.put("ni", "hao");
+        uu.enrichementMap.put("hello", "world");
 
         Map<String, String> config = uu.createTaskConfig();
         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
+
 
         Assert.assertEquals(uu.enrichementMap, connectorConfig.enrichments);
         Assert.assertEquals(1, connectorConfig.topicMetas.size());
@@ -67,6 +77,36 @@ public class SplunkSinkConnectorConfigTest {
             Assert.assertEquals(uu.trackData, config.getEnableChannelTracking());
         }
     }
+
+    @Test
+    public void getHecConfigCustomKeystore() {
+        UnitUtil uu = new UnitUtil(1);
+
+        Map<String, String> taskConfig = uu.createTaskConfig();
+        SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
+        HecConfig config = connectorConfig.getHecConfig();
+        Assert.assertEquals(true, config.getHasCustomTrustStore());
+        Assert.assertEquals(uu.trustStorePath, config.getTrustStorePath());
+        Assert.assertEquals(uu.trustStorePassword, config.getTrustStorePassword());
+    }
+
+    @Test
+    public void testCustomKeystore() throws KeyStoreException {
+        UnitUtil uu = new UnitUtil(1);
+
+        Map<String, String> taskConfig = uu.createTaskConfig();
+        SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
+        HecConfig config = connectorConfig.getHecConfig();
+        Assert.assertEquals(true, config.getHasCustomTrustStore());
+        Assert.assertEquals(uu.trustStorePath, config.getTrustStorePath());
+        Assert.assertEquals(uu.trustStorePassword, config.getTrustStorePassword());
+
+        KeyStore ks = Hec.loadKeyStore(config.getTrustStorePath(),config.getTrustStorePassword());
+        Assert.assertNotNull(ks);
+        Assert.assertEquals(ks.getType(), "JKS");
+        Assert.assertTrue(ks.containsAlias("test"));
+    }
+
 
     @Test
     public void createWithoutEnrichment() {
@@ -216,8 +256,8 @@ public class SplunkSinkConnectorConfigTest {
 
         Assert.assertEquals(uu.httpKeepAlive, connectorConfig.httpKeepAlive);
         Assert.assertEquals(uu.validateCertificates, connectorConfig.validateCertificates);
-        //Assert.assertEquals(uu.trustStorePath, connectorConfig.trustStorePath);
-        //Assert.assertEquals(uu.trustStorePassword, connectorConfig.trustStorePassword);
+        Assert.assertEquals(uu.trustStorePath, connectorConfig.trustStorePath);
+        Assert.assertEquals(uu.trustStorePassword, connectorConfig.trustStorePassword);
         Assert.assertEquals(uu.eventBatchTimeout, connectorConfig.eventBatchTimeout);
         Assert.assertEquals(uu.ackPollInterval, connectorConfig.ackPollInterval);
         Assert.assertEquals(uu.ackPollThreads, connectorConfig.ackPollThreads);
