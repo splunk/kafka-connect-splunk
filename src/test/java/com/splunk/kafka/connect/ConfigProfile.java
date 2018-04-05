@@ -56,8 +56,8 @@ public class ConfigProfile {
         this.httpKeepAlive = true;
         this.validateCertificates = true;
         this.hasTrustStorePath = false;
-        this.trustStorePath = "/tmp/pki.store";
-        this.trustStorePassword = "mypass";
+        this.trustStorePath = "./src/test/resources/keystoretest.jks";
+        this.trustStorePassword = "Notchangeme";
         this.eventBatchTimeout = 1;
         this.ackPollInterval = 1;
         this.ackPollThreads = 1;

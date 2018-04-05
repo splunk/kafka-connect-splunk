@@ -127,7 +127,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         httpKeepAlive = getBoolean(HTTP_KEEPALIVE_CONF);
         validateCertificates = getBoolean(SSL_VALIDATE_CERTIFICATES_CONF);
         trustStorePath = getString(SSL_TRUSTSTORE_PATH_CONF);
-        hasTrustStorePath = StringUtils.isNotEmpty(SSL_TRUSTSTORE_PATH_CONF);
+        hasTrustStorePath = StringUtils.isNotBlank(SSL_TRUSTSTORE_PATH_CONF);
         trustStorePassword = getPassword(SSL_TRUSTSTORE_PASSWORD_CONF).value();
         eventBatchTimeout = getInt(EVENT_TIMEOUT_CONF);
         ackPollInterval = getInt(ACK_POLL_INTERVAL_CONF);
@@ -180,7 +180,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     */
     public HecConfig getHecConfig() {
         HecConfig config = new HecConfig(Arrays.asList(splunkURI.split(",")), splunkToken);
-        config.setDisableSSLCertVerification(!validateCertificates)
+                config.setDisableSSLCertVerification(!validateCertificates)
                 .setSocketTimeout(socketTimeout)
                 .setMaxHttpConnectionPerChannel(maxHttpConnPerChannel)
                 .setTotalChannels(totalHecChannels)

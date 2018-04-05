@@ -34,15 +34,18 @@ public class HecConfigTest {
         Assert.assertEquals(token, config.getToken());
 
         config.setAckPollInterval(1)
-                .setDisableSSLCertVerification(true)
-                .setHttpKeepAlive(false)
-                .setSocketSendBufferSize(2)
-                .setSocketTimeout(3)
-                .setMaxHttpConnectionPerChannel(4)
-                .setTotalChannels(5)
-                .setAckPollThreads(6)
-                .setEnableChannelTracking(true)
-                .setEventBatchTimeout(7);
+              .setDisableSSLCertVerification(true)
+              .setHttpKeepAlive(false)
+              .setSocketSendBufferSize(2)
+              .setSocketTimeout(3)
+              .setMaxHttpConnectionPerChannel(4)
+              .setTotalChannels(5)
+              .setAckPollThreads(6)
+              .setEnableChannelTracking(true)
+              .setEventBatchTimeout(7)
+              .setTrustStorePath("test")
+              .setTrustStorePassword("pass")
+              .setHasCustomTrustStore(true);
 
         Assert.assertTrue(config.getDisableSSLCertVerification());
         Assert.assertTrue(config.getEnableChannelTracking());
@@ -54,5 +57,8 @@ public class HecConfigTest {
         Assert.assertEquals(5, config.getTotalChannels());
         Assert.assertEquals(6, config.getAckPollThreads());
         Assert.assertEquals(7, config.getEventBatchTimeout());
+        Assert.assertEquals("test", config.getTrustStorePath());
+        Assert.assertEquals("pass", config.getTrustStorePassword());
+        Assert.assertTrue(config.getHasCustomTrustStore());
     }
 }

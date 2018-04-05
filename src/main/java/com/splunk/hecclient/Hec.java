@@ -19,15 +19,20 @@ import org.apache.http.impl.client.CloseableHttpClient;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+
+import java.security.cert.CertificateException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
+import java.security.SecureRandom;
+import java.security.KeyManagementException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 
 public class Hec implements HecInf {
     private static final Logger log = LoggerFactory.getLogger(Hec.class);
@@ -123,24 +128,57 @@ public class Hec implements HecInf {
     public static CloseableHttpClient createHttpClient(final HecConfig config) {
         int poolSizePerDest = config.getMaxHttpConnectionPerChannel();
 
-            KeyStore keyStore = config.getHasCustomTrustStore() ? loadKeyStore(config.getTrustStorePath(), config.getTrustStorePassword()) : null;
+        if(!config.getHasCustomTrustStore() ||
+           StringUtils.isBlank(config.getTrustStorePath()) ||
+           StringUtils.isBlank(config.getTrustStorePassword())) {
 
-            if(StringUtils.isNotEmpty(config.getTrustStorePath()) == true && keyStore == null) { /*TODO:failed scenario.. abort gracefully*/}
+            return new HttpClientBuilder().setDisableSSLCertVerification(config.getDisableSSLCertVerification())
+                    .setMaxConnectionPoolSizePerDestination(poolSizePerDest)
+                    .setMaxConnectionPoolSize(poolSizePerDest * config.getUris().size())
+                    .build();
+        }
 
-        return new HttpClientBuilder().setDisableSSLCertVerification(config.getDisableSSLCertVerification()).setMaxConnectionPoolSizePerDestination(poolSizePerDest).setMaxConnectionPoolSize(poolSizePerDest * config.getUris().size()).build();
+        SSLContext context = loadCustomSSLContext(config.getTrustStorePath(), config.getTrustStorePassword());
 
+        if (context != null) {
+            log.info("SSL Context created successfully");
+            return new HttpClientBuilder()
+                .setDisableSSLCertVerification(config.getDisableSSLCertVerification())
+                .setMaxConnectionPoolSizePerDestination(poolSizePerDest)
+                .setMaxConnectionPoolSize(poolSizePerDest * config.getUris().size())
+                .setSslContext(context)
+                .build();
+        }
+        else {
+             throw new HecException("Truststore path provided but failed to initialize ssl context");
+         }
     }
 
-    public static KeyStore loadKeyStore(String path, String pass) {
+    public static SSLContext loadCustomSSLContext(String path, String pass) {
         try {
             KeyStore ks = KeyStore.getInstance("JKS");
             FileInputStream fileInputStream = new FileInputStream(path);
             ks.load(fileInputStream, pass.toCharArray());
-            log.info("Loaded Sucessfully");
-            return ks;
+
+            SSLContext sslContext = loadTrustManagerFactory(ks);
+
+            return sslContext;
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException ex) {
-            log.info("Exception caught{}", ex.getMessage());
             throw new HecException("Error loading truststore, check values for truststore and truststore-password", ex);
+        }
+    }
+
+    public static SSLContext loadTrustManagerFactory(KeyStore keyStore) {
+        try {
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(keyStore);
+
+            SSLContext sslContext = SSLContext.getInstance("TLSv1");
+            sslContext.init(null, tmf.getTrustManagers(), new SecureRandom());
+
+            return sslContext;
+        } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException ex) {
+            throw new HecException("Error loading KeyStoreManage", ex);
         }
     }
 }

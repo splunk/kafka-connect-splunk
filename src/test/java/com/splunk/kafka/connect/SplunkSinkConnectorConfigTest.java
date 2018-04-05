@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
 import javax.xml.crypto.KeySelectorException;
 import java.security.KeyStoreException;
 import java.util.HashMap;
@@ -101,10 +102,9 @@ public class SplunkSinkConnectorConfigTest {
         Assert.assertEquals(uu.trustStorePath, config.getTrustStorePath());
         Assert.assertEquals(uu.trustStorePassword, config.getTrustStorePassword());
 
-        KeyStore ks = Hec.loadKeyStore(config.getTrustStorePath(),config.getTrustStorePassword());
-        Assert.assertNotNull(ks);
-        Assert.assertEquals(ks.getType(), "JKS");
-        Assert.assertTrue(ks.containsAlias("test"));
+        SSLContext context = Hec.loadCustomSSLContext(config.getTrustStorePath(),config.getTrustStorePassword());
+        Assert.assertNotNull(context);
+
     }
 
 

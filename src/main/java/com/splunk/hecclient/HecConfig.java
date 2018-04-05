@@ -18,6 +18,7 @@ package com.splunk.hecclient;
 import java.util.List;
 
 public final class HecConfig {
+
     private List<String> uris;
     private String token;
     private boolean disableSSLCertVerification = false;
@@ -144,8 +145,8 @@ public final class HecConfig {
         return this;
     }
 
-    public HecConfig setTrustStorePassword(String password) {
-        trustStorePassword = password;
+    public HecConfig setTrustStorePassword(String pass) {
+        trustStorePassword = pass;
         return this;
     }
 
