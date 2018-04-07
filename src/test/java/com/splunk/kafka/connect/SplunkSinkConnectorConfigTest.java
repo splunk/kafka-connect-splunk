@@ -32,7 +32,6 @@ import java.security.KeyStoreException;
 import java.util.HashMap;
 import java.util.Map;
 
-
 public class SplunkSinkConnectorConfigTest {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkConnectorConfigTest.class);
 
@@ -106,7 +105,6 @@ public class SplunkSinkConnectorConfigTest {
         Assert.assertNotNull(context);
 
     }
-
 
     @Test
     public void createWithoutEnrichment() {

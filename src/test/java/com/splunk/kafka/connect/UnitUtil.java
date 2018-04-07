@@ -105,7 +105,6 @@ public class UnitUtil {
         numOfThreads = configProfile.getNumOfThreads();
     }
 
-
     public Map<String, String> createTaskConfig() {
         Map<String, String> config = new HashMap<>();
         config.put(SinkConnector.TOPICS_CONFIG, topics);

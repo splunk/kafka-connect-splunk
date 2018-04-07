@@ -125,6 +125,5 @@ public final class HttpClientBuilder {
         } else {
             return new SSLConnectionSocketFactory(this.sslContext);
         }
-
     }
 }
