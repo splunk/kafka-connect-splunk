@@ -58,8 +58,6 @@ import javax.net.ssl.TrustManagerFactory;
  * @see         HecAckPoller
  */
 public class Hec implements HecInf {
-    private static final Logger log = LoggerFactory.getLogger(Hec.class);
-
     private HecConfig clientConfig; //TODO: Do we need to keep this localized copy of config. We are only picking at a couple of hecConfig values
     private LoadBalancerInf loadBalancer;
     private Poller poller;
@@ -284,7 +282,6 @@ public class Hec implements HecInf {
         SSLContext context = loadCustomSSLContext(config.getTrustStorePath(), config.getTrustStorePassword());
 
         if (context != null) {
-            log.info("ssl context created successfully");
             return new HttpClientBuilder()
                 .setDisableSSLCertVerification(config.getDisableSSLCertVerification())
                 .setMaxConnectionPoolSizePerDestination(poolSizePerDest)

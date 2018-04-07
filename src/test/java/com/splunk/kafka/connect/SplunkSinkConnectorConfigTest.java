@@ -33,16 +33,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SplunkSinkConnectorConfigTest {
-    private static final Logger log = LoggerFactory.getLogger(SplunkSinkConnectorConfigTest.class);
 
     @Test
     public void create() {
         UnitUtil uu = new UnitUtil();
+        uu.enrichementMap.put("ni", "hao");
         uu.enrichementMap.put("hello", "world");
 
         Map<String, String> config = uu.createTaskConfig();
         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
-
 
         Assert.assertEquals(uu.enrichementMap, connectorConfig.enrichments);
         Assert.assertEquals(1, connectorConfig.topicMetas.size());
@@ -159,7 +158,7 @@ public class SplunkSinkConnectorConfigTest {
     public void createWithMetaDataNonUniform() {
         UnitUtil uu = new UnitUtil();
 
-        // one index, multiple source, sourcetypes
+        // one index, multiple source, source types
         Map<String, String> config = uu.createTaskConfig();
         config.put(SinkConnector.TOPICS_CONFIG, "t1,t2,t3");
         config.put(SplunkSinkConnectorConfig.INDEX_CONF, "i1");

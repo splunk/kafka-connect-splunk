@@ -121,7 +121,7 @@ public final class HttpClientBuilder {
 
     private SSLConnectionSocketFactory getSecureSSLConnectionFactory() {
         if (this.sslContext == null) {
-            return null;
+            return null; // use system default one
         } else {
             return new SSLConnectionSocketFactory(this.sslContext);
         }

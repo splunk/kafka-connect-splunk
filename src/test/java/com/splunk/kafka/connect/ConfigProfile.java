@@ -64,7 +64,7 @@ public class ConfigProfile {
         this.maxHttpConnPerChannel = 1;
         this.totalHecChannels = 1;
         this.socketTimeout = 1;
-        this.enrichements = "hello=world";
+        this.enrichements = "ni=hao,hello=world";
         this.enrichementMap = new HashMap<>();
         this.trackData = true;
         this.maxBatchSize = 1;
