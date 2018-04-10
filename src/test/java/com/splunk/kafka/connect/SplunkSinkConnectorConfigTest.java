@@ -19,15 +19,11 @@ import com.splunk.hecclient.Hec;
 import com.splunk.hecclient.HecConfig;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.sink.SinkConnector;
-import java.security.KeyStore;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
-import javax.xml.crypto.KeySelectorException;
 import java.security.KeyStoreException;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +32,7 @@ public class SplunkSinkConnectorConfigTest {
 
     @Test
     public void create() {
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
         uu.enrichementMap.put("ni", "hao");
         uu.enrichementMap.put("hello", "world");
 
@@ -53,7 +49,7 @@ public class SplunkSinkConnectorConfigTest {
     @Test
     public void getHecConfig() {
         for (int i = 0; i < 2; i++) {
-            UnitUtil uu = new UnitUtil();
+            UnitUtil uu = new UnitUtil(0);
             Map<String, String> taskConfig = uu.createTaskConfig();
             if (i == 0) {
                 taskConfig.put(SplunkSinkConnectorConfig.SSL_VALIDATE_CERTIFICATES_CONF, String.valueOf(true));
@@ -107,7 +103,7 @@ public class SplunkSinkConnectorConfigTest {
 
     @Test
     public void createWithoutEnrichment() {
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
         Map<String, String> config = uu.createTaskConfig();
         config.put(SplunkSinkConnectorConfig.ENRICHMENT_CONF, "");
         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
@@ -124,7 +120,7 @@ public class SplunkSinkConnectorConfigTest {
 
     @Test(expected = ConfigException.class)
     public void createWithInvalidEnrichment() {
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
         Map<String, String> config = uu.createTaskConfig();
         config.put(SplunkSinkConnectorConfig.ENRICHMENT_CONF, "i1,i2");
         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
@@ -133,7 +129,7 @@ public class SplunkSinkConnectorConfigTest {
     @Test
     public void createWithMetaDataUniform() {
         // index, source, sourcetype have same number of elements
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
         Map<String, String> config = uu.createTaskConfig();
         config.put(SinkConnector.TOPICS_CONFIG, "t1,t2,t3");
         config.put(SplunkSinkConnectorConfig.INDEX_CONF, "i1,i2,i3");
@@ -156,7 +152,7 @@ public class SplunkSinkConnectorConfigTest {
 
     @Test
     public void createWithMetaDataNonUniform() {
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
 
         // one index, multiple source, source types
         Map<String, String> config = uu.createTaskConfig();
@@ -181,7 +177,7 @@ public class SplunkSinkConnectorConfigTest {
 
     @Test
     public void hasMetaDataConfigured() {
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
 
         // index, source, sourcetypes
         Map<String, String> config = uu.createTaskConfig();
@@ -210,7 +206,7 @@ public class SplunkSinkConnectorConfigTest {
 
     @Test(expected = ConfigException.class)
     public void createWithMetaDataError() {
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
 
         // one index, multiple source, sourcetypes
         Map<String, String> config = uu.createTaskConfig();
@@ -223,7 +219,7 @@ public class SplunkSinkConnectorConfigTest {
 
     @Test
     public void toStr() {
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
 
         Map<String, String> config = uu.createTaskConfig();
         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
@@ -236,7 +232,7 @@ public class SplunkSinkConnectorConfigTest {
     }
 
     private void assertMeta(final SplunkSinkConnectorConfig connectorConfig) {
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
 
         Assert.assertEquals(uu.indexes, connectorConfig.indexes);
         Assert.assertEquals(uu.sourcetypes, connectorConfig.sourcetypes);
@@ -244,7 +240,7 @@ public class SplunkSinkConnectorConfigTest {
     }
 
     private void commonAssert(final SplunkSinkConnectorConfig connectorConfig) {
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
 
         Assert.assertEquals(uu.token, connectorConfig.splunkToken);
         Assert.assertEquals(uu.uri, connectorConfig.splunkURI);

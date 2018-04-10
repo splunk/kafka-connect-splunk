@@ -28,8 +28,6 @@ import java.security.SecureRandom;
 import java.security.KeyManagementException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
@@ -58,7 +56,6 @@ import javax.net.ssl.TrustManagerFactory;
  * @see         HecAckPoller
  */
 public class Hec implements HecInf {
-    private HecConfig clientConfig; //TODO: Do we need to keep this localized copy of config. We are only picking at a couple of hecConfig values
     private LoadBalancerInf loadBalancer;
     private Poller poller;
     private CloseableHttpClient httpClient;
@@ -315,6 +312,7 @@ public class Hec implements HecInf {
             ks.load(fileInputStream, pass.toCharArray());
 
             SSLContext sslContext = loadTrustManagerFactory(ks);
+            fileInputStream.close();
 
             return sslContext;
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException ex) {

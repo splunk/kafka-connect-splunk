@@ -240,18 +240,18 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     */
     public HecConfig getHecConfig() {
         HecConfig config = new HecConfig(Arrays.asList(splunkURI.split(",")), splunkToken);
-                config.setDisableSSLCertVerification(!validateCertificates)
-                .setSocketTimeout(socketTimeout)
-                .setMaxHttpConnectionPerChannel(maxHttpConnPerChannel)
-                .setTotalChannels(totalHecChannels)
-                .setEventBatchTimeout(eventBatchTimeout)
-                .setHttpKeepAlive(httpKeepAlive)
-                .setAckPollInterval(ackPollInterval)
-                .setAckPollThreads(ackPollThreads)
-                .setEnableChannelTracking(trackData)
-                .setTrustStorePath(trustStorePath)
-                .setTrustStorePassword(trustStorePassword)
-                .setHasCustomTrustStore(hasTrustStorePath);
+        config.setDisableSSLCertVerification(!validateCertificates)
+               .setSocketTimeout(socketTimeout)
+               .setMaxHttpConnectionPerChannel(maxHttpConnPerChannel)
+               .setTotalChannels(totalHecChannels)
+               .setEventBatchTimeout(eventBatchTimeout)
+               .setHttpKeepAlive(httpKeepAlive)
+               .setAckPollInterval(ackPollInterval)
+               .setAckPollThreads(ackPollThreads)
+               .setEnableChannelTracking(trackData)
+               .setTrustStorePath(trustStorePath)
+               .setTrustStorePassword(trustStorePassword)
+               .setHasCustomTrustStore(hasTrustStorePath);
         return config;
     }
 

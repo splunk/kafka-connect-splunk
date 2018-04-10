@@ -49,34 +49,6 @@ public class UnitUtil {
     final int maxBatchSize;
     final int numOfThreads;
 
-    UnitUtil() {
-        this.configProfile = new ConfigProfile();
-        topics = configProfile.getTopics();
-        token = configProfile.getToken();
-        uri = configProfile.getUri();
-        raw = configProfile.isRaw();
-        ack = configProfile.isAck();
-        indexes = configProfile.getIndexes();
-        sourcetypes = configProfile.getSourcetypes();
-        sources = configProfile.getSources();
-        httpKeepAlive = configProfile.isHttpKeepAlive();
-        validateCertificates = configProfile.isValidateCertificates();
-        hasTrustStorePath = configProfile.isHasTrustStorePath();
-        trustStorePath = configProfile.getTrustStorePath();
-        trustStorePassword = configProfile.getTrustStorePassword();
-        eventBatchTimeout = configProfile.getEventBatchTimeout();
-        ackPollInterval = configProfile.getAckPollInterval();
-        ackPollThreads = configProfile.getAckPollThreads();
-        maxHttpConnPerChannel = configProfile.getMaxHttpConnPerChannel();
-        totalHecChannels = configProfile.getTotalHecChannels();
-        socketTimeout = configProfile.getSocketTimeout();
-        enrichements = configProfile.getEnrichements();
-        enrichementMap = configProfile.getEnrichementMap();
-        trackData = configProfile.isTrackData();
-        maxBatchSize = configProfile.getMaxBatchSize();
-        numOfThreads = configProfile.getNumOfThreads();
-    }
-
     UnitUtil(int profile) {
         this.configProfile = new ConfigProfile(profile);
         topics = configProfile.getTopics();
