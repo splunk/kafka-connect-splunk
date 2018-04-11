@@ -85,7 +85,7 @@ public class SplunkSinkTaskTest {
         task.put(createSinkRecords(120));
         Assert.assertEquals(2, hec.getBatches().size());
         Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>();
-        offsets.put(new TopicPartition(uu.topics, 1), new OffsetAndMetadata(120));
+        offsets.put(new TopicPartition(uu.configProfile.getTopics(), 1), new OffsetAndMetadata(120));
         Assert.assertEquals(offsets, task.preCommit(new HashMap<>()));
         Assert.assertTrue(task.getTracker().getAndRemoveFailedRecords().isEmpty());
         task.stop();
@@ -271,7 +271,7 @@ public class SplunkSinkTaskTest {
                     int n = i * 100 + j;
                     Assert.assertEquals(String.valueOf(n), event.getFields().get("kafka_offset"));
                     Assert.assertEquals(String.valueOf(1), event.getFields().get("kafka_partition"));
-                    Assert.assertEquals(new UnitUtil(0).topics, event.getFields().get("kafka_topic"));
+                    Assert.assertEquals(new UnitUtil(0).configProfile.getTopics(), event.getFields().get("kafka_topic"));
                     Assert.assertEquals(String.valueOf(0), event.getFields().get("kafka_timestamp"));
                     j++;
                 }
@@ -281,7 +281,7 @@ public class SplunkSinkTaskTest {
         }
 
         Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>();
-        offsets.put(new TopicPartition(uu.topics, 1), new OffsetAndMetadata(1000));
+        offsets.put(new TopicPartition(uu.configProfile.getTopics(), 1), new OffsetAndMetadata(1000));
         Assert.assertEquals(offsets, task.preCommit(new HashMap<>()));
         Assert.assertTrue(task.getTracker().getAndRemoveFailedRecords().isEmpty());
         task.stop();
@@ -298,7 +298,7 @@ public class SplunkSinkTaskTest {
     private Collection<SinkRecord> createSinkRecords(int numOfRecords, int start, String value) {
         List<SinkRecord> records = new ArrayList<>();
         for (int i = start; i < start + numOfRecords; i++) {
-            SinkRecord rec = new SinkRecord(new UnitUtil(0).topics, 1, null, null, null, value, i, 0L, TimestampType.NO_TIMESTAMP_TYPE);
+            SinkRecord rec = new SinkRecord(new UnitUtil(0).configProfile.getTopics(), 1, null, null, null, value, i, 0L, TimestampType.NO_TIMESTAMP_TYPE);
             records.add(rec);
         }
         return records;
