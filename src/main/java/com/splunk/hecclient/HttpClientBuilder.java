@@ -35,6 +35,7 @@ public final class HttpClientBuilder {
     private int socketTimeout = 60; // in seconds
     private int socketSendBufferSize = 8 * 1024 * 1024; // in bytes
     private boolean disableSSLCertVerification = false;
+    private SSLContext sslContext = null;
 
     public HttpClientBuilder setMaxConnectionPoolSizePerDestination(int connections) {
         this.maxConnectionPoolSizePerDestination = connections;
@@ -58,6 +59,11 @@ public final class HttpClientBuilder {
 
     public HttpClientBuilder setDisableSSLCertVerification(boolean disableVerification) {
         disableSSLCertVerification = disableVerification;
+        return this;
+    }
+
+    public HttpClientBuilder setSslContext(SSLContext context) {
+        this.sslContext = context;
         return this;
     }
 
@@ -104,18 +110,20 @@ public final class HttpClientBuilder {
             }
         };
 
-        SSLContext context = null;
         try {
-            context = new SSLContextBuilder().loadTrustMaterial(trustStrategy).build();
+            this.sslContext = new SSLContextBuilder().loadTrustMaterial(trustStrategy).build();
         } catch (Exception ex) {
             throw new HecException("failed to create SSL connection factory", ex);
         }
 
-        return new SSLConnectionSocketFactory(context, hostnameVerifier);
+        return new SSLConnectionSocketFactory(this.sslContext, hostnameVerifier);
     }
 
     private SSLConnectionSocketFactory getSecureSSLConnectionFactory() {
-        // use system default one
-        return null;
+        if (this.sslContext == null) {
+            return null; // use system default one
+        } else {
+            return new SSLConnectionSocketFactory(this.sslContext);
+        }
     }
 }

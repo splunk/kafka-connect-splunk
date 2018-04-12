@@ -20,6 +20,7 @@ import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.sink.SinkConnector;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
@@ -148,6 +149,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final String indexes;
     final String sourcetypes;
     final String sources;
+  
     final int totalHecChannels;
     final int maxHttpConnPerChannel;
     final int maxBatchSize;
@@ -168,7 +170,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final boolean useRecordTimestamp;
     final Map<String, String> enrichments;
     final boolean trackData;
-
+    
+    final boolean hasTrustStorePath;
     final String trustStorePath;
     final String trustStorePassword;
 
@@ -184,6 +187,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         httpKeepAlive = getBoolean(HTTP_KEEPALIVE_CONF);
         validateCertificates = getBoolean(SSL_VALIDATE_CERTIFICATES_CONF);
         trustStorePath = getString(SSL_TRUSTSTORE_PATH_CONF);
+        hasTrustStorePath = StringUtils.isNotBlank(SSL_TRUSTSTORE_PATH_CONF);
         trustStorePassword = getPassword(SSL_TRUSTSTORE_PASSWORD_CONF).value();
         eventBatchTimeout = getInt(EVENT_TIMEOUT_CONF);
         ackPollInterval = getInt(ACK_POLL_INTERVAL_CONF);
@@ -237,14 +241,17 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     public HecConfig getHecConfig() {
         HecConfig config = new HecConfig(Arrays.asList(splunkURI.split(",")), splunkToken);
         config.setDisableSSLCertVerification(!validateCertificates)
-                .setSocketTimeout(socketTimeout)
-                .setMaxHttpConnectionPerChannel(maxHttpConnPerChannel)
-                .setTotalChannels(totalHecChannels)
-                .setEventBatchTimeout(eventBatchTimeout)
-                .setHttpKeepAlive(httpKeepAlive)
-                .setAckPollInterval(ackPollInterval)
-                .setAckPollThreads(ackPollThreads)
-                .setEnableChannelTracking(trackData);
+               .setSocketTimeout(socketTimeout)
+               .setMaxHttpConnectionPerChannel(maxHttpConnPerChannel)
+               .setTotalChannels(totalHecChannels)
+               .setEventBatchTimeout(eventBatchTimeout)
+               .setHttpKeepAlive(httpKeepAlive)
+               .setAckPollInterval(ackPollInterval)
+               .setAckPollThreads(ackPollThreads)
+               .setEnableChannelTracking(trackData)
+               .setTrustStorePath(trustStorePath)
+               .setTrustStorePassword(trustStorePassword)
+               .setHasCustomTrustStore(hasTrustStorePath);
         return config;
     }
 

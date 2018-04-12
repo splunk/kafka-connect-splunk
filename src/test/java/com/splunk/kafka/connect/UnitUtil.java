@@ -22,54 +22,36 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class UnitUtil {
-    final String topics = "mytopic";
-    final String token = "mytoken";
-    final String uri = "https://dummy:8088";
-    final boolean raw = false;
-    final boolean ack = true;
-    final String indexes = "";
-    final String sourcetypes = "";
-    final String sources = "";
-    final boolean httpKeepAlive = true;
-    final boolean validateCertificates = true;
-    final String trustStorePath = "/tmp/pki.store";
-    final String trustStorePassword = "mypass";
-    final int eventBatchTimeout = 1;
-    final int ackPollInterval = 1;
-    final int ackPollThreads = 1;
-    final int maxHttpConnPerChannel = 1;
-    final int totalHecChannels = 1;
-    final int socketTimeout = 1;
-    final String enrichements = "ni=hao";
-    final Map<String, String> enrichementMap = new HashMap<>();
-    final boolean trackData = true;
-    final int maxBatchSize = 1;
-    final int numOfThreads = 1;
+    ConfigProfile configProfile;
+
+    UnitUtil(int profile) {
+        this.configProfile = new ConfigProfile(profile);
+    }
 
     public Map<String, String> createTaskConfig() {
         Map<String, String> config = new HashMap<>();
-        config.put(SinkConnector.TOPICS_CONFIG, topics);
-        config.put(SplunkSinkConnectorConfig.TOKEN_CONF, token);
-        config.put(SplunkSinkConnectorConfig.URI_CONF, uri);
-        config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(raw));
-        config.put(SplunkSinkConnectorConfig.ACK_CONF , String.valueOf(ack));
-        config.put(SplunkSinkConnectorConfig.INDEX_CONF, indexes);
-        config.put(SplunkSinkConnectorConfig.SOURCETYPE_CONF, sourcetypes);
-        config.put(SplunkSinkConnectorConfig.SOURCE_CONF, sources);
-        config.put(SplunkSinkConnectorConfig.HTTP_KEEPALIVE_CONF, String.valueOf(httpKeepAlive));
-        config.put(SplunkSinkConnectorConfig.SSL_VALIDATE_CERTIFICATES_CONF, String.valueOf(validateCertificates));
-        config.put(SplunkSinkConnectorConfig.SSL_TRUSTSTORE_PATH_CONF, trustStorePath);
-        config.put(SplunkSinkConnectorConfig.SSL_TRUSTSTORE_PASSWORD_CONF, trustStorePassword);
-        config.put(SplunkSinkConnectorConfig.EVENT_TIMEOUT_CONF, String.valueOf(eventBatchTimeout));
-        config.put(SplunkSinkConnectorConfig.ACK_POLL_INTERVAL_CONF, String.valueOf(ackPollInterval));
-        config.put(SplunkSinkConnectorConfig.MAX_HTTP_CONNECTION_PER_CHANNEL_CONF, String.valueOf(maxHttpConnPerChannel));
-        config.put(SplunkSinkConnectorConfig.ACK_POLL_THREADS_CONF, String.valueOf(ackPollThreads));
-        config.put(SplunkSinkConnectorConfig.TOTAL_HEC_CHANNEL_CONF, String.valueOf(totalHecChannels));
-        config.put(SplunkSinkConnectorConfig.SOCKET_TIMEOUT_CONF, String.valueOf(socketTimeout));
-        config.put(SplunkSinkConnectorConfig.ENRICHMENT_CONF, String.valueOf(enrichements));
-        config.put(SplunkSinkConnectorConfig.TRACK_DATA_CONF, String.valueOf(trackData));
-        config.put(SplunkSinkConnectorConfig.MAX_BATCH_SIZE_CONF, String.valueOf(maxBatchSize));
-        config.put(SplunkSinkConnectorConfig.HEC_THREDS_CONF, String.valueOf(numOfThreads));
+        config.put(SinkConnector.TOPICS_CONFIG, configProfile.getTopics());
+        config.put(SplunkSinkConnectorConfig.TOKEN_CONF, configProfile.getToken());
+        config.put(SplunkSinkConnectorConfig.URI_CONF, configProfile.getUri());
+        config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(configProfile.isRaw()));
+        config.put(SplunkSinkConnectorConfig.ACK_CONF , String.valueOf(configProfile.isAck()));
+        config.put(SplunkSinkConnectorConfig.INDEX_CONF, configProfile.getIndexes());
+        config.put(SplunkSinkConnectorConfig.SOURCETYPE_CONF, configProfile.getSourcetypes());
+        config.put(SplunkSinkConnectorConfig.SOURCE_CONF, configProfile.getSources());
+        config.put(SplunkSinkConnectorConfig.HTTP_KEEPALIVE_CONF, String.valueOf(configProfile.isHttpKeepAlive()));
+        config.put(SplunkSinkConnectorConfig.SSL_VALIDATE_CERTIFICATES_CONF, String.valueOf(configProfile.isValidateCertificates()));
+        config.put(SplunkSinkConnectorConfig.SSL_TRUSTSTORE_PATH_CONF, configProfile.getTrustStorePath());
+        config.put(SplunkSinkConnectorConfig.SSL_TRUSTSTORE_PASSWORD_CONF, configProfile.getTrustStorePassword());
+        config.put(SplunkSinkConnectorConfig.EVENT_TIMEOUT_CONF, String.valueOf(configProfile.getEventBatchTimeout()));
+        config.put(SplunkSinkConnectorConfig.ACK_POLL_INTERVAL_CONF, String.valueOf(configProfile.getAckPollInterval()));
+        config.put(SplunkSinkConnectorConfig.MAX_HTTP_CONNECTION_PER_CHANNEL_CONF, String.valueOf(configProfile.getMaxHttpConnPerChannel()));
+        config.put(SplunkSinkConnectorConfig.ACK_POLL_THREADS_CONF, String.valueOf(configProfile.getAckPollThreads()));
+        config.put(SplunkSinkConnectorConfig.TOTAL_HEC_CHANNEL_CONF, String.valueOf(configProfile.getTotalHecChannels()));
+        config.put(SplunkSinkConnectorConfig.SOCKET_TIMEOUT_CONF, String.valueOf(configProfile.getSocketTimeout()));
+        config.put(SplunkSinkConnectorConfig.ENRICHMENT_CONF, String.valueOf(configProfile.getEnrichements()));
+        config.put(SplunkSinkConnectorConfig.TRACK_DATA_CONF, String.valueOf(configProfile.isTrackData()));
+        config.put(SplunkSinkConnectorConfig.MAX_BATCH_SIZE_CONF, String.valueOf(configProfile.getMaxBatchSize()));
+        config.put(SplunkSinkConnectorConfig.HEC_THREDS_CONF, String.valueOf(configProfile.getNumOfThreads()));
         return config;
     }
 
