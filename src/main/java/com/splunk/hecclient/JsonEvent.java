@@ -68,12 +68,9 @@ public final class JsonEvent extends Event {
      */
     @Override
     public JsonEvent addFields(final Map<String, String> extraFields) {
-        if (extraFields == null || extraFields.isEmpty())
-            return this;
+        if (extraFields == null || extraFields.isEmpty()) { return this; }
 
-
-        if (fields == null)
-            fields = new HashMap<>();
+        if (fields == null) { fields = new HashMap<>(); }
 
         fields.putAll(extraFields);
         invalidate();
@@ -144,8 +141,7 @@ public final class JsonEvent extends Event {
      */
     @Override
     public byte[] getBytes() {
-        if (bytes != null)
-            return bytes;
+        if (bytes != null) { return bytes; }
 
         try {
             bytes = jsonMapper.writeValueAsBytes(this);

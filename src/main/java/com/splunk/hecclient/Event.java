@@ -334,11 +334,13 @@ public abstract class Event {
      * @since   1.0.0
      */
     private static void checkEventData(Object eventData) {
-        if (eventData == null)
+        if (eventData == null) {
             throw new HecException("Null data for event due to null record being received from Kafka, check source system");
-
-        if (eventData instanceof String)
-            if (((String) eventData).isEmpty())
+        }
+        if (eventData instanceof String) {
+            if (((String) eventData).isEmpty()) {
                 throw new HecException("Empty event due to empty record being being received from Kafka, check source system");
+            }
+        }
     }
 }

@@ -50,9 +50,8 @@ public final class RawEvent extends Event {
 
     @Override
     public byte[] getBytes() {
-        if (bytes != null) {
+        if (bytes != null)
             return bytes;
-        }
 
         if (event instanceof String) {
             String s = (String) event;
@@ -88,8 +87,7 @@ public final class RawEvent extends Event {
      * @since   1.0
      */
     public final Event setLineBreaker(final String breaker) {
-        if (breaker != null)
-            this.lineBreaker = breaker;
+        if (breaker != null) { this.lineBreaker = breaker; }
 
         return this;
     }
