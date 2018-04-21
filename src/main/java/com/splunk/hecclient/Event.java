@@ -303,7 +303,9 @@ public abstract class Event {
      * @see     RawEvent
      * @since   1.0.0
      */
-    public void validate() throws HecException { getBytes(); }
+    public void validate() throws HecException {
+        getBytes();
+    }
 
     /**
      * On changes to an Events host, index, source, sourcetype and time the event is invalidated by setting bytes
@@ -335,11 +337,11 @@ public abstract class Event {
      */
     private static void checkEventData(Object eventData) {
         if (eventData == null) {
-            throw new HecException("Null data for event due to null record being received from Kafka, check source system");
+            throw new HecException("Null data for event");
         }
         if (eventData instanceof String) {
             if (((String) eventData).isEmpty()) {
-                throw new HecException("Empty event due to empty record being being received from Kafka, check source system");
+                throw new HecException("Empty event");
             }
         }
     }
