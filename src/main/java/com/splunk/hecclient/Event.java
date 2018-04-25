@@ -337,11 +337,11 @@ public abstract class Event {
      */
     private static void checkEventData(Object eventData) {
         if (eventData == null) {
-            throw new HecException("Null data for event");
+            throw new HecNullEventException("Null data for event");
         }
         if (eventData instanceof String) {
             if (((String) eventData).isEmpty()) {
-                throw new HecException("Empty event");
+                throw new HecEmptyEventException("Empty event");
             }
         }
     }
