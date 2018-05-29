@@ -36,13 +36,13 @@ public class ConfigProfile {
     public ConfigProfile(int profile) {
         switch (profile) {
             case 0:  buildProfileDefault();
-                break;
+                     break;
             case 1:  buildProfileOne();
-                break;
+                     break;
             case 2:  buildProfileTwo();
-                break;
+                     break;
             default: buildProfileDefault();
-                break;
+                     break;
         }
     }
 

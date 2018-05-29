@@ -63,7 +63,6 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String SSL_TRUSTSTORE_PATH_CONF = "splunk.hec.ssl.trust.store.path";
     static final String SSL_TRUSTSTORE_PASSWORD_CONF = "splunk.hec.ssl.trust.store.password";
 
-
     // Kafka configuration description strings
     // Required Parameters
     static final String URI_DOC = "Splunk HEC URIs. Either a list of FQDNs or IPs of all Splunk indexers, separated "
@@ -75,7 +74,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String INDEX_DOC = "Splunk index names for Kafka topic data separated by comma for multiple topics to "
             + "indexers (\"prod-index1,prod-index2,prod-index3\").";
     static final String SOURCE_DOC = "Splunk event source metadata for Kafka topic data. The same configuration rules "
-            + "as indexes can be applied. If left unconfigured, the default source binds to"
+            + "as indexes can be applied. If left un-configured, the default source binds to"
             + " the HEC token. By default, this setting is empty.";
     static final String SOURCETYPE_DOC = "Splunk event sourcetype metadata for Kafka topic data. The same configuration "
             + "rules as indexes can be applied here. If left unconfigured, the default source"
@@ -92,7 +91,6 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             + "connector task. By default, this is set to 1.";
     static final String SOCKET_TIMEOUT_DOC = "Max duration in seconds to read / write data to network before internal TCP "
             + "Socket timeout.By default, this is set to 60 seconds.";
-
     static final String SSL_VALIDATE_CERTIFICATES_DOC = "Valid settings are true or false. Enables or disables HTTPS "
             + "certification validation. By default, this is set to true.";
     // Acknowledgement Parameters
