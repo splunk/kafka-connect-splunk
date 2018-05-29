@@ -36,14 +36,21 @@ public class ConfigProfile {
     public ConfigProfile(int profile) {
         switch (profile) {
             case 0:  buildProfileDefault();
-                     break;
+                break;
             case 1:  buildProfileOne();
-                     break;
+                break;
+            case 2:  buildProfileTwo();
+                break;
             default: buildProfileDefault();
-                     break;
+                break;
         }
     }
 
+    /* Default Profile:
+        - JSON Endpoint
+        - With Ack
+        - With Truststore
+    */
     public ConfigProfile buildProfileDefault() {
         this.topics = "mytopic";
         this.token = "mytoken";
@@ -55,7 +62,7 @@ public class ConfigProfile {
         this.sources = "";
         this.httpKeepAlive = true;
         this.validateCertificates = true;
-        this.hasTrustStorePath = false;
+        this.hasTrustStorePath = true;
         this.trustStorePath = "./src/test/resources/keystoretest.jks";
         this.trustStorePassword = "Notchangeme";
         this.eventBatchTimeout = 1;
@@ -72,6 +79,11 @@ public class ConfigProfile {
         return this;
     }
 
+    /*  Profile One:
+        - Raw Endpoint
+        - No Ack
+        - With Trust Store
+    */
     public ConfigProfile buildProfileOne() {
         this.topics = "kafka-data";
         this.token = "mytoken";
@@ -86,6 +98,37 @@ public class ConfigProfile {
         this.hasTrustStorePath = true;
         this.trustStorePath = "./src/test/resources/keystoretest.jks";
         this.trustStorePassword = "Notchangeme";
+        this.eventBatchTimeout = 1;
+        this.ackPollInterval = 1;
+        this.ackPollThreads = 1;
+        this.maxHttpConnPerChannel = 1;
+        this.totalHecChannels = 1;
+        this.socketTimeout = 1;
+        this.enrichements = "hello=world";
+        this.enrichementMap = new HashMap<>();
+        this.trackData = false;
+        this.maxBatchSize = 1;
+        this.numOfThreads = 1;
+        return this;
+    }
+
+    /*
+        Profile Two:
+        - Raw Endpoint
+        - No Ack
+        - No Trust Store
+    */
+    public ConfigProfile buildProfileTwo() {
+        this.topics = "kafka-data";
+        this.token = "mytoken";
+        this.uri = "https://dummy:8088";
+        this.raw = true;
+        this.ack = false;
+        this.indexes = "index-1";
+        this.sourcetypes = "kafka-data";
+        this.sources = "kafka-connect";
+        this.httpKeepAlive = true;
+        this.validateCertificates = false;
         this.eventBatchTimeout = 1;
         this.ackPollInterval = 1;
         this.ackPollThreads = 1;

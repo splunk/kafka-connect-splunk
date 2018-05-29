@@ -40,8 +40,12 @@ public class UnitUtil {
         config.put(SplunkSinkConnectorConfig.SOURCE_CONF, configProfile.getSources());
         config.put(SplunkSinkConnectorConfig.HTTP_KEEPALIVE_CONF, String.valueOf(configProfile.isHttpKeepAlive()));
         config.put(SplunkSinkConnectorConfig.SSL_VALIDATE_CERTIFICATES_CONF, String.valueOf(configProfile.isValidateCertificates()));
-        config.put(SplunkSinkConnectorConfig.SSL_TRUSTSTORE_PATH_CONF, configProfile.getTrustStorePath());
-        config.put(SplunkSinkConnectorConfig.SSL_TRUSTSTORE_PASSWORD_CONF, configProfile.getTrustStorePassword());
+
+        if(configProfile.getTrustStorePath() != null ) {
+            config.put(SplunkSinkConnectorConfig.SSL_TRUSTSTORE_PATH_CONF, configProfile.getTrustStorePath());
+            config.put(SplunkSinkConnectorConfig.SSL_TRUSTSTORE_PASSWORD_CONF, configProfile.getTrustStorePassword());
+        }
+
         config.put(SplunkSinkConnectorConfig.EVENT_TIMEOUT_CONF, String.valueOf(configProfile.getEventBatchTimeout()));
         config.put(SplunkSinkConnectorConfig.ACK_POLL_INTERVAL_CONF, String.valueOf(configProfile.getAckPollInterval()));
         config.put(SplunkSinkConnectorConfig.MAX_HTTP_CONNECTION_PER_CHANNEL_CONF, String.valueOf(configProfile.getMaxHttpConnPerChannel()));
