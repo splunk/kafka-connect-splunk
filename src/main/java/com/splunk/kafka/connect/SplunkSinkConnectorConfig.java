@@ -63,7 +63,6 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String SSL_TRUSTSTORE_PATH_CONF = "splunk.hec.ssl.trust.store.path";
     static final String SSL_TRUSTSTORE_PASSWORD_CONF = "splunk.hec.ssl.trust.store.password";
 
-
     // Kafka configuration description strings
     // Required Parameters
     static final String URI_DOC = "Splunk HEC URIs. Either a list of FQDNs or IPs of all Splunk indexers, separated "
@@ -73,13 +72,13 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String TOKEN_DOC = "Splunk Http Event Collector token.";
     // General Parameters
     static final String INDEX_DOC = "Splunk index names for Kafka topic data separated by comma for multiple topics to "
-                                  + "indexers (\"prod-index1,prod-index2,prod-index3\").";
+            + "indexers (\"prod-index1,prod-index2,prod-index3\").";
     static final String SOURCE_DOC = "Splunk event source metadata for Kafka topic data. The same configuration rules "
-            + "as indexes can be applied. If left unconfigured, the default source binds to"
+            + "as indexes can be applied. If left un-configured, the default source binds to"
             + " the HEC token. By default, this setting is empty.";
     static final String SOURCETYPE_DOC = "Splunk event sourcetype metadata for Kafka topic data. The same configuration "
-                                       + "rules as indexes can be applied here. If left unconfigured, the default source"
-                                       + " binds to the HEC token. By default, this setting is empty";
+            + "rules as indexes can be applied here. If left unconfigured, the default source"
+            + " binds to the HEC token. By default, this setting is empty";
     static final String TOTAL_HEC_CHANNEL_DOC = "Total HEC Channels used to post events to Splunk. When enabling HEC ACK, "
             + "setting to the same or 2X number of indexers is generally good.";
     static final String MAX_HTTP_CONNECTION_PER_CHANNEL_DOC = "Max HTTP connections pooled for one HEC Channel "
@@ -87,14 +86,13 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String MAX_BATCH_SIZE_DOC = "Maximum batch size when posting events to Splunk. The size is the actual number of "
             + "Kafka events not the byte size. By default, this is set to 100.";
     static final String HTTP_KEEPALIVE_DOC = "Valid settings are true or false. Enables or disables HTTP connection "
-                                           + "keep-alive. By default, this is set to true";
+            + "keep-alive. By default, this is set to true";
     static final String HEC_THREADS_DOC = "Controls how many threads are spawned to do data injection via HEC in a single "
             + "connector task. By default, this is set to 1.";
     static final String SOCKET_TIMEOUT_DOC = "Max duration in seconds to read / write data to network before internal TCP "
             + "Socket timeout.By default, this is set to 60 seconds.";
-
     static final String SSL_VALIDATE_CERTIFICATES_DOC = "Valid settings are true or false. Enables or disables HTTPS "
-                                                      + "certification validation. By default, this is set to true.";
+            + "certification validation. By default, this is set to true.";
     // Acknowledgement Parameters
     // Use Ack
     static final String ACK_DOC = "Valid settings are true or false. When set to true Splunk Connect for Kafka will "
@@ -149,7 +147,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final String indexes;
     final String sourcetypes;
     final String sources;
-  
+
     final int totalHecChannels;
     final int maxHttpConnPerChannel;
     final int maxBatchSize;
@@ -170,7 +168,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final boolean useRecordTimestamp;
     final Map<String, String> enrichments;
     final boolean trackData;
-    
+
     final boolean hasTrustStorePath;
     final String trustStorePath;
     final String trustStorePassword;
@@ -187,7 +185,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         httpKeepAlive = getBoolean(HTTP_KEEPALIVE_CONF);
         validateCertificates = getBoolean(SSL_VALIDATE_CERTIFICATES_CONF);
         trustStorePath = getString(SSL_TRUSTSTORE_PATH_CONF);
-        hasTrustStorePath = StringUtils.isNotBlank(SSL_TRUSTSTORE_PATH_CONF);
+        hasTrustStorePath = StringUtils.isNotBlank(trustStorePath);
         trustStorePassword = getPassword(SSL_TRUSTSTORE_PASSWORD_CONF).value();
         eventBatchTimeout = getInt(EVENT_TIMEOUT_CONF);
         ackPollInterval = getInt(ACK_POLL_INTERVAL_CONF);
@@ -236,8 +234,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     }
 
     /**
-    * Configuration Method to setup all settings related to Splunk HEC Client
-    */
+        Configuration Method to setup all settings related to Splunk HEC Client
+     */
     public HecConfig getHecConfig() {
         HecConfig config = new HecConfig(Arrays.asList(splunkURI.split(",")), splunkToken);
         config.setDisableSSLCertVerification(!validateCertificates)

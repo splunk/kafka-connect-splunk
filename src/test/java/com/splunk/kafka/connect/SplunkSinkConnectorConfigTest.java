@@ -102,6 +102,18 @@ public class SplunkSinkConnectorConfigTest {
     }
 
     @Test
+    public void testNoCustomKeystore() throws KeyStoreException {
+        UnitUtil uu = new UnitUtil(2);
+
+        Map<String, String> taskConfig = uu.createTaskConfig();
+        SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
+        HecConfig config = connectorConfig.getHecConfig();
+
+        Assert.assertEquals(false, config.getHasCustomTrustStore());
+    }
+
+
+    @Test
     public void createWithoutEnrichment() {
         UnitUtil uu = new UnitUtil(0);
         Map<String, String> config = uu.createTaskConfig();
