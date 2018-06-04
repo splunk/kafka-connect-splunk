@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.util.StdDateFormat;
 import org.slf4j.*;
 
 import java.io.*;
@@ -32,7 +33,13 @@ public abstract class Event {
     static final String SOURCE = "source";
     static final String SOURCETYPE = "sourcetype";
 
-    static final ObjectMapper jsonMapper = new ObjectMapper();
+    static final ObjectMapper jsonMapper;
+    static {
+        jsonMapper = new ObjectMapper();
+        jsonMapper.registerModule(new JacksonStructModule());
+        jsonMapper.setDateFormat(StdDateFormat.instance);
+    }
+
     protected static final Logger log = LoggerFactory.getLogger(Event.class);
 
     @JsonSerialize(using = DoubleSerializer.class)
