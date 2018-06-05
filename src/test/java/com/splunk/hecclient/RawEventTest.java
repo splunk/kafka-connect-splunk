@@ -44,12 +44,12 @@ public class RawEventTest {
         Assert.assertEquals(event.getEvent(), data);
     }
 
-    @Test(expected = HecException.class)
+    @Test(expected = HecNullEventException.class)
     public void createInvalidRawEventWithNullData() {
         Event event = new RawEvent(null, null);
     }
 
-    @Test(expected = HecException.class)
+    @Test(expected = HecEmptyEventException.class)
     public void createInvalidRawEventWithEmptyString() {
         Event event = new RawEvent("", null);
     }
@@ -80,7 +80,7 @@ public class RawEventTest {
             Assert.assertArrayEquals(data, bytes);
         }
 
-        // jso object
+        // json object
         Map<String, String> m = new HashMap<>();
         m.put("hello", "world");
         event = new RawEvent(m, null);
