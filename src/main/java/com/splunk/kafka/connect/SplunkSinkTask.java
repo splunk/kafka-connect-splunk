@@ -16,12 +16,13 @@
 package com.splunk.kafka.connect;
 
 import com.splunk.hecclient.*;
-import com.splunk.kafka.connect.VersionUtils;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.connect.errors.RetriableException;
+import org.apache.kafka.connect.header.Headers;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTask;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.*;
 
@@ -139,14 +140,42 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     }
 
     private void handleRaw(final Collection<SinkRecord> records) {
-        if (connectorConfig.hasMetaDataConfigured()) {
+        if(connectorConfig.headerSupport) {
+            boolean first_record = true;
+            List<SinkRecord> likeRecords = new ArrayList<>();
+            KafkaHeaderUtility kafkaHeaderUtility = null;
+
+            for(SinkRecord record : records) {
+                if(first_record) {
+                    likeRecords.add(record);
+                    kafkaHeaderUtility = new KafkaHeaderUtility(record, connectorConfig);
+                    first_record = false;
+                    continue;
+                }
+
+                if(kafkaHeaderUtility.compareRecordHeaders(record)) {
+                    likeRecords.add(record);
+                }
+                else {
+                    EventBatch batch = createRawHeaderEventBatch(kafkaHeaderUtility);
+                    sendEvents(likeRecords, batch);
+                    likeRecords.clear();
+                    likeRecords.add(record);
+                    kafkaHeaderUtility = new KafkaHeaderUtility(record, connectorConfig);
+                }
+            }
+            EventBatch batch = createRawHeaderEventBatch(kafkaHeaderUtility);
+            sendEvents(likeRecords, batch);
+        }
+        else if (connectorConfig.hasMetaDataConfigured()) {
             // when setup metadata - index, source, sourcetype, we need partition records for /raw
             Map<TopicPartition, Collection<SinkRecord>> partitionedRecords = partitionRecords(records);
             for (Map.Entry<TopicPartition, Collection<SinkRecord>> entry: partitionedRecords.entrySet()) {
                 EventBatch batch = createRawEventBatch(entry.getKey());
                 sendEvents(entry.getValue(), batch);
             }
-        } else {
+        }
+        else {
             EventBatch batch = createRawEventBatch(null);
             sendEvents(records, batch);
         }
@@ -194,6 +223,15 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         }
     }
 
+    private EventBatch createRawHeaderEventBatch(KafkaHeaderUtility kafkaHeaderUtility) {
+        return RawEventBatch.factory()
+                .setIndex(kafkaHeaderUtility.getSplunkHeaderIndex())
+                .setSourcetype(kafkaHeaderUtility.getSplunkHeaderSourcetype())
+                .setSource(kafkaHeaderUtility.getSplunkHeaderSource())
+                .setHost(kafkaHeaderUtility.getSplunkHeaderHost())
+                .build();
+
+    }
     // setup metadata on RawEventBatch
     private EventBatch createRawEventBatch(final TopicPartition tp) {
         if (tp == null) {
@@ -235,7 +273,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
     public void onEventCommitted(final List<EventBatch> batches) {
         // for (final EventBatch batch: batches) {
-            // assert batch.isCommitted();
+        // assert batch.isCommitted();
         // }
     }
 
@@ -250,14 +288,86 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         if (connectorConfig.raw) {
             RawEvent event = new RawEvent(record.value(), record);
             event.setLineBreaker(connectorConfig.lineBreaker);
+            if(connectorConfig.headerSupport) { event = (RawEvent)addHeadersToHecEvent(event, record); }
             return event;
         }
 
-        // meta data for /event endpoint is per event basis
+        JsonEvent event = null;
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        if(connectorConfig.hecEventFormatted) {
+            try {
+                event = objectMapper.readValue(record.value().toString(), JsonEvent.class);
+                log.debug("event is of correct format - {}", event.toString());
+            } catch(Exception e) {
+                log.error("event does not follow correct HEC pre-formatted format", record.toString());
+                event = createHECEventNonFormatted(record);
+            }
+        }
+        else {
+            event = createHECEventNonFormatted(record);
+        }
+
+        if(connectorConfig.headerSupport) {
+            addHeadersToHecEvent(event, record);
+        }
+
+        if (connectorConfig.trackData) {
+            Map<String, String> trackMetas = new HashMap<>();
+            trackMetas.put("kafka_offset", String.valueOf(record.kafkaOffset()));
+            trackMetas.put("kafka_timestamp", String.valueOf(record.timestamp()));
+            trackMetas.put("kafka_topic", record.topic());
+            trackMetas.put("kafka_partition", String.valueOf(record.kafkaPartition()));
+            event.addFields(trackMetas);
+        }
+        event.validate();
+
+        return event;
+    }
+
+    private Event addHeadersToHecEvent(Event event, SinkRecord record) {
+        //TODO: Will need exception handling around String serialization
+        Headers headers = record.headers();
+        log.debug(headers.toString());
+        if (!headers.isEmpty()) {
+            if (headers.lastWithName(connectorConfig.headerIndex) != null) {
+                log.debug("splunk_index header detected, value is: " + headers.lastWithName(connectorConfig.headerIndex).value().toString());
+                event.setIndex(headers.lastWithName(connectorConfig.headerIndex).value().toString());
+            }
+            if (headers.lastWithName(connectorConfig.headerHost) != null) {
+                log.debug("splunk_host header detected, value is: " + headers.lastWithName(connectorConfig.headerHost).value().toString());
+                event.setHost(headers.lastWithName(connectorConfig.headerHost).value().toString());
+            }
+            if (headers.lastWithName(connectorConfig.headerSource) != null) {
+                log.debug("splunk_source header detected, value is: " + headers.lastWithName(connectorConfig.headerSource).value().toString());
+                event.setSource(headers.lastWithName(connectorConfig.headerSource).value().toString());
+            }
+            if (headers.lastWithName(connectorConfig.headerSourcetype) != null) {
+                log.debug("splunk_sourcetype header detected, value is: " + headers.lastWithName(connectorConfig.headerSourcetype).value().toString());
+                event.setSourcetype(headers.lastWithName(connectorConfig.headerSourcetype).value().toString());
+            }
+
+            if (!connectorConfig.headerCustom.isEmpty()) {
+                String[] customHeaders = connectorConfig.headerCustom.split(",");
+                Map<String, String> headerMap = new HashMap<>();
+                for (String header : customHeaders) {
+                    if (headers.lastWithName(header) != null) {
+                        log.debug(header + " header detected, value is: " + headers.lastWithName(header).value().toString());
+                        headerMap.put(header, headers.lastWithName(header).value().toString());
+                    } else {
+                        log.debug(header + " header value not present in event.");
+                    }
+                }
+                event.addFields(headerMap);
+            }
+        }
+        return event;
+    }
+
+    private JsonEvent createHECEventNonFormatted(final SinkRecord record) {
         JsonEvent event = new JsonEvent(record.value(), record);
         if (connectorConfig.useRecordTimestamp && record.timestamp() != null) {
-            // record timestamp is in milliseconds
-            event.setTime(record.timestamp() / 1000.0);
+            event.setTime(record.timestamp() / 1000.0); // record timestamp is in milliseconds
         }
 
         Map<String, String> metas = connectorConfig.topicMetas.get(record.topic());
@@ -267,19 +377,6 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             event.setSource(metas.get(SplunkSinkConnectorConfig.SOURCE));
             event.addFields(connectorConfig.enrichments);
         }
-
-        if (connectorConfig.trackData) {
-            // for data loss, latency tracking
-            Map<String, String> trackMetas = new HashMap<>();
-            trackMetas.put("kafka_offset", String.valueOf(record.kafkaOffset()));
-            trackMetas.put("kafka_timestamp", String.valueOf(record.timestamp()));
-            trackMetas.put("kafka_topic", record.topic());
-            trackMetas.put("kafka_partition", String.valueOf(record.kafkaPartition()));
-            event.addFields(trackMetas);
-        }
-
-        event.validate();
-
         return event;
     }
 

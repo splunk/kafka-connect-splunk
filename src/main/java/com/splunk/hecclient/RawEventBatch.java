@@ -15,6 +15,8 @@
  */
 package com.splunk.hecclient;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.http.client.utils.URIBuilder;
 
 public final class RawEventBatch extends EventBatch {
@@ -87,7 +89,7 @@ public final class RawEventBatch extends EventBatch {
             return this;
         }
 
-        public Builder setTime(final int time) {
+        public Builder setTime(final long time) {
             this.time = time;
             return this;
         }
@@ -144,6 +146,31 @@ public final class RawEventBatch extends EventBatch {
     private static void putIfPresent(String val, String tag, URIBuilder params) {
         if (val != null && !val.isEmpty()) {
             params.addParameter(tag,  val);
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+        .append(index)
+        .append(sourcetype)
+        .append(source)
+        .append(host)
+        .toHashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof RawEventBatch) {
+            final RawEventBatch other = (RawEventBatch) obj;
+            return new EqualsBuilder()
+            .append(index, other.index)
+            .append(sourcetype, other.sourcetype)
+            .append(source, other.source)
+            .append(host, other.host)
+            .isEquals();
+        } else {
+            return false;
         }
     }
 }

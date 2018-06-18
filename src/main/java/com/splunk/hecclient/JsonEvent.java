@@ -127,7 +127,7 @@ public final class JsonEvent extends Event {
             return jsonMapper.writeValueAsString(this);
         } catch (Exception ex) {
             log.error("failed to json serlized JsonEvent", ex);
-            throw new HecException("failed to json serlized JsonEvent", ex);
+            throw new HecException("failed to json serialized JsonEvent", ex);
         }
     }
 

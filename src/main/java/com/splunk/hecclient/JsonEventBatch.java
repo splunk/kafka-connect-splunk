@@ -15,6 +15,9 @@
  */
 package com.splunk.hecclient;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 public final class JsonEventBatch extends EventBatch {
     public static final String endpoint = "/services/collector/event";
     public static final String contentType = "application/json; profile=urn:splunk:event:1.0; charset=utf-8";
@@ -42,5 +45,24 @@ public final class JsonEventBatch extends EventBatch {
     @Override
     public EventBatch createFromThis() {
         return new JsonEventBatch();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+        .append(endpoint)
+        .toHashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof JsonEventBatch) {
+            final JsonEventBatch other = (JsonEventBatch) obj;
+            return new EqualsBuilder()
+            .append(endpoint, other.endpoint)
+            .isEquals();
+        } else {
+        return false;
+        }
     }
 }
