@@ -4,9 +4,9 @@ RUN apk update && apk upgrade && apk add git && apk add openssh && apk add opens
 
 RUN wget -q https://bootstrap.pypa.io/get-pip.py -P / && python get-pip.py && pip install requests && pip install psutil
 
-RUN wget -q http://apache.claz.org/maven/maven-3/3.5.2/binaries/apache-maven-3.5.2-bin.tar.gz -P /bin && cd /bin && tar xzf apache-maven-3.5.2-bin.tar.gz
+RUN wget -q http://apache.claz.org/maven/maven-3/3.5.4/binaries/apache-maven-3.5.4-bin.tar.gz -P /bin && cd /bin && tar xzf apache-maven-3.5.4-bin.tar.gz
 
-ENV PATH=${PATH}:/bin/apache-maven-3.5.2/bin
+ENV PATH=${PATH}:/bin/apache-maven-3.5.4/bin
 
 RUN mkdir -p /root/.ssh
 ADD id_rsa /root/.ssh/id_rsa

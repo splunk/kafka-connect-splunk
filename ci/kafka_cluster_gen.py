@@ -181,7 +181,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--version', default='2',
                         help='[2|3]. Docker compose file version 2 or 3')
-    parser.add_argument('--image', default='zlchen/kafka-cluster:0.11',
+    parser.add_argument('--image', default='luckyj5/kafka-cluster:2.0',
                         help='Docker image')
     parser.add_argument('--broker_size', type=int, default=5,
                         help='Number of kafka brokers')

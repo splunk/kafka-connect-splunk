@@ -4,11 +4,10 @@ import argparse
 import json
 import kafka_cluster_gen as kcg
 
-DATA_GEN_IMAGE = 'repo.splunk.com/kafka-data-gen:0.4'
-KAFKA_IMAGE = 'repo.splunk.com/kafka-cluster:0.12'
-KAFKA_CONNECT_IMAGE = 'repo.splunk.com/kafka-connect-splunk:1.8'
-KAFKA_BASTION_IMAGE = 'repo.splunk.com/kafka-bastion:1.8'
-
+DATA_GEN_IMAGE = 'luckyj5/kafka-data-gen:2.0'
+KAFKA_IMAGE = 'luckyj5/kafka-cluster:2.0'
+KAFKA_CONNECT_IMAGE = 'luckyj5/kafka-connect-splunk:2.0'
+KAFKA_BASTION_IMAGE = 'luckyj5/kafka-bastion:2.0'
 
 def gen_depends_from(bootstrap_servers):
     return [sp.split(':')[0].strip()
