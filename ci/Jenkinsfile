@@ -26,7 +26,7 @@ withSplunkWrapNode("master") {
                                 """
                                    pip install splunk_orca==0.8.0 -i https://repo.splunk.com/artifactory/api/pypi/pypi-virtual/simple
                                    cd ci
-                                   python kafka_orca_gen.py --data_gen_eps 50000 --data_gen_total_events 100000000 --broker_size 5 --zookeeper_size 3 --kafka_connect_size 1 --default_partitions 30 --kafka_connect_max_jvm_memory 8G --kafka_connect_hec_mode raw_and_event --kafka_connect_ack_mode ack_and_no_ack --metric_dest_hec_uri https://kchen-ubu-001:8088 --metric_dest_hec_token 00000000-0000-0000-0000-000000000000 --indexer_size 10 --perf 0
+                                   python kafka_orca_gen.py --data_gen_eps 50000 --data_gen_total_events 100000000 --broker_size 5 --zookeeper_size 3 --kafka_connect_size 1 --default_partitions 30 --kafka_connect_max_jvm_memory 8G --kafka_connect_hec_mode raw_and_event --kafka_connect_ack_mode ack_and_no_ack --metric_dest_hec_uri https://qa-centos7x64-023:8088 --metric_dest_hec_token 00000000-0000-0000-0000-000000000000 --indexer_size 10 --perf 0
                                    splunk_orca create --sc kafka-connect
                                 """;
         }

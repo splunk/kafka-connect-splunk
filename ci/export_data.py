@@ -351,7 +351,7 @@ def main():
                         help='Source splunkd url. For example, https://localhost:8089')
     parser.add_argument('--src_splunk_user', default='admin', required=False,
                         help='Source splunk user')
-    parser.add_argument('--src_splunk_password', default='changed', required=False,
+    parser.add_argument('--src_splunk_password', default='notchangeme', required=False,
                         help='Source splunk password for user')
     parser.add_argument('--src_index', default='_internal', required=False,
                         help='Splunk index name to query from')
