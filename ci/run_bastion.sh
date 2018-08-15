@@ -2,7 +2,7 @@
 
 curdir=`pwd`
 git clone git@github.com:splunk/kafka-connect-splunk.git
-branch=${KAFKA_CONNECT_BRANCH:-develop}
+branch=${KAFKA_CONNECT_BRANCH:-issue-160/update-CI-for-Kafka2.0}
 cd kafka-connect-splunk && git checkout ${branch}
 
 duration=${SLEEP:-600}

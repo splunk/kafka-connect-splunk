@@ -256,7 +256,7 @@ def _new_data_exporter():
     config = export_data.ExportParams(
         src_splunk_uri='https://sh1:8089',
         src_splunk_user='admin',
-        src_splunk_password='changed',
+        src_splunk_password='Chang3d!',
         dest_splunk_hec_uri='{}'.format(os.environ['CONNECT_PERF_METRIC_DEST_HEC']),
         dest_splunk_hec_token='{}'.format(os.environ['CONNECT_PERF_METRIC_TOKEN']),
         src_index='',
