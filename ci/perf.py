@@ -314,7 +314,7 @@ def _do_post(uri, data, auth):
 def splunk_request(uri_data_gen):
     auth = requests.auth.HTTPBasicAuth(
         os.environ.get('SPLUNK_USER', 'admin'),
-        os.environ.get('SPLUNK_PASS', 'changed'))
+        os.environ.get('SPLUNK_PASS', 'Chang3d!'))
 
     indxer_cluster_size = int(os.environ['INDEX_CLUSTER_SIZE'])
     for i in xrange(1, indxer_cluster_size + 1):
