@@ -32,6 +32,9 @@ public final class ResponsePoller implements Poller {
     }
 
     @Override
+    public void stickySessionHandler(HecChannel channel) {}
+
+    @Override
     public void start() {
     }
 

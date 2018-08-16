@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 
 final class Indexer implements IndexerInf {
     private static final Logger log = LoggerFactory.getLogger(Indexer.class);
@@ -124,9 +125,9 @@ final class Indexer implements IndexerInf {
         }
 
         // we are all good
-        poller.add(channel, batch, resp);
-        log.debug("sent {} events to splunk through channel={} indexer={}",
-                batch.size(), channel.getId(), getBaseUrl());
+        poller.add(this.channel, batch, resp);
+        log.debug("sent {} events to splunk through channel={} indexer={}", batch.size(), channel.getId(), getBaseUrl());
+
         return true;
     }
 
@@ -161,7 +162,13 @@ final class Indexer implements IndexerInf {
             }
         }
 
-        // log.info("event posting, channel={}, cookies={}", channel, resp.getHeaders("Set-Cookie"));
+//      log.info("event posting, channel={}, cookies={}, cookies.length={}", channel, resp.getHeaders("Set-Cookie"), resp.getHeaders("Set-Cookie").length);
+
+        if((resp.getHeaders("Set-Cookie") != null) && (resp.getHeaders("Set-Cookie").length > 0)) {
+            log.info("Sticky session expiry detected, will cleanup old channel and its associated batches");
+            poller.stickySessionHandler(channel);
+        }
+
         int status = resp.getStatusLine().getStatusCode();
         // FIXME 503 server is busy backpressure
         if (status != 200 && status != 201) {

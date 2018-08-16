@@ -36,6 +36,18 @@ public class HecChannelTest {
 
         Assert.assertEquals(id, ch.toString());
         Assert.assertNotNull(ch.hashCode());
+
+        Assert.assertFalse(ch.isNotAvailable());
+        ch.setAvailable(true);
+        Assert.assertFalse(ch.isNotAvailable());
+        ch.setAvailable(false);
+        Assert.assertTrue(ch.isNotAvailable());
+
+        ch.setId();
+        String newId = ch.getId();
+        Assert.assertNotNull(newId);
+        Assert.assertFalse(newId.isEmpty());
+        Assert.assertNotEquals(id, newId);
     }
 
     @Test
