@@ -102,6 +102,32 @@ public class LoadBalancerTest {
         Assert.assertEquals(6, indexers.get(2).getBatches().size());
     }
 
+    @Test
+    public void sendWithOneNotAvailable() {
+        LoadBalancer lb = new LoadBalancer();
+        List<IndexerMock> indexers = new ArrayList<>();
+
+        int numberOfChannels = 3;
+        for (int i = 0; i < numberOfChannels; i++) {
+            IndexerMock indexer = new IndexerMock();
+            indexers.add(indexer);
+            HecChannel ch = new HecChannel(indexer);
+            if(i == 0) {
+                ch.setAvailable(false);
+            }
+            lb.add(ch);
+        }
+
+        int numberOfBatches = 12;
+        for (int i = 0; i < numberOfBatches; i++) {
+            lb.send(UnitUtil.createBatch());
+        }
+
+        Assert.assertEquals(0, indexers.get(0).getBatches().size());
+        Assert.assertEquals(6, indexers.get(1).getBatches().size());
+        Assert.assertEquals(6, indexers.get(2).getBatches().size());
+    }
+
     @Test(expected = HecException.class)
     public void sendWithoutChannels() {
         LoadBalancer lb = new LoadBalancer();

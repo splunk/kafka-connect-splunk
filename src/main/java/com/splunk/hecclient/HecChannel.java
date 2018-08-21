@@ -24,10 +24,12 @@ final class HecChannel {
     private String id;
     private Map<String, String> chField;
     private IndexerInf indexer;
+    private boolean isAvailable;
 
     public HecChannel(IndexerInf idx) {
         id = newChannelId();
         indexer = idx;
+        isAvailable = true;
     }
 
     public IndexerInf getIndexer() {
@@ -48,6 +50,10 @@ final class HecChannel {
         return this;
     }
 
+    public void setId() { id = newChannelId(); }
+
+    public void setAvailable(boolean isAvailable) { this.isAvailable = isAvailable; }
+
     public void send(final EventBatch batch) {
         if (chField != null) {
             batch.addExtraFields(chField);
@@ -60,9 +66,9 @@ final class HecChannel {
         return indexer.executeHttpRequest(req);
     }
 
-    public boolean hasBackPressure() {
-        return indexer.hasBackPressure();
-    }
+    public boolean hasBackPressure() { return indexer.hasBackPressure(); }
+
+    public boolean isNotAvailable() { return isAvailable == false; }
 
     @Override
     public boolean equals(Object obj) {
