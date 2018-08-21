@@ -53,7 +53,7 @@ public final class HttpClientBuilder {
     }
 
     public HttpClientBuilder setSocketSendBufferSize(int bufSize /*bytes*/) {
-        this.socketSendBufferSize = socketSendBufferSize;
+        this.socketSendBufferSize = bufSize;
         return this;
     }
 
