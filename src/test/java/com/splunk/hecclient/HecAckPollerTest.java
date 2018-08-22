@@ -326,33 +326,34 @@ public class HecAckPollerTest {
 
     @Test
     public void stickySessionHandler() {
-//        PollerCallbackMock cb = new PollerCallbackMock();
-//        HecAckPoller poller = new HecAckPoller(cb);
-//        poller.setAckPollThreads(1);
-//        poller.setAckPollInterval(2);
-//        poller.start();
-//
-//        IndexerMock indexer = new IndexerMock();
-//        String ackResponse = "{\"acks\":{\"1\":true}}";
-//        indexer.setResponse(ackResponse);
-//
-//        HecChannel ch = new HecChannel(indexer);
-//        EventBatch batch = UnitUtil.createBatch();
-//
-//        String response = "{\"text\":\"Success\",\"code\":0,\"ackId\":1}";
-//        poller.add(ch, batch, response);
-//
-//        long outstanding = poller.getTotalOutstandingEventBatches();
-//        Assert.assertEquals(1, outstanding);
-//        UnitUtil.milliSleep(3000);
-//
-//        String oldId = ch.getId();
-//        poller.stickySessionHandler(ch);
-//        Assert.assertNotEquals(oldId, ch.getId());
-//
-//        outstanding = poller.getTotalOutstandingEventBatches();
-//        Assert.assertEquals(0, outstanding);
-//
-//        poller.stop();
+        PollerCallbackMock cb = new PollerCallbackMock();
+        HecAckPoller poller = new HecAckPoller(cb);
+        poller.setAckPollThreads(1);
+        poller.setAckPollInterval(2);
+        poller.start();
+
+        IndexerMock indexer = new IndexerMock();
+        String ackResponse = "{\"acks\":{\"1\":true}}";
+        indexer.setResponse(ackResponse);
+
+        HecChannel ch = new HecChannel(indexer);
+        EventBatch batch = UnitUtil.createBatch();
+
+        String response = "{\"text\":\"Success\",\"code\":0,\"ackId\":1}";
+        poller.add(ch, batch, response);
+
+        long outstanding = poller.getTotalOutstandingEventBatches();
+        Assert.assertEquals(1, outstanding);
+        UnitUtil.milliSleep(3000);
+
+        String oldId = ch.getId();
+        poller.setStickySessionToTrue();
+        poller.stickySessionHandler(ch);
+        Assert.assertNotEquals(oldId, ch.getId());
+
+        outstanding = poller.getTotalOutstandingEventBatches();
+        Assert.assertEquals(0, outstanding);
+
+        poller.stop();
     }
 }

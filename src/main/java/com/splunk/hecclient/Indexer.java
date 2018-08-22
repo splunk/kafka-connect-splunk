@@ -169,7 +169,6 @@ final class Indexer implements IndexerInf {
         if((resp.getHeaders("Set-Cookie") != null) && (resp.getHeaders("Set-Cookie").length > 0)) {
             log.info("Sticky session expiry detected, will cleanup old channel and its associated batches");
             poller.setStickySessionToTrue();
-           // poller.stickySessionHandler(channel);
         }
 
         int status = resp.getStatusLine().getStatusCode();
