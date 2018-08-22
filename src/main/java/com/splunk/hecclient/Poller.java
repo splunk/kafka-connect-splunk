@@ -21,7 +21,8 @@ public interface Poller {
     void add(HecChannel channel, EventBatch batch, String response);
     void fail(HecChannel channel, EventBatch batch, Exception ex);
     void stickySessionHandler(HecChannel channel);
-    // minimum load channel
+    void setStickySessionToTrue();
+        // minimum load channel
     HecChannel getMinLoadChannel();
     long getTotalOutstandingEventBatches();
 }

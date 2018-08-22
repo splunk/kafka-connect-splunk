@@ -347,6 +347,7 @@ public class HecAckPollerTest {
         UnitUtil.milliSleep(3000);
 
         String oldId = ch.getId();
+        poller.setStickySessionToTrue();
         poller.stickySessionHandler(ch);
         Assert.assertNotEquals(oldId, ch.getId());
 
