@@ -79,4 +79,6 @@ public final class ResponsePoller implements Poller {
             callback.onEventCommitted(Arrays.asList(batch));
         }
     }
+
+    public void setStickySessionToTrue() {}
 }

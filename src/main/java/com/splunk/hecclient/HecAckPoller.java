@@ -44,6 +44,7 @@ public final class HecAckPoller implements Poller {
     private ScheduledThreadPoolExecutor scheduler;
     private ExecutorService executorService;
     private AtomicBoolean started;
+    private AtomicBoolean stickySessionStarted;
 
     public HecAckPoller(PollerCallback cb) {
         outstandingEventBatches = new ConcurrentHashMap<>();
@@ -53,6 +54,11 @@ public final class HecAckPoller implements Poller {
         pollThreads = 2;
         pollerCallback = cb;
         started = new AtomicBoolean(false);
+        stickySessionStarted = new AtomicBoolean(false);
+    }
+
+    public void setStickySessionToTrue() {
+        stickySessionStarted.compareAndSet(false, true);
     }
 
     @Override
@@ -201,6 +207,9 @@ public final class HecAckPoller implements Poller {
      * @since        1.1.0
      */
     public void stickySessionHandler(HecChannel channel) {
+        if (!stickySessionStarted.get()) {
+            return;
+        }
         String oldChannelId = channel.getId();
         channel.setAvailable(false);
         log.info("Channel {} set to be not available", oldChannelId);
@@ -228,6 +237,7 @@ public final class HecAckPoller implements Poller {
 
         channel.setAvailable(true);
         log.info("Channel {} is available", newChannelId);
+        stickySessionStarted.compareAndSet(true, false);
     }
 
     private void poll() {
@@ -305,6 +315,7 @@ public final class HecAckPoller implements Poller {
             log.error("failed to handle ack polled result", ex);
             return;
         }
+        stickySessionHandler(channel);
         handleAckPollResult(channel, ackPollResult);
     }
 

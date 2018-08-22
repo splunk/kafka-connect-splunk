@@ -124,6 +124,8 @@ final class Indexer implements IndexerInf {
             return false;
         }
 
+        poller.stickySessionHandler(channel);
+
         // we are all good
         poller.add(this.channel, batch, resp);
         log.debug("sent {} events to splunk through channel={} indexer={}", batch.size(), channel.getId(), getBaseUrl());
@@ -166,7 +168,8 @@ final class Indexer implements IndexerInf {
 
         if((resp.getHeaders("Set-Cookie") != null) && (resp.getHeaders("Set-Cookie").length > 0)) {
             log.info("Sticky session expiry detected, will cleanup old channel and its associated batches");
-            poller.stickySessionHandler(channel);
+            poller.setStickySessionToTrue();
+           // poller.stickySessionHandler(channel);
         }
 
         int status = resp.getStatusLine().getStatusCode();
