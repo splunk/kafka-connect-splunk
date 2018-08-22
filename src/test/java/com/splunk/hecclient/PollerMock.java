@@ -88,4 +88,6 @@ public class PollerMock implements Poller {
     public String getResponse() {
         return response;
     }
+    public void setStickySessionToTrue() {
+    }
 }
