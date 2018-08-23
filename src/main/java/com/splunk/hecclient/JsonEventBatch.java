@@ -61,8 +61,7 @@ public final class JsonEventBatch extends EventBatch {
             return new EqualsBuilder()
             .append(endpoint, other.endpoint)
             .isEquals();
-        } else {
-        return false;
         }
+        return false;
     }
 }

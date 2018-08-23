@@ -19,14 +19,14 @@ import org.apache.kafka.connect.header.Headers;
 import org.apache.kafka.connect.sink.SinkRecord;
 
 /**
- * KafkaHeaderUtility provides helper functionality to enable Header support for the Splunk Connect for Kafka, Namely
+ * SplunkSinkRecord provides helper functionality to enable Header support for the Splunk Connect for Kafka, Namely
  * Header functionality introspection and comparison.
  * <p>
  *
  * @version     1.1.0
  * @since       1.1.0
  */
-public class KafkaHeaderUtility {
+public class SplunkSinkRecord {
     Headers headers;
     SplunkSinkConnectorConfig connectorConfig;
     String splunkHeaderIndex = "";
@@ -34,7 +34,7 @@ public class KafkaHeaderUtility {
     String splunkHeaderSource = "";
     String splunkHeaderSourcetype = "";
 
-    public KafkaHeaderUtility() {}
+    public SplunkSinkRecord() {}
 
     /**
      * Creates a new Kafka Header utility object. Will take a Kafka SinkRecord and Splunk Sink Connector configuration
@@ -45,10 +45,10 @@ public class KafkaHeaderUtility {
      * @version     1.1.0
      * @since       1.1.0
      */
-    public KafkaHeaderUtility(SinkRecord record, SplunkSinkConnectorConfig connectorConfig) {
+    public SplunkSinkRecord(SinkRecord record, SplunkSinkConnectorConfig connectorConfig) {
         this.connectorConfig = connectorConfig;
         this.headers = record.headers();
-        setMetadataValues(record.headers());
+        setMetadataValues();
     }
 
     /**
@@ -60,46 +60,39 @@ public class KafkaHeaderUtility {
      * @version     1.1.0
      * @since       1.1.0
      */
-    public boolean compareRecordHeaders(SinkRecord record) {
+    protected boolean compareRecordHeaders(SinkRecord record) {
         headers = record.headers();
+        String index = headers.lastWithName(connectorConfig.headerIndex).value().toString();
+        String host = headers.lastWithName(connectorConfig.headerHost).value().toString();
+        String source = headers.lastWithName(connectorConfig.headerSource).value().toString();
+        String sourcetype = headers.lastWithName(connectorConfig.headerSourcetype).value().toString();
 
-        if(splunkHeaderIndex.equals(headers.lastWithName(connectorConfig.headerIndex).value().toString()) &&
-                splunkHeaderHost.equals(headers.lastWithName(connectorConfig.headerHost).value().toString()) &&
-                splunkHeaderSource.equals(headers.lastWithName(connectorConfig.headerSource).value().toString()) &&
-                splunkHeaderSourcetype.equals(headers.lastWithName(connectorConfig.headerSourcetype).value().toString())) {
+        if(splunkHeaderIndex.equals(index) && splunkHeaderHost.equals(host) &&
+           splunkHeaderSource.equals(source) && splunkHeaderSourcetype.equals(sourcetype))  {
             return true;
         }
         return false;
     }
 
-    public void setHeaders(Headers headers) {
-        this.headers = headers;
-        setMetadataValues(headers);
-    }
-
-    public void setMetadataValues(Headers headers) {
-        splunkHeaderIndex = headers.lastWithName(connectorConfig.headerIndex).value().toString();
-        splunkHeaderHost = headers.lastWithName(connectorConfig.headerHost).value().toString();
-        splunkHeaderSource = headers.lastWithName(connectorConfig.headerSource).value().toString();
-        splunkHeaderSourcetype = headers.lastWithName(connectorConfig.headerSourcetype).value().toString();
+    private void setMetadataValues() {
+        splunkHeaderIndex = this.headers.lastWithName(connectorConfig.headerIndex).value().toString();
+        splunkHeaderHost = this.headers.lastWithName(connectorConfig.headerHost).value().toString();
+        splunkHeaderSource = this.headers.lastWithName(connectorConfig.headerSource).value().toString();
+        splunkHeaderSourcetype = this.headers.lastWithName(connectorConfig.headerSourcetype).value().toString();
     }
 
     public Headers getHeaders() {
         return headers;
     }
-
     public String getSplunkHeaderIndex() {
         return splunkHeaderIndex;
     }
-
     public String getSplunkHeaderHost() {
         return splunkHeaderHost;
     }
-
     public String getSplunkHeaderSource() {
         return splunkHeaderSource;
     }
-
     public String getSplunkHeaderSourcetype() {
         return splunkHeaderSourcetype;
     }

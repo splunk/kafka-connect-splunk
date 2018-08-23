@@ -146,14 +146,16 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             + "latency metadata will be indexed along with raw data. This setting only works in "
             + "conjunction with /event HEC endpoint (\"splunk.hec.raw\" : \"false\"). By default"
             + ", this is set to false.";
-    static final String HEC_EVENT_FORMATTED_DOC = "Ensures events already formatted correctly for HEC are parsed "
-            + "correctly in the connector, before being sent to Splunk";
+    static final String HEC_EVENT_FORMATTED_DOC = "Ensures events that are pre-formatted into the properly formatted HEC "
+            + "JSON format as per http://dev.splunk.com/view/event-collector/SP-CAAAE6P have meta-data and event data indexed "
+            + "correctly by Splunk.";
     // TBD
     static final String SSL_TRUSTSTORE_PATH_DOC = "Path on the local disk to the certificate trust store.";
     static final String SSL_TRUSTSTORE_PASSWORD_DOC = "Password for the trust store.";
 
     static final String HEADER_SUPPORT_DOC = "Setting will enable Kafka Record headers to be used for meta data override";
-    static final String HEADER_CUSTOM_DOC = "Setting will enable look for Record headers with these values and pass them ";
+    static final String HEADER_CUSTOM_DOC = "Setting will enable look for Record headers with these values and add them"
+            + "to each event if present. Custom headers are configured separated by comma for multiple headers. ex,  (\"custom_header_1,custom_header_2,custom_header_3\").";
     static final String HEADER_INDEX_DOC = "Header to use for Splunk Header Index";
     static final String HEADER_SOURCE_DOC = "Header to use for Splunk Header Source";
     static final String HEADER_SOURCETYPE_DOC = "Header to use for Splunk Header Sourcetype";

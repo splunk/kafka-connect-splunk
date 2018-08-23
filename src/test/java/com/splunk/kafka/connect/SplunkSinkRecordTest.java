@@ -17,14 +17,13 @@ package com.splunk.kafka.connect;
 
 import org.apache.kafka.connect.header.Headers;
 import org.apache.kafka.connect.data.Schema;
-import org.apache.kafka.connect.sink.SinkConnector;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-public class KafkaHeaderUtilityTest {
+public class SplunkSinkRecordTest {
 
     @Test
     public void checkKafkaHeaderUtilityGetters() {
@@ -43,12 +42,12 @@ public class KafkaHeaderUtilityTest {
 
         System.out.println(headers.toString());
 
-        KafkaHeaderUtility kafkaHeaderUtility = new KafkaHeaderUtility(record, connectorConfig);
+        SplunkSinkRecord splunkSinkRecord = new SplunkSinkRecord(record, connectorConfig);
 
-        Assert.assertEquals("splunk.header.index", (kafkaHeaderUtility.getSplunkHeaderIndex()));
-        Assert.assertEquals("splunk.header.host", (kafkaHeaderUtility.getSplunkHeaderHost()));
-        Assert.assertEquals("splunk.header.source", (kafkaHeaderUtility.getSplunkHeaderSource()));
-        Assert.assertEquals("splunk.header.sourcetype", (kafkaHeaderUtility.getSplunkHeaderSourcetype()));
+        Assert.assertEquals("splunk.header.index", (splunkSinkRecord.getSplunkHeaderIndex()));
+        Assert.assertEquals("splunk.header.host", (splunkSinkRecord.getSplunkHeaderHost()));
+        Assert.assertEquals("splunk.header.source", (splunkSinkRecord.getSplunkHeaderSource()));
+        Assert.assertEquals("splunk.header.sourcetype", (splunkSinkRecord.getSplunkHeaderSourcetype()));
     }
 
     @Test
@@ -66,8 +65,7 @@ public class KafkaHeaderUtilityTest {
 
         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
 
-        KafkaHeaderUtility kafkaHeaderUtility = new KafkaHeaderUtility(record_1, connectorConfig);
-        kafkaHeaderUtility.setHeaders(headers_1);
+        SplunkSinkRecord splunkSinkRecord = new SplunkSinkRecord(record_1, connectorConfig);
 
         SinkRecord record_2 = setupRecord();
 
@@ -77,7 +75,7 @@ public class KafkaHeaderUtilityTest {
         headers_2.addString("splunk.header.source", "headersource");
         headers_2.addString("splunk.header.sourcetype", "test message");
 
-        Assert.assertTrue(kafkaHeaderUtility.compareRecordHeaders(record_2));
+        Assert.assertTrue(splunkSinkRecord.compareRecordHeaders(record_2));
 
         SinkRecord record_3 = setupRecord();
 
@@ -87,7 +85,7 @@ public class KafkaHeaderUtilityTest {
         headers_3.addString("splunk.header.source", "headersource");
         headers_3.addString("splunk.header.sourcetype", "test message");
 
-        Assert.assertFalse(kafkaHeaderUtility.compareRecordHeaders(record_3));
+        Assert.assertFalse(splunkSinkRecord.compareRecordHeaders(record_3));
     }
 
     public SinkRecord setupRecord() {
