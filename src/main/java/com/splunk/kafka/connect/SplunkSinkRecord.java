@@ -15,6 +15,8 @@
  */
 package com.splunk.kafka.connect;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.kafka.connect.header.Headers;
 import org.apache.kafka.connect.sink.SinkRecord;
 
@@ -79,6 +81,30 @@ public class SplunkSinkRecord {
         splunkHeaderHost = this.headers.lastWithName(connectorConfig.headerHost).value().toString();
         splunkHeaderSource = this.headers.lastWithName(connectorConfig.headerSource).value().toString();
         splunkHeaderSourcetype = this.headers.lastWithName(connectorConfig.headerSourcetype).value().toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .append(splunkHeaderIndex)
+                .append(splunkHeaderHost)
+                .append(splunkHeaderSource)
+                .append(splunkHeaderSourcetype)
+                .toHashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof SplunkSinkRecord) {
+            final SplunkSinkRecord other = (SplunkSinkRecord) obj;
+            return new EqualsBuilder()
+                    .append(splunkHeaderIndex, other.splunkHeaderIndex)
+                    .append(splunkHeaderHost, other.splunkHeaderHost)
+                    .append(splunkHeaderSource, other.splunkHeaderSource)
+                    .append(splunkHeaderSourcetype, other.splunkHeaderSourcetype)
+                    .isEquals();
+        }
+        return false;
     }
 
     public Headers getHeaders() {

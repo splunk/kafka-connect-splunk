@@ -29,6 +29,8 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLEngineResult;
+
 public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class);
     private static final long flushWindow = 30 * 1000; // 30 seconds
@@ -158,20 +160,26 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     }
 
     private void handleRecordsWithHeader(final Collection<SinkRecord> records) {
-        List<SinkRecord> recordsWithSameHeaders = new ArrayList<>();
-        SplunkSinkRecord splunkSinkRecord = new SplunkSinkRecord();
-
+        HashMap<SplunkSinkRecord, ArrayList<SinkRecord>> recordsWithSameHeaders = new HashMap<>();
+        SplunkSinkRecord splunkSinkRecord;
         for (SinkRecord record : records) {
-            if (splunkSinkRecord.compareRecordHeaders(record)) {
-                recordsWithSameHeaders.add(record);
-                continue;
-            }
-
-            EventBatch batch = createRawHeaderEventBatch(splunkSinkRecord);
-            sendEvents(recordsWithSameHeaders, batch);
-            recordsWithSameHeaders.clear();
-            recordsWithSameHeaders.add(record);
             splunkSinkRecord = new SplunkSinkRecord(record, connectorConfig);
+
+            if (!recordsWithSameHeaders.containsKey(splunkSinkRecord)) {
+                recordsWithSameHeaders.put(splunkSinkRecord, new ArrayList<>());
+            }
+            ArrayList<SinkRecord> recordList = recordsWithSameHeaders.get(record);
+            recordList.add(record);
+            recordsWithSameHeaders.put(splunkSinkRecord, recordList);
+        }
+
+        Iterator itr = recordsWithSameHeaders.entrySet().iterator();
+        while(itr.hasNext()) {
+            Map.Entry set = (Map.Entry)itr.next();
+            SplunkSinkRecord splunkSinkRecordKey = (SplunkSinkRecord)set.getKey();
+            ArrayList<SinkRecord> recordArrayList = (ArrayList)set.getValue();
+            EventBatch batch = createRawHeaderEventBatch(1);
+            sendEvents(recordArrayList, batch);
         }
     }
 
