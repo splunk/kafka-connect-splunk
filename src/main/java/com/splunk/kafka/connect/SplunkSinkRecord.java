@@ -17,6 +17,8 @@ package com.splunk.kafka.connect;
 
 import org.apache.kafka.connect.header.Headers;
 import org.apache.kafka.connect.sink.SinkRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * SplunkSinkRecord provides helper functionality to enable Header support for the Splunk Connect for Kafka, Namely
@@ -27,6 +29,7 @@ import org.apache.kafka.connect.sink.SinkRecord;
  * @since       1.1.0
  */
 public class SplunkSinkRecord {
+    private static final Logger log = LoggerFactory.getLogger(SplunkSinkRecord.class);
     Headers headers;
     SplunkSinkConnectorConfig connectorConfig;
     String splunkHeaderIndex = "";
@@ -75,10 +78,25 @@ public class SplunkSinkRecord {
     }
 
     private void setMetadataValues() {
-        splunkHeaderIndex = this.headers.lastWithName(connectorConfig.headerIndex).value().toString();
-        splunkHeaderHost = this.headers.lastWithName(connectorConfig.headerHost).value().toString();
-        splunkHeaderSource = this.headers.lastWithName(connectorConfig.headerSource).value().toString();
-        splunkHeaderSourcetype = this.headers.lastWithName(connectorConfig.headerSourcetype).value().toString();
+        log.info(headers.toString());
+        if(headers.lastWithName(connectorConfig.headerIndex).value() != null) {
+            splunkHeaderIndex = headers.lastWithName(connectorConfig.headerIndex).value().toString();
+
+        }
+        if(headers.lastWithName(connectorConfig.headerHost).value() != null) {
+            splunkHeaderHost = headers.lastWithName(connectorConfig.headerHost).value().toString();
+
+        }
+
+        if(headers.lastWithName(connectorConfig.headerSource).value() != null) {
+            splunkHeaderSource = headers.lastWithName(connectorConfig.headerSource).value().toString();
+
+        }
+
+        if(headers.lastWithName(connectorConfig.headerSourcetype).value() != null) {
+            splunkHeaderSourcetype = headers.lastWithName(connectorConfig.headerSourcetype).value().toString();
+
+        }
     }
 
     public Headers getHeaders() {
