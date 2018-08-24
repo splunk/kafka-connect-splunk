@@ -376,6 +376,12 @@ Use the below schema to configure Splunk Connect for Kafka
    "splunk.hec.event.timeout": "<timeout in seconds>",
    "splunk.hec.socket.timeout": "<timeout in seconds>",
    "splunk.hec.track.data": "<true|false, tracking data loss and latency, for debugging lagging and data loss>"
+   "splunk.header.support": "<true|false>",
+   "splunk.header.custom": "<list-of-custom-headers-to-be-used-from-kafka-headers-separated-by-comma>", 
+   "splunk.header.index": "<header-value-to-be-used-as-splunk-index>",
+   "splunk.header.source": "<header-value-to-be-used-as-splunk-source>",
+   "splunk.header.sourcetype": "<header-value-to-be-used-as-splunk-sourcetype>",
+   "splunk.header.host": "<header-value-to-be-used-as-splunk-host>"
   }
 }
 ```
@@ -425,6 +431,16 @@ Use the below schema to configure Splunk Connect for Kafka
 |--------           |----------------------------|-----------------------|
 | `splunk.hec.json.event.enrichment` |  Only applicable to /event HEC endpoint. This setting is used to enrich raw data with extra metadata fields. It contains a list of key value pairs separated by ",". The configured enrichment metadata will be indexed along with raw event data by Splunk software. Note: Data enrichment for /event HEC endpoint is only available in Splunk Enterprise 6.5 and above. By default, this setting is empty. See ([Documentation](http://dev.splunk.com/view/event-collector/SP-CAAAE8Y#indexedfield)) for more information.> Note: For example, `org=fin,bu=south-east-us`||
 | `splunk.hec.track.data` |  Valid settings are `true` or `false`. When set to `true`, data loss and data injection latency metadata will be indexed along with raw data. This setting only works in conjunction with /event HEC endpoint (`"splunk.hec.raw" : "false"`).|`false`|
+
+### Headers Parameters
+#### Use Headers
+* `splunk.header.support` -  Valid settings are `true` or `false`. When set to `true` Splunk Connect for Kafka will parse kafka headers for using meta data in generated splunk events. By default, this setting is set to `false`.
+* `splunk.header.custom` - This setting is only applicable when `splunk.header.support` is set to `true`. Custom headers are configured separated by comma for multiple headers. ex,  "custom_header_1,custom_header_2,custom_header_3. This setting will look for kafka record headers with these values and add them to each event if present. By default, it is set to `""`.
+* `splunk.header.index` - This setting is only applicable when `splunk.header.support` is set to `true`. This setting specifies the header to be used for splunk index. By default, it is set to `splunk.header.index`.
+* `splunk.header.source` - This setting is only applicable when `splunk.header.support` is set to `true`. This setting specifies the source to be used for splunk source. By default, it is set to `splunk.header.source`.
+* `splunk.header.sourcetype` - This setting is only applicable when `splunk.header.support` is set to `true`. This setting specifies the sourcetype to be used for splunk sourcetype. By default, it is set to `splunk.header.sourcetype`.
+* `splunk.header.host` - This setting is only applicable when `splunk.header.support` is set to `true`. This setting specifies the host to be used for splunk host. By default, it is set to `splunk.header.host`.
+
 
 #### Configuration Examples
  Two parameters which affect that core functionality of how the Connector works are:
