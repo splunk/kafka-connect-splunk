@@ -41,79 +41,79 @@ TOKEN_WITH_ACK = '00000000-0000-0000-0000-000000000001'
 IDX_HOSTNAME_PREFIX = os.environ.get('IDX_HOSTNAME_PREFIX', 'idx')
 
 PERF_CASES = [
-    {
-        'tasks.max': '1',
-        'splunk.hec.threads': '1',
-        'splunk.hec.max.batch.size': '500',
-    },
-    {
-        'tasks.max': '1',
-        'splunk.hec.threads': '2',
-        'splunk.hec.max.batch.size': '500',
-    },
-    {
-        'tasks.max': '1',
-        'splunk.hec.threads': '4',
-        'splunk.hec.max.batch.size': '500',
-    },
-    {
-        'tasks.max': '1',
-        'splunk.hec.threads': '8',
-        'splunk.hec.max.batch.size': '500',
-    },
-    {
-        'tasks.max': '1',
-        'splunk.hec.threads': '16',
-        'splunk.hec.max.batch.size': '500',
-    },
-    {
-        'tasks.max': '1',
-        'splunk.hec.threads': '1',
-        'splunk.hec.max.batch.size': '1000',
-    },
-    {
-        'tasks.max': '1',
-        'splunk.hec.threads': '2',
-        'splunk.hec.max.batch.size': '1000',
-    },
-    {
-        'tasks.max': '1',
-        'splunk.hec.threads': '4',
-        'splunk.hec.max.batch.size': '1000',
-    },
-    {
-        'tasks.max': '1',
-        'splunk.hec.threads': '8',
-        'splunk.hec.max.batch.size': '1000',
-    },
-    {
-        'tasks.max': '1',
-        'splunk.hec.threads': '16',
-        'splunk.hec.max.batch.size': '1000',
-    },
-    {
-        'tasks.max': '2',
-        'splunk.hec.threads': '1',
-        'splunk.hec.max.batch.size': '500',
-    },
-    {
-        'tasks.max': '4',
-        'splunk.hec.threads': '1',
-        'splunk.hec.max.batch.size': '500',
-    },
-    {
-        'tasks.max': '8',
-        'splunk.hec.threads': '1',
-        'splunk.hec.max.batch.size': '500',
-    },
-    {
-        'tasks.max': '16',
-        'splunk.hec.threads': '1',
-        'splunk.hec.max.batch.size': '500',
-    },
+    # {
+    #     'tasks.max': '1',
+    #     'splunk.hec.threads': '1',
+    #     'splunk.hec.max.batch.size': '500',
+    # },
+    # {
+    #     'tasks.max': '1',
+    #     'splunk.hec.threads': '2',
+    #     'splunk.hec.max.batch.size': '500',
+    # },
+    # {
+    #     'tasks.max': '1',
+    #     'splunk.hec.threads': '4',
+    #     'splunk.hec.max.batch.size': '500',
+    # },
+    # {
+    #     'tasks.max': '1',
+    #     'splunk.hec.threads': '8',
+    #     'splunk.hec.max.batch.size': '500',
+    # },
+    # {
+    #     'tasks.max': '1',
+    #     'splunk.hec.threads': '16',
+    #     'splunk.hec.max.batch.size': '500',
+    # },
+    # {
+    #     'tasks.max': '1',
+    #     'splunk.hec.threads': '1',
+    #     'splunk.hec.max.batch.size': '1000',
+    # },
+    # {
+    #     'tasks.max': '1',
+    #     'splunk.hec.threads': '2',
+    #     'splunk.hec.max.batch.size': '1000',
+    # },
+    # {
+    #     'tasks.max': '1',
+    #     'splunk.hec.threads': '4',
+    #     'splunk.hec.max.batch.size': '1000',
+    # },
+    # {
+    #     'tasks.max': '1',
+    #     'splunk.hec.threads': '8',
+    #     'splunk.hec.max.batch.size': '1000',
+    # },
+    # {
+    #     'tasks.max': '1',
+    #     'splunk.hec.threads': '16',
+    #     'splunk.hec.max.batch.size': '1000',
+    # },
+    # {
+    #     'tasks.max': '2',
+    #     'splunk.hec.threads': '1',
+    #     'splunk.hec.max.batch.size': '500',
+    # },
+    # {
+    #     'tasks.max': '4',
+    #     'splunk.hec.threads': '1',
+    #     'splunk.hec.max.batch.size': '500',
+    # },
+    # {
+    #     'tasks.max': '8',
+    #     'splunk.hec.threads': '1',
+    #     'splunk.hec.max.batch.size': '500',
+    # },
+    # {
+    #     'tasks.max': '16',
+    #     'splunk.hec.threads': '1',
+    #     'splunk.hec.max.batch.size': '500',
+    # },
     {
         'tasks.max': '32',
-        'splunk.hec.threads': '1',
+        'splunk.hec.threads': '8',
         'splunk.hec.max.batch.size': '500',
     },
 ]
