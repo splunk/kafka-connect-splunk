@@ -100,7 +100,8 @@ public class SplunkSinkRecord {
     }
 
     public String id() {
-        return
+        return splunkHeaderIndex + "$$$" + splunkHeaderHost + "$$$"
+        + splunkHeaderSource + "$$$" + splunkHeaderSourcetype;
     }
 
     @Override

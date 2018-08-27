@@ -16,7 +16,6 @@
 package com.splunk.kafka.connect;
 
 import com.splunk.hecclient.*;
-import com.sun.tools.corba.se.idl.StringGen;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.connect.errors.RetriableException;
@@ -29,8 +28,6 @@ import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.net.ssl.SSLEngineResult;
 
 public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class);
@@ -161,59 +158,55 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     }
 
     private void handleRecordsWithHeader(final Collection<SinkRecord> records) {
-        log.info("Inside handle records");
-
         HashMap<String, ArrayList<SinkRecord>> recordsWithSameHeaders = new HashMap<>();
-        SplunkSinkRecord splunkSinkRecord;
-        for (SinkRecord record : records) {
-            log.info("Inside loop");
 
-            // splunkSinkRecord = new SplunkSinkRecord(record, connectorConfig);
+        for (SinkRecord record : records) {
             String key = headerId(record);
             if (!recordsWithSameHeaders.containsKey(key)) {
-                recordsWithSameHeaders.put(key, new ArrayList<>());
+                ArrayList<SinkRecord> recordList = new ArrayList<SinkRecord>();
+                recordsWithSameHeaders.put(key, recordList);
             }
-            ArrayList<SinkRecord> recordList = recordsWithSameHeaders.get(record);
+            ArrayList<SinkRecord> recordList = recordsWithSameHeaders.get(key);
             recordList.add(record);
             recordsWithSameHeaders.put(key, recordList);
         }
 
         int index = 0;
-        Iterator itr = recordsWithSameHeaders.entrySet().iterator();
+        Iterator<Map.Entry<String, ArrayList<SinkRecord>>> itr = recordsWithSameHeaders.entrySet().iterator();
         while(itr.hasNext()) {
-            log.info("Sending Log {}", index);
-            Map.Entry set = (Map.Entry)itr.next();
-            SplunkSinkRecord splunkSinkRecordKey = (SplunkSinkRecord)set.getKey();
+            Map.Entry set = itr.next();
+            String splunkSinkRecordKey = (String)set.getKey();
             ArrayList<SinkRecord> recordArrayList = (ArrayList)set.getValue();
             EventBatch batch = createRawHeaderEventBatch(splunkSinkRecordKey);
             sendEvents(recordArrayList, batch);
             index++;
         }
+        log.debug("{} records have been bucketed in to {} batches",records.size(), index);
     }
 
     public String headerId(SinkRecord sinkRecord) {
         Headers headers = sinkRecord.headers();
         String headerId = "";
 
-        if(headers.lastWithName(connectorConfig.headerIndex).value() != null) {
+        if(headers.lastWithName(connectorConfig.headerIndex) != null) {
             headerId += headers.lastWithName(connectorConfig.headerIndex).value().toString();
         }
 
-        insertheaderToken(headerId);
+        headerId = insertheaderToken(headerId);
 
-        if(headers.lastWithName(connectorConfig.headerHost).value() != null) {
+        if(headers.lastWithName(connectorConfig.headerHost) != null) {
             headerId += headers.lastWithName(connectorConfig.headerHost).value().toString();
         }
 
-        insertheaderToken(headerId);
+        headerId = insertheaderToken(headerId);
 
-        if(headers.lastWithName(connectorConfig.headerSource).value() != null) {
+        if(headers.lastWithName(connectorConfig.headerSource) != null) {
             headerId += headers.lastWithName(connectorConfig.headerSource).value().toString();
         }
 
-        insertheaderToken(headerId);
+        headerId = insertheaderToken(headerId);
 
-        if(headers.lastWithName(connectorConfig.headerSourcetype).value() != null) {
+        if(headers.lastWithName(connectorConfig.headerSourcetype) != null) {
             headerId += headers.lastWithName(connectorConfig.headerSourcetype).value().toString();
         }
 
@@ -221,7 +214,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     }
 
     public String insertheaderToken(String id) {
-        return id += "$$$";
+        return id + "$$$";
     }
 
     private void handleEvent(final Collection<SinkRecord> records) {
@@ -266,15 +259,17 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         }
     }
 
-    private EventBatch createRawHeaderEventBatch(SplunkSinkRecord splunkSinkRecord) {
-        return RawEventBatch.factory()
-                .setIndex(splunkSinkRecord.getSplunkHeaderIndex())
-                .setSourcetype(splunkSinkRecord.getSplunkHeaderSourcetype())
-                .setSource(splunkSinkRecord.getSplunkHeaderSource())
-                .setHost(splunkSinkRecord.getSplunkHeaderHost())
-                .build();
+    private EventBatch createRawHeaderEventBatch(String splunkSinkRecord) {
+        String[] split = splunkSinkRecord.split("[$]{3}");
 
+        return RawEventBatch.factory()
+                .setIndex(split[0])
+                .setSourcetype(split[1])
+                .setSource(split[2])
+                .setHost(split[3])
+                .build();
     }
+
     // setup metadata on RawEventBatch
     private EventBatch createRawEventBatch(final TopicPartition tp) {
         if (tp == null) {
