@@ -209,9 +209,9 @@ public final class HecAckPoller implements Poller {
             log.info("Failing {} batches for the channel {}, these will be resent by the connector.", channelBatches.size(), oldChannelId);
             if (pollerCallback != null) {
                 List<EventBatch> expired = new ArrayList<>();
-                Iterator iter = channelBatches.entrySet().iterator();
+                Iterator<Map.Entry<Long,EventBatch>> iter = channelBatches.entrySet().iterator();
                 while(iter.hasNext()) {
-                    Map.Entry<Long, EventBatch> pair = (Map.Entry) iter.next();
+                    Map.Entry<Long, EventBatch> pair = iter.next();
                     EventBatch batch = pair.getValue();
                     totalOutstandingEventBatches.decrementAndGet();
                     batch.fail();

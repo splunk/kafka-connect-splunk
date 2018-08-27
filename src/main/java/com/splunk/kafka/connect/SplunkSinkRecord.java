@@ -15,6 +15,8 @@
  */
 package com.splunk.kafka.connect;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.kafka.connect.header.Headers;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.slf4j.Logger;
@@ -51,7 +53,10 @@ public class SplunkSinkRecord {
     public SplunkSinkRecord(SinkRecord record, SplunkSinkConnectorConfig connectorConfig) {
         this.connectorConfig = connectorConfig;
         this.headers = record.headers();
-        setMetadataValues();
+        if(this.headers != null) {
+            log.info("not null headers");
+            setMetadataValues();
+        }
     }
 
     /**
@@ -71,32 +76,56 @@ public class SplunkSinkRecord {
         String sourcetype = headers.lastWithName(connectorConfig.headerSourcetype).value().toString();
 
         if(splunkHeaderIndex.equals(index) && splunkHeaderHost.equals(host) &&
-           splunkHeaderSource.equals(source) && splunkHeaderSourcetype.equals(sourcetype))  {
+                splunkHeaderSource.equals(source) && splunkHeaderSourcetype.equals(sourcetype))  {
             return true;
         }
         return false;
     }
 
     private void setMetadataValues() {
-        log.info(headers.toString());
-        if(headers.lastWithName(connectorConfig.headerIndex).value() != null) {
-            splunkHeaderIndex = headers.lastWithName(connectorConfig.headerIndex).value().toString();
+        log.info("Made it to setMetadataValues");
 
+        if(this.headers.lastWithName(connectorConfig.headerIndex) != null) {
+            splunkHeaderIndex = this.headers.lastWithName(connectorConfig.headerIndex).value().toString();
         }
-        if(headers.lastWithName(connectorConfig.headerHost).value() != null) {
-            splunkHeaderHost = headers.lastWithName(connectorConfig.headerHost).value().toString();
-
+        if(this.headers.lastWithName(connectorConfig.headerHost) != null) {
+            splunkHeaderHost = this.headers.lastWithName(connectorConfig.headerHost).value().toString();
         }
-
-        if(headers.lastWithName(connectorConfig.headerSource).value() != null) {
-            splunkHeaderSource = headers.lastWithName(connectorConfig.headerSource).value().toString();
-
+        if(this.headers.lastWithName(connectorConfig.headerSource) != null) {
+            splunkHeaderSource = this.headers.lastWithName(connectorConfig.headerSource).value().toString();
         }
-
-        if(headers.lastWithName(connectorConfig.headerSourcetype).value() != null) {
-            splunkHeaderSourcetype = headers.lastWithName(connectorConfig.headerSourcetype).value().toString();
-
+        if(this.headers.lastWithName(connectorConfig.headerSourcetype) != null) {
+            splunkHeaderSourcetype = this.headers.lastWithName(connectorConfig.headerSourcetype).value().toString();
         }
+    }
+
+    public String id() {
+        return splunkHeaderIndex + "$$$" + splunkHeaderHost + "$$$"
+                + splunkHeaderSource + "$$$" + splunkHeaderSourcetype;
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .append(splunkHeaderIndex)
+                .append(splunkHeaderHost)
+                .append(splunkHeaderSource)
+                .append(splunkHeaderSourcetype)
+                .toHashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof SplunkSinkRecord) {
+            final SplunkSinkRecord other = (SplunkSinkRecord) obj;
+            return new EqualsBuilder()
+                    .append(splunkHeaderIndex, other.splunkHeaderIndex)
+                    .append(splunkHeaderHost, other.splunkHeaderHost)
+                    .append(splunkHeaderSource, other.splunkHeaderSource)
+                    .append(splunkHeaderSourcetype, other.splunkHeaderSourcetype)
+                    .isEquals();
+        }
+        return false;
     }
 
     public Headers getHeaders() {
