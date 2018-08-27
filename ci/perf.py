@@ -113,7 +113,7 @@ PERF_CASES = [
     # },
     {
         'tasks.max': '32',
-        'splunk.hec.threads': '8',
+        'splunk.hec.threads': '2',
         'splunk.hec.max.batch.size': '500',
     },
 ]
