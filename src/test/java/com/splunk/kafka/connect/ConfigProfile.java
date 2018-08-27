@@ -28,6 +28,13 @@ public class ConfigProfile {
     private boolean trackData;
     private int maxBatchSize;
     private int numOfThreads;
+    private boolean headerSupport;
+    private boolean hecFormatted;
+    private String headerCustom;
+    private String headerIndex;
+    private String headerSource;
+    private String headerSourcetype;
+    private String headerHost;
 
     public ConfigProfile() {
         this(0);
@@ -40,6 +47,8 @@ public class ConfigProfile {
             case 1:  buildProfileOne();
                      break;
             case 2:  buildProfileTwo();
+                     break;
+            case 3:  buildProfileThree();
                      break;
             default: buildProfileDefault();
                      break;
@@ -140,6 +149,37 @@ public class ConfigProfile {
         this.trackData = false;
         this.maxBatchSize = 1;
         this.numOfThreads = 1;
+        return this;
+    }
+
+    public ConfigProfile buildProfileThree() {
+        this.topics = "kafka-data";
+        this.token = "mytoken";
+        this.uri = "https://dummy:8088";
+        this.raw = true;
+        this.ack = false;
+        this.indexes = "index-1";
+        this.sourcetypes = "kafka-data";
+        this.sources = "kafka-connect";
+        this.httpKeepAlive = true;
+        this.validateCertificates = false;
+        this.eventBatchTimeout = 1;
+        this.ackPollInterval = 1;
+        this.ackPollThreads = 1;
+        this.maxHttpConnPerChannel = 1;
+        this.totalHecChannels = 1;
+        this.socketTimeout = 1;
+        this.enrichements = "hello=world";
+        this.enrichementMap = new HashMap<>();
+        this.trackData = false;
+        this.maxBatchSize = 1;
+        this.numOfThreads = 1;
+        this.headerSupport = true;
+        this.headerIndex = "splunk.header.index";
+        this.headerSource = "splunk.header.source";
+        this.headerSourcetype = "splunk.header.sourcetype";
+        this.headerHost = "splunk.header.host";
+
         return this;
     }
 
@@ -333,6 +373,38 @@ public class ConfigProfile {
 
     public void setNumOfThreads(int numOfThreads) {
         this.numOfThreads = numOfThreads;
+    }
+
+    public String getHeaderIndex() {
+        return headerIndex;
+    }
+
+    public void setHeaderIndex(String headerIndex) {
+        this.headerIndex = headerIndex;
+    }
+
+    public String getHeaderSource() {
+        return headerSource;
+    }
+
+    public void setHeaderSource(String headerSource) {
+        this.headerSource = headerSource;
+    }
+
+    public String getHeaderSourcetype() {
+        return headerSourcetype;
+    }
+
+    public void setHeaderSourcetype(String headerSourcetype) {
+        this.headerSourcetype = headerSourcetype;
+    }
+
+    public String getHeaderHost() {
+        return headerHost;
+    }
+
+    public void setHeaderHost(String headerHost) {
+        this.headerHost = headerHost;
     }
 
     @Override public String toString() {

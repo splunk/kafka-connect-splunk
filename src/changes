@@ -1,0 +1,1225 @@
+From 588e947fe0e9584c62c8549207dae818d03f9281 Mon Sep 17 00:00:00 2001
+From: Vitalii Rudenskyi <vitalii.rudenskyi@mckesson.com>
+Date: Fri, 6 Jul 2018 11:25:07 -0700
+Subject: [PATCH] * config style for topic metadata
+
+---
+ .gitignore                                         |   3 +-
+ .../java/com/splunk/hecclient/JsonEventBatch.java  |  24 +
+ .../java/com/splunk/hecclient/RawEventBatch.java   |  30 +-
+ .../kafka/connect/SplunkSinkConnectorConfig.java   | 692 +++++++++++----------
+ .../com/splunk/kafka/connect/SplunkSinkTask.java   | 142 +++--
+ .../connect/SplunkSinkConnectorConfigTest.java     |  30 +-
+ .../splunk/kafka/connect/SplunkSinkTaskTest.java   |  55 +-
+ .../java/com/splunk/kafka/connect/UnitUtil.java    |   6 +-
+ 8 files changed, 593 insertions(+), 389 deletions(-)
+
+diff --git a/.gitignore b/.gitignore
+index d9ed333..f31ed44 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -27,4 +27,5 @@ target/*
+ splunk-kafka-connect/
+ pom.xml.versionsBackup
+ .classpath
+-.project
+\ No newline at end of file
++.project
++/target/
+diff --git a/src/main/java/com/splunk/hecclient/JsonEventBatch.java b/src/main/java/com/splunk/hecclient/JsonEventBatch.java
+index 1f7f45a..43f81bd 100644
+--- a/src/main/java/com/splunk/hecclient/JsonEventBatch.java
++++ b/src/main/java/com/splunk/hecclient/JsonEventBatch.java
+@@ -15,6 +15,9 @@
+  */
+ package com.splunk.hecclient;
+
++import org.apache.commons.lang3.builder.EqualsBuilder;
++import org.apache.commons.lang3.builder.HashCodeBuilder;
++
+ public final class JsonEventBatch extends EventBatch {
+     public static final String endpoint = "/services/collector/event";
+     public static final String contentType = "application/json; profile=urn:splunk:event:1.0; charset=utf-8";
+@@ -43,4 +46,25 @@ public final class JsonEventBatch extends EventBatch {
+     public EventBatch createFromThis() {
+         return new JsonEventBatch();
+     }
++
++
++    @Override
++    public int hashCode() {
++      return new HashCodeBuilder()
++          .append(endpoint)
++          .toHashCode();
++    }
++
++    @Override
++    public boolean equals(Object obj) {
++      if (obj instanceof JsonEventBatch) {
++        final JsonEventBatch other = (JsonEventBatch) obj;
++        return new EqualsBuilder()
++            .append(endpoint, other.endpoint)
++            .isEquals();
++      } else {
++        return false;
++      }
++    }
++
+ }
+diff --git a/src/main/java/com/splunk/hecclient/RawEventBatch.java b/src/main/java/com/splunk/hecclient/RawEventBatch.java
+index a5fbc47..905d25b 100644
+--- a/src/main/java/com/splunk/hecclient/RawEventBatch.java
++++ b/src/main/java/com/splunk/hecclient/RawEventBatch.java
+@@ -15,6 +15,8 @@
+  */
+ package com.splunk.hecclient;
+
++import org.apache.commons.lang3.builder.EqualsBuilder;
++import org.apache.commons.lang3.builder.HashCodeBuilder;
+ import org.apache.http.client.utils.URIBuilder;
+
+ public final class RawEventBatch extends EventBatch {
+@@ -87,7 +89,7 @@ public final class RawEventBatch extends EventBatch {
+             return this;
+         }
+
+-        public Builder setTime(final int time) {
++        public Builder setTime(final long time) {
+             this.time = time;
+             return this;
+         }
+@@ -146,4 +148,30 @@ public final class RawEventBatch extends EventBatch {
+             params.addParameter(tag,  val);
+         }
+     }
++
++    @Override
++    public int hashCode() {
++      return new HashCodeBuilder()
++          .append(index)
++          .append(sourcetype)
++          .append(source)
++          .append(host)
++          .toHashCode();
++    }
++
++    @Override
++    public boolean equals(Object obj) {
++      if (obj instanceof RawEventBatch) {
++        final RawEventBatch other = (RawEventBatch) obj;
++        return new EqualsBuilder()
++            .append(index, other.index)
++            .append(sourcetype, other.sourcetype)
++            .append(source, other.source)
++            .append(host, other.host)
++            .isEquals();
++      } else {
++        return false;
++      }
++    }
++
+ }
+diff --git a/src/main/java/com/splunk/kafka/connect/SplunkSinkConnectorConfig.java b/src/main/java/com/splunk/kafka/connect/SplunkSinkConnectorConfig.java
+index 25d2c1f..10c95af 100644
+--- a/src/main/java/com/splunk/kafka/connect/SplunkSinkConnectorConfig.java
++++ b/src/main/java/com/splunk/kafka/connect/SplunkSinkConnectorConfig.java
+@@ -18,6 +18,7 @@ package com.splunk.kafka.connect;
+ import com.splunk.hecclient.HecConfig;
+ import org.apache.kafka.common.config.ConfigException;
+ import org.apache.kafka.connect.sink.SinkConnector;
++import org.apache.kafka.connect.sink.SinkTask;
+ import org.apache.kafka.common.config.AbstractConfig;
+ import org.apache.kafka.common.config.ConfigDef;
+ import org.apache.commons.lang3.StringUtils;
+@@ -25,332 +26,395 @@ import org.apache.commons.lang3.StringUtils;
+ import java.util.*;
+
+ public final class SplunkSinkConnectorConfig extends AbstractConfig {
+-    // General
+-    static final String INDEX = "index";
+-    static final String SOURCE = "source";
+-    static final String SOURCETYPE = "sourcetype";
+-    // Required Parameters
+-    static final String URI_CONF = "splunk.hec.uri";
+-    static final String TOKEN_CONF = "splunk.hec.token";
+-    // General Parameters
+-    static final String INDEX_CONF = "splunk.indexes";
+-    static final String SOURCE_CONF = "splunk.sources";
+-    static final String SOURCETYPE_CONF = "splunk.sourcetypes";
+-    static final String TOTAL_HEC_CHANNEL_CONF = "splunk.hec.total.channels";
+-    static final String MAX_HTTP_CONNECTION_PER_CHANNEL_CONF = "splunk.hec.max.http.connection.per.channel";
+-    static final String MAX_BATCH_SIZE_CONF = "splunk.hec.max.batch.size"; // record count
+-    static final String HTTP_KEEPALIVE_CONF = "splunk.hec.http.keepalive";
+-    static final String HEC_THREDS_CONF = "splunk.hec.threads";
+-    static final String SOCKET_TIMEOUT_CONF = "splunk.hec.socket.timeout"; // seconds
+-    static final String SSL_VALIDATE_CERTIFICATES_CONF = "splunk.hec.ssl.validate.certs";
+-    // Acknowledgement Parameters
+-    // Use Ack
+-    static final String ACK_CONF = "splunk.hec.ack.enabled";
+-    static final String ACK_POLL_INTERVAL_CONF = "splunk.hec.ack.poll.interval"; // seconds
+-    static final String ACK_POLL_THREADS_CONF = "splunk.hec.ack.poll.threads";
+-    static final String EVENT_TIMEOUT_CONF = "splunk.hec.event.timeout"; // seconds
+-    static final String MAX_OUTSTANDING_EVENTS_CONF = "splunk.hec.max.outstanding.events";
+-    static final String MAX_RETRIES_CONF = "splunk.hec.max.retries";
+-    // Endpoint Parameters
+-    static final String RAW_CONF = "splunk.hec.raw";
+-    // /raw endpoint only
+-    static final String LINE_BREAKER_CONF = "splunk.hec.raw.line.breaker";
+-    // /event endpoint only
+-    static final String USE_RECORD_TIMESTAMP_CONF = "splunk.hec.use.record.timestamp";
+-    static final String ENRICHMENT_CONF = "splunk.hec.json.event.enrichment";
+-    static final String TRACK_DATA_CONF = "splunk.hec.track.data";
+-    // TBD
+-    static final String SSL_TRUSTSTORE_PATH_CONF = "splunk.hec.ssl.trust.store.path";
+-    static final String SSL_TRUSTSTORE_PASSWORD_CONF = "splunk.hec.ssl.trust.store.password";
+-
+-    // Kafka configuration description strings
+-    // Required Parameters
+-    static final String URI_DOC = "Splunk HEC URIs. Either a list of FQDNs or IPs of all Splunk indexers, separated "
+-            + "with a \",\", or a load balancer. The connector will load balance to indexers using "
+-            + "round robin. Splunk Connector will round robin to this list of indexers. "
+-            + "https://hec1.splunk.com:8088,https://hec2.splunk.com:8088,https://hec3.splunk.com:8088";
+-    static final String TOKEN_DOC = "Splunk Http Event Collector token.";
+-    // General Parameters
+-    static final String INDEX_DOC = "Splunk index names for Kafka topic data separated by comma for multiple topics to "
+-            + "indexers (\"prod-index1,prod-index2,prod-index3\").";
+-    static final String SOURCE_DOC = "Splunk event source metadata for Kafka topic data. The same configuration rules "
+-            + "as indexes can be applied. If left un-configured, the default source binds to"
+-            + " the HEC token. By default, this setting is empty.";
+-    static final String SOURCETYPE_DOC = "Splunk event sourcetype metadata for Kafka topic data. The same configuration "
+-            + "rules as indexes can be applied here. If left unconfigured, the default source"
+-            + " binds to the HEC token. By default, this setting is empty";
+-    static final String TOTAL_HEC_CHANNEL_DOC = "Total HEC Channels used to post events to Splunk. When enabling HEC ACK, "
+-            + "setting to the same or 2X number of indexers is generally good.";
+-    static final String MAX_HTTP_CONNECTION_PER_CHANNEL_DOC = "Max HTTP connections pooled for one HEC Channel "
+-            + "when posting events to Splunk.";
+-    static final String MAX_BATCH_SIZE_DOC = "Maximum batch size when posting events to Splunk. The size is the actual number of "
+-            + "Kafka events not the byte size. By default, this is set to 100.";
+-    static final String HTTP_KEEPALIVE_DOC = "Valid settings are true or false. Enables or disables HTTP connection "
+-            + "keep-alive. By default, this is set to true";
+-    static final String HEC_THREADS_DOC = "Controls how many threads are spawned to do data injection via HEC in a single "
+-            + "connector task. By default, this is set to 1.";
+-    static final String SOCKET_TIMEOUT_DOC = "Max duration in seconds to read / write data to network before internal TCP "
+-            + "Socket timeout.By default, this is set to 60 seconds.";
+-    static final String SSL_VALIDATE_CERTIFICATES_DOC = "Valid settings are true or false. Enables or disables HTTPS "
+-            + "certification validation. By default, this is set to true.";
+-    // Acknowledgement Parameters
+-    // Use Ack
+-    static final String ACK_DOC = "Valid settings are true or false. When set to true Splunk Connect for Kafka will "
+-            + "poll event ACKs for POST events before check-pointing the Kafka offsets. This is used "
+-            + "to prevent data loss, as this setting implements guaranteed delivery. By default, this "
+-            + "setting is set to true.";
+-    static final String ACK_POLL_INTERVAL_DOC = "This setting is only applicable when splunk.hec.ack.enabled is set to "
+-            + "true. Internally it controls the event ACKs polling interval. By default, "
+-            + "this setting is 10 seconds.";
+-    static final String ACK_POLL_THREADS_DOC = "This setting is used for performance tuning and is only applicable when "
+-            + "splunk.hec.ack.enabled is set to true. It controls how many threads "
+-            + "should be spawned to poll event ACKs. By default, this is set to 1.";
+-    static final String EVENT_TIMEOUT_DOC = "This setting is applicable when splunk.hec.ack.enabled is set to true. "
+-            + "When events are POSTed to Splunk and before they are ACKed, this setting "
+-            + "determines how long the connector will wait before timing out and resending. "
+-            + "By default, this is set to 300 seconds.";
+-    static final String MAX_OUTSTANDING_EVENTS_DOC = "Maximum amount of un-acknowledged events kept in memory by connector. "
+-            + "Will trigger back-pressure event to slow collection. By default, this "
+-            + "is set to 1000000.";
+-    static final String MAX_RETRIES_DOC = "Number of retries for failed batches before giving up. By default this is set to "
+-            + "-1 which will retry indefinitely.";
+-    // Endpoint Parameters
+-    static final String RAW_DOC = "Set to true in order for Splunk software to ingest data using the the /raw HEC "
+-            + "endpoint. Default is false, which will use the /event endpoint.";
+-    // /raw endpoint only
+-    static final String LINE_BREAKER_DOC = "Only applicable to /raw HEC endpoint. The setting is used to specify a custom "
+-            + "line breaker to help Splunk separate the events correctly. Note: For example"
+-            + "you can specify \"#####\" as a special line breaker.By default, this setting is "
+-            + "empty.";
+-    // /event endpoint only
+-    static final String USE_RECORD_TIMESTAMP_DOC = "Valid settings are true or false. When set to `true`, The timestamp "
+-            + "is retrieved from the Kafka record and passed to Splunk as a HEC meta-data "
+-            + "override. This will index events in Splunk with the record timestamp. By "
+-            + "default, this is set to true.";
+-    static final String ENRICHMENT_DOC = "Only applicable to /event HEC endpoint. This setting is used to enrich raw data "
+-            + "with extra metadata fields. It contains a list of key value pairs separated by \",\"."
+-            + " The configured enrichment metadata will be indexed along with raw event data "
+-            + "by Splunk software. Note: Data enrichment for /event HEC endpoint is only available "
+-            + "in Splunk Enterprise 6.5 and above. By default, this setting is empty.";
+-    static final String TRACK_DATA_DOC = "Valid settings are true or false. When set to true, data loss and data injection "
+-            + "latency metadata will be indexed along with raw data. This setting only works in "
+-            + "conjunction with /event HEC endpoint (\"splunk.hec.raw\" : \"false\"). By default"
+-            + ", this is set to false.";
+-    // TBD
+-    static final String SSL_TRUSTSTORE_PATH_DOC = "Path on the local disk to the certificate trust store.";
+-    static final String SSL_TRUSTSTORE_PASSWORD_DOC = "Password for the trust store.";
+-
+-    final String splunkToken;
+-    final String splunkURI;
+-    final Map<String, Map<String, String>> topicMetas;
+-
+-    final String indexes;
+-    final String sourcetypes;
+-    final String sources;
+-
+-    final int totalHecChannels;
+-    final int maxHttpConnPerChannel;
+-    final int maxBatchSize;
+-    final boolean httpKeepAlive;
+-    final int numberOfThreads;
+-    final int socketTimeout;
+-    final boolean validateCertificates;
+-
+-    final boolean ack;
+-    final int ackPollInterval;
+-    final int ackPollThreads;
+-    final int eventBatchTimeout;
+-    final int maxOutstandingEvents;
+-    final int maxRetries;
+-
+-    final boolean raw;
+-    final String lineBreaker;
+-    final boolean useRecordTimestamp;
+-    final Map<String, String> enrichments;
+-    final boolean trackData;
+-
+-    final boolean hasTrustStorePath;
+-    final String trustStorePath;
+-    final String trustStorePassword;
+-
+-    SplunkSinkConnectorConfig(Map<String, String> taskConfig) {
+-        super(conf(), taskConfig);
+-        splunkToken = getPassword(TOKEN_CONF).value();
+-        splunkURI = getString(URI_CONF);
+-        raw = getBoolean(RAW_CONF);
+-        ack = getBoolean(ACK_CONF);
+-        indexes = getString(INDEX_CONF);
+-        sourcetypes = getString(SOURCETYPE_CONF);
+-        sources = getString(SOURCE_CONF);
+-        httpKeepAlive = getBoolean(HTTP_KEEPALIVE_CONF);
+-        validateCertificates = getBoolean(SSL_VALIDATE_CERTIFICATES_CONF);
+-        trustStorePath = getString(SSL_TRUSTSTORE_PATH_CONF);
+-        hasTrustStorePath = StringUtils.isNotBlank(trustStorePath);
+-        trustStorePassword = getPassword(SSL_TRUSTSTORE_PASSWORD_CONF).value();
+-        eventBatchTimeout = getInt(EVENT_TIMEOUT_CONF);
+-        ackPollInterval = getInt(ACK_POLL_INTERVAL_CONF);
+-        ackPollThreads = getInt(ACK_POLL_THREADS_CONF);
+-        maxHttpConnPerChannel = getInt(MAX_HTTP_CONNECTION_PER_CHANNEL_CONF);
+-        totalHecChannels = getInt(TOTAL_HEC_CHANNEL_CONF);
+-        socketTimeout = getInt(SOCKET_TIMEOUT_CONF);
+-        enrichments = parseEnrichments(getString(ENRICHMENT_CONF));
+-        trackData = getBoolean(TRACK_DATA_CONF);
+-        useRecordTimestamp = getBoolean(USE_RECORD_TIMESTAMP_CONF);
+-        maxBatchSize = getInt(MAX_BATCH_SIZE_CONF);
+-        numberOfThreads = getInt(HEC_THREDS_CONF);
+-        lineBreaker = getString(LINE_BREAKER_CONF);
+-        maxOutstandingEvents = getInt(MAX_OUTSTANDING_EVENTS_CONF);
+-        maxRetries = getInt(MAX_RETRIES_CONF);
+-        topicMetas = initMetaMap(taskConfig);
+-    }
++  // General
++  static final String INDEX = "index";
++  static final String SOURCE = "source";
++  static final String SOURCETYPE = "sourcetype";
++  static final String HOST = "host";
+
+-    public static ConfigDef conf() {
+-        return new ConfigDef()
+-            .define(TOKEN_CONF, ConfigDef.Type.PASSWORD, ConfigDef.Importance.HIGH, TOKEN_DOC)
+-            .define(URI_CONF, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, URI_DOC)
+-            .define(RAW_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.MEDIUM, RAW_DOC)
+-            .define(ACK_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.MEDIUM, ACK_DOC)
+-            .define(INDEX_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, INDEX_DOC)
+-            .define(SOURCETYPE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, SOURCETYPE_DOC)
+-            .define(SOURCE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, SOURCE_DOC)
+-            .define(HTTP_KEEPALIVE_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, HTTP_KEEPALIVE_DOC)
+-            .define(SSL_VALIDATE_CERTIFICATES_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, SSL_VALIDATE_CERTIFICATES_DOC)
+-            .define(SSL_TRUSTSTORE_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PATH_DOC)
+-            .define(SSL_TRUSTSTORE_PASSWORD_CONF, ConfigDef.Type.PASSWORD, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PASSWORD_DOC)
+-            .define(EVENT_TIMEOUT_CONF, ConfigDef.Type.INT, 300, ConfigDef.Importance.MEDIUM, EVENT_TIMEOUT_DOC)
+-            .define(ACK_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 10, ConfigDef.Importance.MEDIUM, ACK_POLL_INTERVAL_DOC)
+-            .define(ACK_POLL_THREADS_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.MEDIUM, ACK_POLL_THREADS_DOC)
+-            .define(MAX_HTTP_CONNECTION_PER_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.MEDIUM, MAX_HTTP_CONNECTION_PER_CHANNEL_DOC)
+-            .define(TOTAL_HEC_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.HIGH, TOTAL_HEC_CHANNEL_DOC)
+-            .define(SOCKET_TIMEOUT_CONF, ConfigDef.Type.INT, 60, ConfigDef.Importance.LOW, SOCKET_TIMEOUT_DOC)
+-            .define(ENRICHMENT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.LOW, ENRICHMENT_DOC)
+-            .define(TRACK_DATA_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.LOW, TRACK_DATA_DOC)
+-            .define(USE_RECORD_TIMESTAMP_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, USE_RECORD_TIMESTAMP_DOC)
+-            .define(HEC_THREDS_CONF, ConfigDef.Type.INT, 1, ConfigDef.Importance.LOW, HEC_THREADS_DOC)
+-            .define(LINE_BREAKER_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, LINE_BREAKER_DOC)
+-            .define(MAX_OUTSTANDING_EVENTS_CONF, ConfigDef.Type.INT, 1000000, ConfigDef.Importance.MEDIUM, MAX_OUTSTANDING_EVENTS_DOC)
+-            .define(MAX_RETRIES_CONF, ConfigDef.Type.INT, -1, ConfigDef.Importance.MEDIUM, MAX_RETRIES_DOC)
+-            .define(MAX_BATCH_SIZE_CONF, ConfigDef.Type.INT, 500, ConfigDef.Importance.MEDIUM, MAX_BATCH_SIZE_DOC);
+-    }
++  //Headers
++  static final String INDEX_HDR = "splunk.index";
++  static final String SOURCE_HDR = "splunk.source";
++  static final String SOURCETYPE_HDR = "splunk.sourcetype";
++  static final String HOST_HDR = "splunk.host";
++  static final String TIME_HDR = "splunk.time";
+
+-    /**
+-        Configuration Method to setup all settings related to Splunk HEC Client
+-     */
+-    public HecConfig getHecConfig() {
+-        HecConfig config = new HecConfig(Arrays.asList(splunkURI.split(",")), splunkToken);
+-        config.setDisableSSLCertVerification(!validateCertificates)
+-               .setSocketTimeout(socketTimeout)
+-               .setMaxHttpConnectionPerChannel(maxHttpConnPerChannel)
+-               .setTotalChannels(totalHecChannels)
+-               .setEventBatchTimeout(eventBatchTimeout)
+-               .setHttpKeepAlive(httpKeepAlive)
+-               .setAckPollInterval(ackPollInterval)
+-               .setAckPollThreads(ackPollThreads)
+-               .setEnableChannelTracking(trackData)
+-               .setTrustStorePath(trustStorePath)
+-               .setTrustStorePassword(trustStorePassword)
+-               .setHasCustomTrustStore(hasTrustStorePath);
+-        return config;
+-    }
++  // Required Parameters
++  static final String URI_CONF = "splunk.hec.uri";
++  static final String TOKEN_CONF = "splunk.hec.token";
++  // General Parameters
++  static final String INDEX_CONF = "splunk.index";
++  static final String SOURCE_CONF = "splunk.source";
++  static final String SOURCETYPE_CONF = "splunk.sourcetype";
++  static final String HOST_CONF = "splunk.host";
++  static final String INDEXES_CONF = "splunk.indexes";
++  static final String SOURCES_CONF = "splunk.sources";
++  static final String SOURCETYPES_CONF = "splunk.sourcetypes";
++  static final String HOSTS_CONF = "splunk.hosts";
++
++  static final String TOTAL_HEC_CHANNEL_CONF = "splunk.hec.total.channels";
++  static final String MAX_HTTP_CONNECTION_PER_CHANNEL_CONF = "splunk.hec.max.http.connection.per.channel";
++  static final String MAX_BATCH_SIZE_CONF = "splunk.hec.max.batch.size"; // record count
++  static final String HTTP_KEEPALIVE_CONF = "splunk.hec.http.keepalive";
++  static final String HEC_THREDS_CONF = "splunk.hec.threads";
++  static final String SOCKET_TIMEOUT_CONF = "splunk.hec.socket.timeout"; // seconds
++  static final String SSL_VALIDATE_CERTIFICATES_CONF = "splunk.hec.ssl.validate.certs";
++  // Acknowledgement Parameters
++  // Use Ack
++  static final String ACK_CONF = "splunk.hec.ack.enabled";
++  static final String ACK_POLL_INTERVAL_CONF = "splunk.hec.ack.poll.interval"; // seconds
++  static final String ACK_POLL_THREADS_CONF = "splunk.hec.ack.poll.threads";
++  static final String EVENT_TIMEOUT_CONF = "splunk.hec.event.timeout"; // seconds
++  static final String MAX_OUTSTANDING_EVENTS_CONF = "splunk.hec.max.outstanding.events";
++  static final String MAX_RETRIES_CONF = "splunk.hec.max.retries";
++  // Endpoint Parameters
++  static final String RAW_CONF = "splunk.hec.raw";
++  // /raw endpoint only
++  static final String LINE_BREAKER_CONF = "splunk.hec.raw.line.breaker";
++  // /event endpoint only
++  static final String USE_RECORD_TIMESTAMP_CONF = "splunk.hec.use.record.timestamp";
++  static final String ENRICHMENT_CONF = "splunk.hec.json.event.enrichment";
++  static final String TRACK_DATA_CONF = "splunk.hec.track.data";
++  // TBD
++  static final String SSL_TRUSTSTORE_PATH_CONF = "splunk.hec.ssl.trust.store.path";
++  static final String SSL_TRUSTSTORE_PASSWORD_CONF = "splunk.hec.ssl.trust.store.password";
++
++  // Kafka configuration description strings
++  // Required Parameters
++  static final String URI_DOC = "Splunk HEC URIs. Either a list of FQDNs or IPs of all Splunk indexers, separated "
++      + "with a \",\", or a load balancer. The connector will load balance to indexers using "
++      + "round robin. Splunk Connector will round robin to this list of indexers. "
++      + "https://hec1.splunk.com:8088,https://hec2.splunk.com:8088,https://hec3.splunk.com:8088";
++  static final String TOKEN_DOC = "Splunk Http Event Collector token.";
++  // General Parameters
++  static final String INDEXES_DOC = "Splunk index names for Kafka topic data separated by comma for multiple topics to "
++      + "indexers (\"prod-index1,prod-index2,prod-index3\").";
++  static final String SOURCES_DOC = "Splunk event source metadata for Kafka topic data. The same configuration rules "
++      + "as indexes can be applied. If left un-configured, the default source binds to"
++      + " the HEC token. By default, this setting is empty.";
++  static final String SOURCETYPES_DOC = "Splunk event sourcetype metadata for Kafka topic data. The same configuration "
++      + "rules as indexes can be applied here. If left unconfigured, the default source"
++      + " binds to the HEC token. By default, this setting is empty";
++  static final String HOSTS_DOC = "Splunk event host metadata for Kafka topic data. The same configuration "
++      + "rules as indexes can be applied here. If left unconfigured, the default source"
++      + " binds to the HEC token. By default, this setting is empty";
++
++  static final String INDEX_DOC = "Splunk default index name. If unconfigured, the default value binds to the HEC token";
++  static final String SOURCE_DOC = "Splunk event source. If unconfigured, the default value binds to the HEC token";
++  static final String SOURCETYPE_DOC = "Splunk event sourcetype. If unconfigured, the default value binds to the HEC token";
++  static final String HOST_DOC = "Splunk event host. If unconfigured, the default value binds to the HEC token";
++
++  static final String TOTAL_HEC_CHANNEL_DOC = "Total HEC Channels used to post events to Splunk. When enabling HEC ACK, "
++      + "setting to the same or 2X number of indexers is generally good.";
++  static final String MAX_HTTP_CONNECTION_PER_CHANNEL_DOC = "Max HTTP connections pooled for one HEC Channel "
++      + "when posting events to Splunk.";
++  static final String MAX_BATCH_SIZE_DOC = "Maximum batch size when posting events to Splunk. The size is the actual number of "
++      + "Kafka events not the byte size. By default, this is set to 100.";
++  static final String HTTP_KEEPALIVE_DOC = "Valid settings are true or false. Enables or disables HTTP connection "
++      + "keep-alive. By default, this is set to true";
++  static final String HEC_THREADS_DOC = "Controls how many threads are spawned to do data injection via HEC in a single "
++      + "connector task. By default, this is set to 1.";
++  static final String SOCKET_TIMEOUT_DOC = "Max duration in seconds to read / write data to network before internal TCP "
++      + "Socket timeout.By default, this is set to 60 seconds.";
++  static final String SSL_VALIDATE_CERTIFICATES_DOC = "Valid settings are true or false. Enables or disables HTTPS "
++      + "certification validation. By default, this is set to true.";
++  // Acknowledgement Parameters
++  // Use Ack
++  static final String ACK_DOC = "Valid settings are true or false. When set to true Splunk Connect for Kafka will "
++      + "poll event ACKs for POST events before check-pointing the Kafka offsets. This is used "
++      + "to prevent data loss, as this setting implements guaranteed delivery. By default, this "
++      + "setting is set to true.";
++  static final String ACK_POLL_INTERVAL_DOC = "This setting is only applicable when splunk.hec.ack.enabled is set to "
++      + "true. Internally it controls the event ACKs polling interval. By default, "
++      + "this setting is 10 seconds.";
++  static final String ACK_POLL_THREADS_DOC = "This setting is used for performance tuning and is only applicable when "
++      + "splunk.hec.ack.enabled is set to true. It controls how many threads "
++      + "should be spawned to poll event ACKs. By default, this is set to 1.";
++  static final String EVENT_TIMEOUT_DOC = "This setting is applicable when splunk.hec.ack.enabled is set to true. "
++      + "When events are POSTed to Splunk and before they are ACKed, this setting "
++      + "determines how long the connector will wait before timing out and resending. "
++      + "By default, this is set to 300 seconds.";
++  static final String MAX_OUTSTANDING_EVENTS_DOC = "Maximum amount of un-acknowledged events kept in memory by connector. "
++      + "Will trigger back-pressure event to slow collection. By default, this "
++      + "is set to 1000000.";
++  static final String MAX_RETRIES_DOC = "Number of retries for failed batches before giving up. By default this is set to "
++      + "-1 which will retry indefinitely.";
++  // Endpoint Parameters
++  static final String RAW_DOC = "Set to true in order for Splunk software to ingest data using the the /raw HEC "
++      + "endpoint. Default is false, which will use the /event endpoint.";
++  // /raw endpoint only
++  static final String LINE_BREAKER_DOC = "Only applicable to /raw HEC endpoint. The setting is used to specify a custom "
++      + "line breaker to help Splunk separate the events correctly. Note: For example"
++      + "you can specify \"#####\" as a special line breaker.By default, this setting is "
++      + "empty.";
++  // /event endpoint only
++  static final String USE_RECORD_TIMESTAMP_DOC = "Valid settings are true or false. When set to `true`, The timestamp "
++      + "is retrieved from the Kafka record and passed to Splunk as a HEC meta-data "
++      + "override. This will index events in Splunk with the record timestamp. By "
++      + "default, this is set to true.";
++  static final String ENRICHMENT_DOC = "Only applicable to /event HEC endpoint. This setting is used to enrich raw data "
++      + "with extra metadata fields. It contains a list of key value pairs separated by \",\"."
++      + " The configured enrichment metadata will be indexed along with raw event data "
++      + "by Splunk software. Note: Data enrichment for /event HEC endpoint is only available "
++      + "in Splunk Enterprise 6.5 and above. By default, this setting is empty.";
++  static final String TRACK_DATA_DOC = "Valid settings are true or false. When set to true, data loss and data injection "
++      + "latency metadata will be indexed along with raw data. This setting only works in "
++      + "conjunction with /event HEC endpoint (\"splunk.hec.raw\" : \"false\"). By default"
++      + ", this is set to false.";
++  // TBD
++  static final String SSL_TRUSTSTORE_PATH_DOC = "Path on the local disk to the certificate trust store.";
++  static final String SSL_TRUSTSTORE_PASSWORD_DOC = "Password for the trust store.";
++
++  final String splunkToken;
++  final String splunkURI;
++  final Map<String, Map<String, String>> topicMetas;
++
++  final List<String> indexes;
++  final List<String> sourcetypes;
++  final List<String> sources;
++  final List<String> hosts;
++
++  final String index;
++  final String sourcetype;
++  final String source;
++  final String host;
++
++  final int totalHecChannels;
++  final int maxHttpConnPerChannel;
++  final int maxBatchSize;
++  final boolean httpKeepAlive;
++  final int numberOfThreads;
++  final int socketTimeout;
++  final boolean validateCertificates;
++
++  final boolean ack;
++  final int ackPollInterval;
++  final int ackPollThreads;
++  final int eventBatchTimeout;
++  final int maxOutstandingEvents;
++  final int maxRetries;
++
++  final boolean raw;
++  final String lineBreaker;
++  final boolean useRecordTimestamp;
++  final Map<String, String> enrichments;
++  final boolean trackData;
+
+-    public boolean hasMetaDataConfigured() {
+-        return (indexes != null && !indexes.isEmpty()
+-                || (sources != null && !sources.isEmpty())
+-                || (sourcetypes != null && !sourcetypes.isEmpty()));
++  final boolean hasTrustStorePath;
++  final String trustStorePath;
++  final String trustStorePassword;
++
++  SplunkSinkConnectorConfig(Map<String, String> taskConfig) {
++    super(conf(), taskConfig);
++    splunkToken = getPassword(TOKEN_CONF).value();
++    splunkURI = getString(URI_CONF);
++    raw = getBoolean(RAW_CONF);
++    ack = getBoolean(ACK_CONF);
++    indexes = getList(INDEXES_CONF);
++    sourcetypes = getList(SOURCETYPES_CONF);
++    sources = getList(SOURCES_CONF);
++    hosts = getList(HOSTS_CONF);
++    index = getString(INDEX_CONF);
++    sourcetype = getString(SOURCETYPE_CONF);
++    source = getString(SOURCE_CONF);
++    host = getString(HOST_CONF);
++    httpKeepAlive = getBoolean(HTTP_KEEPALIVE_CONF);
++    validateCertificates = getBoolean(SSL_VALIDATE_CERTIFICATES_CONF);
++    trustStorePath = getString(SSL_TRUSTSTORE_PATH_CONF);
++    hasTrustStorePath = StringUtils.isNotBlank(trustStorePath);
++    trustStorePassword = getPassword(SSL_TRUSTSTORE_PASSWORD_CONF).value();
++    eventBatchTimeout = getInt(EVENT_TIMEOUT_CONF);
++    ackPollInterval = getInt(ACK_POLL_INTERVAL_CONF);
++    ackPollThreads = getInt(ACK_POLL_THREADS_CONF);
++    maxHttpConnPerChannel = getInt(MAX_HTTP_CONNECTION_PER_CHANNEL_CONF);
++    totalHecChannels = getInt(TOTAL_HEC_CHANNEL_CONF);
++    socketTimeout = getInt(SOCKET_TIMEOUT_CONF);
++    enrichments = parseEnrichments(getString(ENRICHMENT_CONF));
++    trackData = getBoolean(TRACK_DATA_CONF);
++    useRecordTimestamp = getBoolean(USE_RECORD_TIMESTAMP_CONF);
++    maxBatchSize = getInt(MAX_BATCH_SIZE_CONF);
++    numberOfThreads = getInt(HEC_THREDS_CONF);
++    lineBreaker = getString(LINE_BREAKER_CONF);
++    maxOutstandingEvents = getInt(MAX_OUTSTANDING_EVENTS_CONF);
++    maxRetries = getInt(MAX_RETRIES_CONF);
++    topicMetas = initMetaMap(taskConfig);
++  }
++
++  public static ConfigDef conf() {
++    return new ConfigDef()
++        .define(SinkTask.TOPICS_CONFIG, ConfigDef.Type.LIST, Collections.emptyList(), ConfigDef.Importance.HIGH, "Sink topics config")
++        .define(TOKEN_CONF, ConfigDef.Type.PASSWORD, ConfigDef.Importance.HIGH, TOKEN_DOC)
++        .define(URI_CONF, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, URI_DOC)
++        .define(RAW_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.MEDIUM, RAW_DOC)
++        .define(ACK_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.MEDIUM, ACK_DOC)
++        .define(INDEXES_CONF, ConfigDef.Type.LIST, Collections.emptyList(), ConfigDef.Importance.MEDIUM, INDEXES_DOC)
++        .define(SOURCETYPES_CONF, ConfigDef.Type.LIST, Collections.emptyList(), ConfigDef.Importance.MEDIUM, SOURCETYPES_DOC)
++        .define(SOURCES_CONF, ConfigDef.Type.LIST, Collections.emptyList(), ConfigDef.Importance.MEDIUM, SOURCES_DOC)
++        .define(HOSTS_CONF, ConfigDef.Type.LIST, Collections.emptyList(), ConfigDef.Importance.MEDIUM, HOSTS_DOC)
++        .define(INDEX_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, INDEX_DOC)
++        .define(SOURCETYPE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, SOURCETYPE_DOC)
++        .define(SOURCE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, SOURCE_DOC)
++        .define(HOST_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, HOST_DOC)
++        .define(HTTP_KEEPALIVE_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, HTTP_KEEPALIVE_DOC)
++        .define(SSL_VALIDATE_CERTIFICATES_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, SSL_VALIDATE_CERTIFICATES_DOC)
++        .define(SSL_TRUSTSTORE_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PATH_DOC)
++        .define(SSL_TRUSTSTORE_PASSWORD_CONF, ConfigDef.Type.PASSWORD, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PASSWORD_DOC)
++        .define(EVENT_TIMEOUT_CONF, ConfigDef.Type.INT, 300, ConfigDef.Importance.MEDIUM, EVENT_TIMEOUT_DOC)
++        .define(ACK_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 10, ConfigDef.Importance.MEDIUM, ACK_POLL_INTERVAL_DOC)
++        .define(ACK_POLL_THREADS_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.MEDIUM, ACK_POLL_THREADS_DOC)
++        .define(MAX_HTTP_CONNECTION_PER_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.MEDIUM, MAX_HTTP_CONNECTION_PER_CHANNEL_DOC)
++        .define(TOTAL_HEC_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.HIGH, TOTAL_HEC_CHANNEL_DOC)
++        .define(SOCKET_TIMEOUT_CONF, ConfigDef.Type.INT, 60, ConfigDef.Importance.LOW, SOCKET_TIMEOUT_DOC)
++        .define(ENRICHMENT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.LOW, ENRICHMENT_DOC)
++        .define(TRACK_DATA_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.LOW, TRACK_DATA_DOC)
++        .define(USE_RECORD_TIMESTAMP_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, USE_RECORD_TIMESTAMP_DOC)
++        .define(HEC_THREDS_CONF, ConfigDef.Type.INT, 1, ConfigDef.Importance.LOW, HEC_THREADS_DOC)
++        .define(LINE_BREAKER_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, LINE_BREAKER_DOC)
++        .define(MAX_OUTSTANDING_EVENTS_CONF, ConfigDef.Type.INT, 1000000, ConfigDef.Importance.MEDIUM, MAX_OUTSTANDING_EVENTS_DOC)
++        .define(MAX_RETRIES_CONF, ConfigDef.Type.INT, -1, ConfigDef.Importance.MEDIUM, MAX_RETRIES_DOC)
++        .define(MAX_BATCH_SIZE_CONF, ConfigDef.Type.INT, 500, ConfigDef.Importance.MEDIUM, MAX_BATCH_SIZE_DOC);
++  }
++
++  /**
++      Configuration Method to setup all settings related to Splunk HEC Client
++   */
++  public HecConfig getHecConfig() {
++    HecConfig config = new HecConfig(Arrays.asList(splunkURI.split(",")), splunkToken);
++    config.setDisableSSLCertVerification(!validateCertificates)
++        .setSocketTimeout(socketTimeout)
++        .setMaxHttpConnectionPerChannel(maxHttpConnPerChannel)
++        .setTotalChannels(totalHecChannels)
++        .setEventBatchTimeout(eventBatchTimeout)
++        .setHttpKeepAlive(httpKeepAlive)
++        .setAckPollInterval(ackPollInterval)
++        .setAckPollThreads(ackPollThreads)
++        .setEnableChannelTracking(trackData)
++        .setTrustStorePath(trustStorePath)
++        .setTrustStorePassword(trustStorePassword)
++        .setHasCustomTrustStore(hasTrustStorePath);
++    return config;
++  }
++
++  public boolean hasMetaDataConfigured() {
++    return (indexes != null && !indexes.isEmpty()
++        || (sources != null && !sources.isEmpty())
++        || (sourcetypes != null && !sourcetypes.isEmpty()));
++  }
++
++  public String toString() {
++    return "splunkURI:" + splunkURI + ", "
++        + "raw:" + raw + ", "
++        + "ack:" + ack + ", "
++        + "index:" + index + ", "
++        + "sourcetype:" + sourcetype + ", "
++        + "source:" + source + ", "
++        + "host:" + host + ", "
++        + "indexes:" + indexes + ", "
++        + "sourcetypes:" + sourcetypes + ", "
++        + "sources:" + sources + ", "
++        + "hosts:" + hosts + ", "
++        + "httpKeepAlive:" + httpKeepAlive + ", "
++        + "validateCertificates:" + validateCertificates + ", "
++        + "trustStorePath:" + trustStorePath + ", "
++        + "socketTimeout:" + socketTimeout + ", "
++        + "eventBatchTimeout:" + eventBatchTimeout + ", "
++        + "ackPollInterval:" + ackPollInterval + ", "
++        + "ackPollThreads:" + ackPollThreads + ", "
++        + "maxHttpConnectionPerChannel:" + maxHttpConnPerChannel + ", "
++        + "totalHecChannels:" + totalHecChannels + ", "
++        + "enrichment: " + getString(ENRICHMENT_CONF) + ", "
++        + "maxBatchSize: " + maxBatchSize + ", "
++        + "numberOfThreads: " + numberOfThreads + ", "
++        + "lineBreaker: " + lineBreaker + ", "
++        + "maxOutstandingEvents: " + maxOutstandingEvents + ", "
++        + "maxRetries: " + maxRetries + ", "
++        + "useRecordTimestamp: " + useRecordTimestamp + ", "
++        + "trackData: " + trackData;
++  }
++
++  private static String[] split(String data, String sep) {
++    if (data != null && !data.trim().isEmpty()) {
++      return data.trim().split(sep);
+     }
++    return null;
++  }
+
+-    public String toString() {
+-        return "splunkURI:" + splunkURI + ", "
+-                + "raw:" + raw + ", "
+-                + "ack:" + ack + ", "
+-                + "indexes:" + indexes + ", "
+-                + "sourcetypes:" + sourcetypes + ", "
+-                + "sources:" + sources + ", "
+-                + "httpKeepAlive:" + httpKeepAlive + ", "
+-                + "validateCertificates:" + validateCertificates + ", "
+-                + "trustStorePath:" + trustStorePath + ", "
+-                + "socketTimeout:" + socketTimeout + ", "
+-                + "eventBatchTimeout:" + eventBatchTimeout + ", "
+-                + "ackPollInterval:" + ackPollInterval + ", "
+-                + "ackPollThreads:" + ackPollThreads + ", "
+-                + "maxHttpConnectionPerChannel:" + maxHttpConnPerChannel + ", "
+-                + "totalHecChannels:" + totalHecChannels + ", "
+-                + "enrichment: " + getString(ENRICHMENT_CONF) + ", "
+-                + "maxBatchSize: " + maxBatchSize + ", "
+-                + "numberOfThreads: " + numberOfThreads + ", "
+-                + "lineBreaker: " + lineBreaker + ", "
+-                + "maxOutstandingEvents: " + maxOutstandingEvents + ", "
+-                + "maxRetries: " + maxRetries + ", "
+-                + "useRecordTimestamp: " + useRecordTimestamp + ", "
+-                + "trackData: " + trackData;
++  private static Map<String, String> parseEnrichments(String enrichment) {
++    String[] kvs = split(enrichment, ",");
++    if (kvs == null) {
++      return null;
+     }
+
+-    private static String[] split(String data, String sep) {
+-        if (data != null && !data.trim().isEmpty()) {
+-            return data.trim().split(sep);
+-        }
+-        return null;
++    Map<String, String> enrichmentKvs = new HashMap<>();
++    for (final String kv : kvs) {
++      String[] kvPairs = split(kv, "=");
++      if (kvPairs.length != 2) {
++        throw new ConfigException("Invalid enrichment: " + enrichment + ". Expect key value pairs and separated by comma");
++      }
++      enrichmentKvs.put(kvPairs[0], kvPairs[1]);
+     }
++    return enrichmentKvs;
++  }
+
+-    private static Map<String, String> parseEnrichments(String enrichment) {
+-        String[] kvs = split(enrichment, ",");
+-        if (kvs == null) {
+-            return null;
+-        }
+-
+-        Map<String, String> enrichmentKvs = new HashMap<>();
+-        for (final String kv: kvs) {
+-            String[] kvPairs = split(kv, "=");
+-            if (kvPairs.length != 2) {
+-                throw new ConfigException("Invalid enrichment: " + enrichment+ ". Expect key value pairs and separated by comma");
+-            }
+-            enrichmentKvs.put(kvPairs[0], kvPairs[1]);
+-        }
+-        return enrichmentKvs;
++  private String getMetaForTopic(List<String> metas, int expectedLength, int curIdx, String confKey) {
++    if (metas == null || metas.size() == 0) {
++      return null;
+     }
+
+-    private String getMetaForTopic(String[] metas, int expectedLength, int curIdx, String confKey) {
+-        if (metas == null) {
+-            return null;
+-        }
+-
+-        if (metas.length == 1) {
+-            return metas[0];
+-        } else if (metas.length == expectedLength) {
+-            return metas[curIdx];
+-        } else {
+-            throw new ConfigException("Invalid " + confKey + " configuration=" + metas);
+-        }
++    if (metas.size() == 1) {
++      return metas.get(0);
++    } else if (metas.size() == expectedLength) {
++      return metas.get(curIdx);
++    } else {
++      throw new ConfigException("Invalid " + confKey + " configuration=" + metas);
+     }
++  }
++
++  private Map<String, Map<String, String>> initMetaMap(Map<String, String> taskConfig) {
++    List<String> topics = getList(SinkTask.TOPICS_CONFIG);
++    List<String> topicIndexes = getList(INDEXES_CONF);
++    List<String> topicSourcetypes = getList(SOURCETYPES_CONF);
++    List<String> topicSources = getList(SOURCES_CONF);
+
+-    private Map<String, Map<String, String>> initMetaMap(Map<String, String> taskConfig) {
+-        String[] topics = split(taskConfig.get(SinkConnector.TOPICS_CONFIG), ",");
+-        String[] topicIndexes = split(indexes, ",");
+-        String[] topicSourcetypes = split(sourcetypes, ",");
+-        String[] topicSources = split(sources, ",");
+-
+-        Map<String, Map<String, String>> metaMap = new HashMap<>();
+-        int idx = 0;
+-        for (String topic: topics) {
+-            HashMap<String, String> topicMeta = new HashMap<>();
+-            String meta = getMetaForTopic(topicIndexes, topics.length, idx, INDEX_CONF);
+-            if (meta != null) {
+-                topicMeta.put(INDEX, meta);
+-            }
+-
+-            meta = getMetaForTopic(topicSourcetypes, topics.length, idx, SOURCETYPE_CONF);
+-            if (meta != null) {
+-                topicMeta.put(SOURCETYPE, meta);
+-            }
+-
+-            meta = getMetaForTopic(topicSources, topics.length, idx, SOURCE_CONF);
+-            if (meta != null) {
+-                topicMeta.put(SOURCE, meta);
+-            }
+-
+-            metaMap.put(topic, topicMeta);
+-            idx += 1;
+-        }
+-        return metaMap;
++    Map<String, Map<String, String>> metaMap = new HashMap<>();
++    int idx = 0;
++    for (String topic : topics) {
++      HashMap<String, String> topicMeta = new HashMap<>();
++      String meta = getMetaForTopic(topicIndexes, topics.size(), idx, INDEXES_CONF);
++      if (meta != null) {
++        topicMeta.put(INDEX, meta);
++      }
++
++      meta = getMetaForTopic(topicSourcetypes, topics.size(), idx, SOURCETYPES_CONF);
++      if (meta != null) {
++        topicMeta.put(SOURCETYPE, meta);
++      }
++
++      meta = getMetaForTopic(topicSources, topics.size(), idx, SOURCES_CONF);
++      if (meta != null) {
++        topicMeta.put(SOURCE, meta);
++      }
++
++    //"new style" config for topics overides the old
++      Map<String, Object> topicConfigs = originalsWithPrefix(SinkTask.TOPICS_CONFIG + "." + topic + ".");
++      String index = topicConfigs.getOrDefault(INDEX_CONF, getString(INDEX_CONF)).toString();
++      if (StringUtils.isNotBlank(index)) topicMeta.put(INDEX, index);
++
++      String sourcetype = topicConfigs.getOrDefault(SOURCETYPE_CONF, getString(SOURCETYPE_CONF)).toString();
++      if (StringUtils.isNotBlank(sourcetype)) topicMeta.put(SOURCETYPE, sourcetype);
++
++      String source = topicConfigs.getOrDefault(SOURCE_CONF, getString(SOURCE_CONF)).toString();
++      if (StringUtils.isNotBlank(source)) topicMeta.put(SOURCE, source);
++
++      String host = topicConfigs.getOrDefault(HOST_CONF, getString(HOST_CONF)).toString();
++      if (StringUtils.isNotBlank(host)) topicMeta.put(HOST, host);
++
++      metaMap.put(topic, topicMeta);
++      idx += 1;
++
+     }
++
++
++    return metaMap;
++  }
+ }
+diff --git a/src/main/java/com/splunk/kafka/connect/SplunkSinkTask.java b/src/main/java/com/splunk/kafka/connect/SplunkSinkTask.java
+index 8a76868..e9eee9f 100644
+--- a/src/main/java/com/splunk/kafka/connect/SplunkSinkTask.java
++++ b/src/main/java/com/splunk/kafka/connect/SplunkSinkTask.java
+@@ -17,12 +17,17 @@ package com.splunk.kafka.connect;
+
+ import com.splunk.hecclient.*;
+ import com.splunk.kafka.connect.VersionUtils;
++
++import org.apache.commons.lang3.StringUtils;
+ import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+ import org.apache.kafka.common.TopicPartition;
++import org.apache.kafka.connect.data.Schema;
+ import org.apache.kafka.connect.errors.RetriableException;
+ import org.apache.kafka.connect.sink.SinkRecord;
+ import org.apache.kafka.connect.sink.SinkTask;
+
++import java.time.Instant;
++import java.time.LocalDateTime;
+ import java.util.*;
+
+ import org.slf4j.Logger;
+@@ -139,17 +144,13 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
+     }
+
+     private void handleRaw(final Collection<SinkRecord> records) {
+-        if (connectorConfig.hasMetaDataConfigured()) {
+-            // when setup metadata - index, source, sourcetype, we need partition records for /raw
+-            Map<TopicPartition, Collection<SinkRecord>> partitionedRecords = partitionRecords(records);
+-            for (Map.Entry<TopicPartition, Collection<SinkRecord>> entry: partitionedRecords.entrySet()) {
+-                EventBatch batch = createRawEventBatch(entry.getKey());
+-                sendEvents(entry.getValue(), batch);
+-            }
+-        } else {
+-            EventBatch batch = createRawEventBatch(null);
+-            sendEvents(records, batch);
+-        }
++
++      Map<EventBatch, Collection<SinkRecord>> partitionedRecords = partitionRecords(records);
++      // partition records based on calculated index, source, sourcetype, host
++      for (Map.Entry<EventBatch, Collection<SinkRecord>> entry : partitionedRecords.entrySet()) {
++        sendEvents(entry.getValue(), entry.getKey());
++      }
++
+     }
+
+     private void handleEvent(final Collection<SinkRecord> records) {
+@@ -194,24 +195,6 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
+         }
+     }
+
+-    // setup metadata on RawEventBatch
+-    private EventBatch createRawEventBatch(final TopicPartition tp) {
+-        if (tp == null) {
+-            return RawEventBatch.factory().build();
+-        }
+-
+-        Map<String, String> metas = connectorConfig.topicMetas.get(tp.topic());
+-        if (metas == null || metas.isEmpty()) {
+-            return RawEventBatch.factory().build();
+-        }
+-
+-        return RawEventBatch.factory()
+-                .setIndex(metas.get(SplunkSinkConnectorConfig.INDEX))
+-                .setSourcetype(metas.get(SplunkSinkConnectorConfig.SOURCETYPE))
+-                .setSource(metas.get(SplunkSinkConnectorConfig.SOURCE))
+-                .build();
+-    }
+-
+     @Override
+     public Map<TopicPartition, OffsetAndMetadata> preCommit(Map<TopicPartition, OffsetAndMetadata> meta) {
+         // tell Kafka Connect framework what are offsets we can safely commit to Kafka now
+@@ -260,13 +243,36 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
+             event.setTime(record.timestamp() / 1000.0);
+         }
+
++
+         Map<String, String> metas = connectorConfig.topicMetas.get(record.topic());
+         if (metas != null) {
+             event.setIndex(metas.get(SplunkSinkConnectorConfig.INDEX));
+             event.setSourcetype(metas.get(SplunkSinkConnectorConfig.SOURCETYPE));
+             event.setSource(metas.get(SplunkSinkConnectorConfig.SOURCE));
++            event.setHost(metas.get(SplunkSinkConnectorConfig.HOST));
+             event.addFields(connectorConfig.enrichments);
+         }
++
++        //overwrite with values from headers
++        if (record.headers().lastWithName(SplunkSinkConnectorConfig.INDEX_HDR) != null) {
++          event.setIndex(record.headers().lastWithName(SplunkSinkConnectorConfig.INDEX_HDR).value().toString());
++        }
++        if (record.headers().lastWithName(SplunkSinkConnectorConfig.SOURCETYPE_HDR) != null) {
++          event.setSourcetype(record.headers().lastWithName(SplunkSinkConnectorConfig.SOURCETYPE_HDR).value().toString());
++        }
++        if (record.headers().lastWithName(SplunkSinkConnectorConfig.SOURCE_HDR) != null) {
++          event.setSource(record.headers().lastWithName(SplunkSinkConnectorConfig.SOURCE_HDR).value().toString());
++        }
++        if (record.headers().lastWithName(SplunkSinkConnectorConfig.HOST_HDR) != null) {
++          event.setHost(record.headers().lastWithName(SplunkSinkConnectorConfig.HOST_HDR).value().toString());
++        }
++        if (record.headers().lastWithName(SplunkSinkConnectorConfig.TIME_HDR) != null) {
++          long time = Long.valueOf(record.headers().lastWithName(SplunkSinkConnectorConfig.TIME_HDR).value().toString());
++          event.setTime(time/1000);
++
++        }
++
++
+
+         if (connectorConfig.trackData) {
+             // for data loss, latency tracking
+@@ -304,19 +310,73 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
+     }
+
+     // partition records according to topic-partition key
+-    private Map<TopicPartition, Collection<SinkRecord>> partitionRecords(Collection<SinkRecord> records) {
+-        Map<TopicPartition, Collection<SinkRecord>> partitionedRecords = new HashMap<>();
+-
+-        for (SinkRecord record: records) {
+-            TopicPartition key = new TopicPartition(record.topic(), record.kafkaPartition());
+-            Collection<SinkRecord> partitioned = partitionedRecords.get(key);
+-            if (partitioned == null) {
+-                partitioned = new ArrayList<>();
+-                partitionedRecords.put(key, partitioned);
+-            }
+-            partitioned.add(record);
++    private Map<EventBatch, Collection<SinkRecord>> partitionRecords(Collection<SinkRecord> records) {
++      Map<EventBatch, Collection<SinkRecord>> partitionedRecords = new HashMap<>();
++
++      for (SinkRecord record : records) {
++        EventBatch batch = getBatchForRecord(record);
++        Collection<SinkRecord> partitioned = partitionedRecords.get(batch);
++        if (partitioned == null) {
++          partitioned = new ArrayList<>();
++          partitionedRecords.put(batch, partitioned);
+         }
+-        return partitionedRecords;
++        partitioned.add(record);
++      }
++      return partitionedRecords;
++    }
++
++    private EventBatch getBatchForRecord(SinkRecord record) {
++      //get metadata in the order:
++      // 1. defaults (splunk.index, splunk.sourcetype, splunk.source etc )
++      // 2. configured topic metas
++      // 3. from record headers
++
++      String index = connectorConfig.index;
++      String sourcetype= connectorConfig.sourcetype;
++      String source= connectorConfig.source;
++      String host= connectorConfig.host;
++
++
++      if (StringUtils.isNotBlank(connectorConfig.topicMetas.getOrDefault(record.topic(), Collections.emptyMap()).getOrDefault(SplunkSinkConnectorConfig.INDEX, null))) {
++        index = connectorConfig.topicMetas.getOrDefault(record.topic(), Collections.emptyMap()).getOrDefault(SplunkSinkConnectorConfig.INDEX, null);
++      }
++      if (StringUtils.isNotBlank(connectorConfig.topicMetas.getOrDefault(record.topic(), Collections.emptyMap()).getOrDefault(SplunkSinkConnectorConfig.SOURCETYPE, null))) {
++        sourcetype = connectorConfig.topicMetas.getOrDefault(record.topic(), Collections.emptyMap()).getOrDefault(SplunkSinkConnectorConfig.SOURCETYPE, null);
++      }
++
++      if (StringUtils.isNotBlank(connectorConfig.topicMetas.getOrDefault(record.topic(), Collections.emptyMap()).getOrDefault(SplunkSinkConnectorConfig.SOURCE, null))) {
++        source = connectorConfig.topicMetas.getOrDefault(record.topic(), Collections.emptyMap()).getOrDefault(SplunkSinkConnectorConfig.SOURCE, null);
++      }
++      if (StringUtils.isNotBlank(connectorConfig.topicMetas.getOrDefault(record.topic(), Collections.emptyMap()).getOrDefault(SplunkSinkConnectorConfig.HOST, null))) {
++        host = connectorConfig.topicMetas.getOrDefault(record.topic(), Collections.emptyMap()).getOrDefault(SplunkSinkConnectorConfig.HOST, null);
++      }
++
++      if (record.headers().lastWithName(SplunkSinkConnectorConfig.INDEX_HDR) != null) {
++        index = record.headers().lastWithName(SplunkSinkConnectorConfig.INDEX_HDR).value().toString();
++      }
++      if (record.headers().lastWithName(SplunkSinkConnectorConfig.SOURCETYPE_HDR) != null) {
++        sourcetype = record.headers().lastWithName(SplunkSinkConnectorConfig.SOURCETYPE_HDR).value().toString();
++      }
++      if (record.headers().lastWithName(SplunkSinkConnectorConfig.SOURCE_HDR) != null) {
++        source = record.headers().lastWithName(SplunkSinkConnectorConfig.SOURCE_HDR).value().toString();
++      }
++      if (record.headers().lastWithName(SplunkSinkConnectorConfig.HOST_HDR) != null) {
++        host = record.headers().lastWithName(SplunkSinkConnectorConfig.HOST_HDR).value().toString();
++      }
++
++      long time = -1;
++      if (record.headers().lastWithName(SplunkSinkConnectorConfig.TIME_HDR) != null) {
++        time = Long.valueOf(record.headers().lastWithName(SplunkSinkConnectorConfig.TIME_HDR).value().toString());
++      }
++
++
++      return RawEventBatch.factory()
++       .setHost(host)
++       .setIndex(index)
++       .setSource(source)
++       .setSourcetype(sourcetype)
++       .setTime(time)
++       .build();
+     }
+
+     private HecInf createHec() {
+diff --git a/src/test/java/com/splunk/kafka/connect/SplunkSinkConnectorConfigTest.java b/src/test/java/com/splunk/kafka/connect/SplunkSinkConnectorConfigTest.java
+index 769f403..f82eaa7 100644
+--- a/src/test/java/com/splunk/kafka/connect/SplunkSinkConnectorConfigTest.java
++++ b/src/test/java/com/splunk/kafka/connect/SplunkSinkConnectorConfigTest.java
+@@ -144,9 +144,9 @@ public class SplunkSinkConnectorConfigTest {
+         UnitUtil uu = new UnitUtil(0);
+         Map<String, String> config = uu.createTaskConfig();
+         config.put(SinkConnector.TOPICS_CONFIG, "t1,t2,t3");
+-        config.put(SplunkSinkConnectorConfig.INDEX_CONF, "i1,i2,i3");
+-        config.put(SplunkSinkConnectorConfig.SOURCE_CONF, "s1,s2,s3");
+-        config.put(SplunkSinkConnectorConfig.SOURCETYPE_CONF, "e1,e2,e3");
++        config.put(SplunkSinkConnectorConfig.INDEXES_CONF, "i1,i2,i3");
++        config.put(SplunkSinkConnectorConfig.SOURCES_CONF, "s1,s2,s3");
++        config.put(SplunkSinkConnectorConfig.SOURCETYPES_CONF, "e1,e2,e3");
+         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
+
+         Map<String, Map<String, String>> topicMetas = new HashMap<>();
+@@ -169,9 +169,9 @@ public class SplunkSinkConnectorConfigTest {
+         // one index, multiple source, source types
+         Map<String, String> config = uu.createTaskConfig();
+         config.put(SinkConnector.TOPICS_CONFIG, "t1,t2,t3");
+-        config.put(SplunkSinkConnectorConfig.INDEX_CONF, "i1");
+-        config.put(SplunkSinkConnectorConfig.SOURCE_CONF, "s1,s2,s3");
+-        config.put(SplunkSinkConnectorConfig.SOURCETYPE_CONF, "e1,e2,e3");
++        config.put(SplunkSinkConnectorConfig.INDEXES_CONF, "i1");
++        config.put(SplunkSinkConnectorConfig.SOURCES_CONF, "s1,s2,s3");
++        config.put(SplunkSinkConnectorConfig.SOURCETYPES_CONF, "e1,e2,e3");
+         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
+
+         Map<String, Map<String, String>> topicMetas = new HashMap<>();
+@@ -194,24 +194,24 @@ public class SplunkSinkConnectorConfigTest {
+         // index, source, sourcetypes
+         Map<String, String> config = uu.createTaskConfig();
+         config.put(SinkConnector.TOPICS_CONFIG, "t1");
+-        config.put(SplunkSinkConnectorConfig.INDEX_CONF, "i1");
+-        config.put(SplunkSinkConnectorConfig.SOURCE_CONF, "s1");
+-        config.put(SplunkSinkConnectorConfig.SOURCETYPE_CONF, "e1");
++        config.put(SplunkSinkConnectorConfig.INDEXES_CONF, "i1");
++        config.put(SplunkSinkConnectorConfig.SOURCES_CONF, "s1");
++        config.put(SplunkSinkConnectorConfig.SOURCETYPES_CONF, "e1");
+         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
+         Assert.assertTrue(connectorConfig.hasMetaDataConfigured());
+
+         // source, sourcetype
+         config = uu.createTaskConfig();
+         config.put(SinkConnector.TOPICS_CONFIG, "t1");
+-        config.put(SplunkSinkConnectorConfig.SOURCE_CONF, "s1");
+-        config.put(SplunkSinkConnectorConfig.SOURCETYPE_CONF, "e1");
++        config.put(SplunkSinkConnectorConfig.SOURCES_CONF, "s1");
++        config.put(SplunkSinkConnectorConfig.SOURCETYPES_CONF, "e1");
+         connectorConfig = new SplunkSinkConnectorConfig(config);
+         Assert.assertTrue(connectorConfig.hasMetaDataConfigured());
+
+         // sourcetype
+         config = uu.createTaskConfig();
+         config.put(SinkConnector.TOPICS_CONFIG, "t1");
+-        config.put(SplunkSinkConnectorConfig.SOURCETYPE_CONF, "e1");
++        config.put(SplunkSinkConnectorConfig.SOURCETYPES_CONF, "e1");
+         connectorConfig = new SplunkSinkConnectorConfig(config);
+         Assert.assertTrue(connectorConfig.hasMetaDataConfigured());
+     }
+@@ -223,9 +223,9 @@ public class SplunkSinkConnectorConfigTest {
+         // one index, multiple source, sourcetypes
+         Map<String, String> config = uu.createTaskConfig();
+         config.put(SinkConnector.TOPICS_CONFIG, "t1,t2,t3");
+-        config.put(SplunkSinkConnectorConfig.INDEX_CONF, "i1,i2");
+-        config.put(SplunkSinkConnectorConfig.SOURCE_CONF, "s1,s2,s3");
+-        config.put(SplunkSinkConnectorConfig.SOURCETYPE_CONF, "e1,e2,e3");
++        config.put(SplunkSinkConnectorConfig.INDEXES_CONF, "i1,i2");
++        config.put(SplunkSinkConnectorConfig.SOURCES_CONF, "s1,s2,s3");
++        config.put(SplunkSinkConnectorConfig.SOURCETYPES_CONF, "e1,e2,e3");
+         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
+     }
+
+diff --git a/src/test/java/com/splunk/kafka/connect/SplunkSinkTaskTest.java b/src/test/java/com/splunk/kafka/connect/SplunkSinkTaskTest.java
+index 59c3417..bf3619e 100644
+--- a/src/test/java/com/splunk/kafka/connect/SplunkSinkTaskTest.java
++++ b/src/test/java/com/splunk/kafka/connect/SplunkSinkTaskTest.java
+@@ -23,6 +23,7 @@ import org.apache.kafka.common.TopicPartition;
+ import org.apache.kafka.common.record.TimestampType;
+ import org.apache.kafka.connect.errors.RetriableException;
+ import org.apache.kafka.connect.sink.SinkRecord;
++import org.apache.kafka.connect.sink.SinkTask;
+ import org.junit.Assert;
+ import org.junit.Test;
+
+@@ -64,8 +65,18 @@ public class SplunkSinkTaskTest {
+
+     @Test
+     public void putWithEventAndAck() {
+-        putWithSuccess(false, true);
+-        putWithSuccess(false, false);
++      Map<String, String> extraConf = new HashMap<>();
++      extraConf.put(SplunkSinkConnectorConfig.INDEXES_CONF, "i1");
++      extraConf.put(SplunkSinkConnectorConfig.SOURCETYPES_CONF, "s1");
++      extraConf.put(SplunkSinkConnectorConfig.SOURCES_CONF, "e1");
++      putWithSuccess(true, true, extraConf);
++
++      Map<String, String> conf = new HashMap<>();
++      conf.put(SplunkSinkConnectorConfig.INDEXES_CONF, "");
++      conf.put(SplunkSinkConnectorConfig.SOURCETYPES_CONF, "");
++      conf.put(SplunkSinkConnectorConfig.SOURCES_CONF, "");
++      putWithSuccess(true, false, conf);
++
+     }
+
+     @Test
+@@ -218,15 +229,38 @@ public class SplunkSinkTaskTest {
+
+     @Test
+     public void putWithRawAndAck() {
+-        putWithSuccess(true, true);
++        Map<String, String> extraConf = new HashMap<>();
++        extraConf.put(SplunkSinkConnectorConfig.INDEXES_CONF, "i1");
++        extraConf.put(SplunkSinkConnectorConfig.SOURCETYPES_CONF, "s1");
++        extraConf.put(SplunkSinkConnectorConfig.SOURCES_CONF, "e1");
++        putWithSuccess(true, true, extraConf);
++
++
++    }
++
++    @Test
++    public void putWithRawAndAckAndNewMeta() {
++        Map<String, String> extraConf = new HashMap<>();
++        extraConf.put(SinkTask.TOPICS_CONFIG, "mytopic");
++        extraConf.put(SinkTask.TOPICS_CONFIG+".mytopic."+ SplunkSinkConnectorConfig.INDEX_CONF, "i1");
++        extraConf.put(SinkTask.TOPICS_CONFIG+".mytopic."+ SplunkSinkConnectorConfig.SOURCETYPE_CONF, "s1");
++        extraConf.put(SinkTask.TOPICS_CONFIG+".mytopic."+ SplunkSinkConnectorConfig.SOURCE_CONF, "e1");
++        putWithSuccess(true, true, extraConf);
++
++
+     }
++
+
+     @Test
+     public void putWithRawAndAckWithoutMeta() {
+-        putWithSuccess(true, false);
++      Map<String, String> conf = new HashMap<>();
++      conf.put(SplunkSinkConnectorConfig.INDEXES_CONF, "");
++      conf.put(SplunkSinkConnectorConfig.SOURCETYPES_CONF, "");
++      conf.put(SplunkSinkConnectorConfig.SOURCES_CONF, "");
++      putWithSuccess(true, false, conf);
+     }
+
+-    private void putWithSuccess(boolean raw, boolean withMeta) {
++    private void putWithSuccess(boolean raw, boolean withMeta, Map<String, String> conf) {
+         int batchSize = 100;
+         int total = 1000;
+
+@@ -235,15 +269,8 @@ public class SplunkSinkTaskTest {
+         config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(raw));
+         config.put(SplunkSinkConnectorConfig.ACK_CONF, String.valueOf(true));
+         config.put(SplunkSinkConnectorConfig.MAX_BATCH_SIZE_CONF, String.valueOf(batchSize));
+-        if (withMeta) {
+-            config.put(SplunkSinkConnectorConfig.INDEX_CONF, "i1");
+-            config.put(SplunkSinkConnectorConfig.SOURCETYPE_CONF, "s1");
+-            config.put(SplunkSinkConnectorConfig.SOURCE_CONF, "e1");
+-        } else {
+-            config.put(SplunkSinkConnectorConfig.INDEX_CONF, "");
+-            config.put(SplunkSinkConnectorConfig.SOURCETYPE_CONF, "");
+-            config.put(SplunkSinkConnectorConfig.SOURCE_CONF, "");
+-        }
++        config.putAll(conf);
++
+
+         SplunkSinkTask task = new SplunkSinkTask();
+         HecMock hec = new HecMock(task);
+diff --git a/src/test/java/com/splunk/kafka/connect/UnitUtil.java b/src/test/java/com/splunk/kafka/connect/UnitUtil.java
+index ff870f0..96b4ae8 100644
+--- a/src/test/java/com/splunk/kafka/connect/UnitUtil.java
++++ b/src/test/java/com/splunk/kafka/connect/UnitUtil.java
+@@ -35,9 +35,9 @@ public class UnitUtil {
+         config.put(SplunkSinkConnectorConfig.URI_CONF, configProfile.getUri());
+         config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(configProfile.isRaw()));
+         config.put(SplunkSinkConnectorConfig.ACK_CONF , String.valueOf(configProfile.isAck()));
+-        config.put(SplunkSinkConnectorConfig.INDEX_CONF, configProfile.getIndexes());
+-        config.put(SplunkSinkConnectorConfig.SOURCETYPE_CONF, configProfile.getSourcetypes());
+-        config.put(SplunkSinkConnectorConfig.SOURCE_CONF, configProfile.getSources());
++        config.put(SplunkSinkConnectorConfig.INDEXES_CONF, configProfile.getIndexes());
++        config.put(SplunkSinkConnectorConfig.SOURCETYPES_CONF, configProfile.getSourcetypes());
++        config.put(SplunkSinkConnectorConfig.SOURCES_CONF, configProfile.getSources());
+         config.put(SplunkSinkConnectorConfig.HTTP_KEEPALIVE_CONF, String.valueOf(configProfile.isHttpKeepAlive()));
+         config.put(SplunkSinkConnectorConfig.SSL_VALIDATE_CERTIFICATES_CONF, String.valueOf(configProfile.isValidateCertificates()));
+
+--
+2.8.3.windows.1
+

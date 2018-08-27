@@ -226,6 +226,12 @@ public class SplunkSinkTaskTest {
         putWithSuccess(true, false);
     }
 
+    @Test
+    public void handleRecordsWithHeaders() {
+
+
+    }
+
     private void putWithSuccess(boolean raw, boolean withMeta) {
         int batchSize = 100;
         int total = 1000;
