@@ -70,10 +70,29 @@ public class SplunkSinkRecord {
      */
     protected boolean compareRecordHeaders(SinkRecord record) {
         headers = record.headers();
-        String index = headers.lastWithName(connectorConfig.headerIndex).value().toString();
-        String host = headers.lastWithName(connectorConfig.headerHost).value().toString();
-        String source = headers.lastWithName(connectorConfig.headerSource).value().toString();
-        String sourcetype = headers.lastWithName(connectorConfig.headerSourcetype).value().toString();
+
+        Header indexHeader = headers.lastWithName(connectorConfig.headerIndex);
+        Header hostHeader = headers.lastWithName(connectorConfig.headerHost);
+        Header sourceHeader = headers.lastWithName(connectorConfig.headerSource);
+        Header sourcetypeHeader = headers.lastWithName(connectorConfig.headerSourcetype);
+
+        String index = "";
+        String host = "";
+        String source = "";
+        String sourcetype = "";
+
+        if(indexHeader != null) {
+            index = indexHeader.value().toString();
+        }
+        if(hostHeader != null) {
+            host = hostHeader.value().toString();
+        }
+        if(sourceHeader != null) {
+            source = sourceHeader.value().toString();
+        }
+        if(sourcetypeHeader != null) {
+            sourcetype = sourcetypeHeader.value().toString();
+        }
 
         return splunkHeaderIndex.equals(index) && splunkHeaderHost.equals(host) &&
                splunkHeaderSource.equals(source) && splunkHeaderSourcetype.equals(sourcetype);
