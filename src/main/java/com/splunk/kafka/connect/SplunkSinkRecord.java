@@ -17,6 +17,7 @@ package com.splunk.kafka.connect;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.kafka.connect.header.Header;
 import org.apache.kafka.connect.header.Headers;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.slf4j.Logger;
@@ -79,17 +80,22 @@ public class SplunkSinkRecord {
     }
 
     private void setMetadataValues() {
-        if(this.headers.lastWithName(connectorConfig.headerIndex) != null) {
-            splunkHeaderIndex = this.headers.lastWithName(connectorConfig.headerIndex).value().toString();
+        Header indexHeader = this.headers.lastWithName(connectorConfig.headerIndex);
+        Header hostHeader = this.headers.lastWithName(connectorConfig.headerHost);
+        Header sourceHeader = this.headers.lastWithName(connectorConfig.headerSource);
+        Header sourcetypeHeader = this.headers.lastWithName(connectorConfig.headerSourcetype);
+
+        if(indexHeader != null) {
+            splunkHeaderIndex = indexHeader.value().toString();
         }
-        if(this.headers.lastWithName(connectorConfig.headerHost) != null) {
-            splunkHeaderHost = this.headers.lastWithName(connectorConfig.headerHost).value().toString();
+        if(hostHeader != null) {
+            splunkHeaderHost = hostHeader.value().toString();
         }
-        if(this.headers.lastWithName(connectorConfig.headerSource) != null) {
-            splunkHeaderSource = this.headers.lastWithName(connectorConfig.headerSource).value().toString();
+        if(sourceHeader != null) {
+            splunkHeaderSource = sourceHeader.value().toString();
         }
-        if(this.headers.lastWithName(connectorConfig.headerSourcetype) != null) {
-            splunkHeaderSourcetype = this.headers.lastWithName(connectorConfig.headerSourcetype).value().toString();
+        if(sourcetypeHeader != null) {
+            splunkHeaderSourcetype = sourcetypeHeader.value().toString();
         }
     }
 
@@ -128,15 +134,19 @@ public class SplunkSinkRecord {
     public Headers getHeaders() {
         return headers;
     }
+
     public String getSplunkHeaderIndex() {
         return splunkHeaderIndex;
     }
+
     public String getSplunkHeaderHost() {
         return splunkHeaderHost;
     }
+
     public String getSplunkHeaderSource() {
         return splunkHeaderSource;
     }
+
     public String getSplunkHeaderSourcetype() {
         return splunkHeaderSourcetype;
     }

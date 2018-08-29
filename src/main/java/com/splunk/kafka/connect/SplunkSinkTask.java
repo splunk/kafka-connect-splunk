@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class);
     private static final long flushWindow = 30 * 1000; // 30 seconds
+    private static final String HEADERTOKEN = "$$$";
 
     private HecInf hec;
     private KafkaRecordTracker tracker;
@@ -183,35 +184,40 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     public String headerId(SinkRecord sinkRecord) {
         Headers headers = sinkRecord.headers();
 
+        Header indexHeader = headers.lastWithName(connectorConfig.headerIndex);
+        Header hostHeader = headers.lastWithName(connectorConfig.headerHost);
+        Header sourceHeader = headers.lastWithName(connectorConfig.headerSource);
+        Header sourcetypeHeader = headers.lastWithName(connectorConfig.headerSourcetype);
+
         StringBuilder headerString = new StringBuilder();
 
-        if(headers.lastWithName(connectorConfig.headerIndex) != null) {
-            headerString.append(headers.lastWithName(connectorConfig.headerIndex).value().toString());
+        if(indexHeader != null) {
+            headerString.append(indexHeader.value().toString());
         }
 
         headerString.append(insertHeaderToken());
 
-        if(headers.lastWithName(connectorConfig.headerHost) != null) {
-            headerString.append(headers.lastWithName(connectorConfig.headerHost).value().toString());
+        if(hostHeader != null) {
+            headerString.append(hostHeader.value().toString());
         }
 
         headerString.append(insertHeaderToken());
 
-        if(headers.lastWithName(connectorConfig.headerSource) != null) {
-            headerString.append(headers.lastWithName(connectorConfig.headerSource).value().toString());
+        if(sourceHeader != null) {
+            headerString.append(sourceHeader.value().toString());
         }
 
         headerString.append(insertHeaderToken());
 
-        if(headers.lastWithName(connectorConfig.headerSourcetype) != null) {
-            headerString.append(headers.lastWithName(connectorConfig.headerSourcetype).value().toString());
+        if(sourcetypeHeader != null) {
+            headerString.append(sourcetypeHeader.value().toString());
         }
 
         return headerString.toString();
     }
 
     public String insertHeaderToken() {
-        return "$$$";
+        return HEADERTOKEN;
     }
 
     private void handleEvent(final Collection<SinkRecord> records) {
@@ -393,8 +399,6 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
                     Header customHeader = headers.lastWithName(header);
                 if (customHeader != null) {
                     headerMap.put(header, customHeader.value().toString());
-                } else {
-                    log.debug(header + " header value not present in event.");
                 }
             }
             event.addFields(headerMap);
