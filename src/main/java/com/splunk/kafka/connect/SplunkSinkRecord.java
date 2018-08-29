@@ -54,7 +54,6 @@ public class SplunkSinkRecord {
         this.connectorConfig = connectorConfig;
         this.headers = record.headers();
         if(this.headers != null) {
-            log.info("not null headers");
             setMetadataValues();
         }
     }
@@ -75,16 +74,11 @@ public class SplunkSinkRecord {
         String source = headers.lastWithName(connectorConfig.headerSource).value().toString();
         String sourcetype = headers.lastWithName(connectorConfig.headerSourcetype).value().toString();
 
-        if(splunkHeaderIndex.equals(index) && splunkHeaderHost.equals(host) &&
-                splunkHeaderSource.equals(source) && splunkHeaderSourcetype.equals(sourcetype))  {
-            return true;
-        }
-        return false;
+        return splunkHeaderIndex.equals(index) && splunkHeaderHost.equals(host) &&
+               splunkHeaderSource.equals(source) && splunkHeaderSourcetype.equals(sourcetype);
     }
 
     private void setMetadataValues() {
-        log.info("Made it to setMetadataValues");
-
         if(this.headers.lastWithName(connectorConfig.headerIndex) != null) {
             splunkHeaderIndex = this.headers.lastWithName(connectorConfig.headerIndex).value().toString();
         }
@@ -100,8 +94,16 @@ public class SplunkSinkRecord {
     }
 
     public String id() {
-        return splunkHeaderIndex + "$$$" + splunkHeaderHost + "$$$"
-                + splunkHeaderSource + "$$$" + splunkHeaderSourcetype;
+    String separator = "$$$";
+    return new StringBuilder()
+            .append(splunkHeaderIndex)
+            .append(separator)
+            .append(splunkHeaderHost)
+            .append(separator)
+            .append(splunkHeaderSource)
+            .append(separator)
+            .append(splunkHeaderSourcetype)
+            .toString();
     }
 
     @Override
@@ -118,12 +120,7 @@ public class SplunkSinkRecord {
     public boolean equals(Object obj) {
         if (obj instanceof SplunkSinkRecord) {
             final SplunkSinkRecord other = (SplunkSinkRecord) obj;
-            return new EqualsBuilder()
-                    .append(splunkHeaderIndex, other.splunkHeaderIndex)
-                    .append(splunkHeaderHost, other.splunkHeaderHost)
-                    .append(splunkHeaderSource, other.splunkHeaderSource)
-                    .append(splunkHeaderSourcetype, other.splunkHeaderSourcetype)
-                    .isEquals();
+            return id().equals(other.id());
         }
         return false;
     }

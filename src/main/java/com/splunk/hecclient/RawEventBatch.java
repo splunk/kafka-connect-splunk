@@ -169,8 +169,7 @@ public final class RawEventBatch extends EventBatch {
             .append(source, other.source)
             .append(host, other.host)
             .isEquals();
-        } else {
-            return false;
         }
+        return false;
     }
 }
