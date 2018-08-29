@@ -36,6 +36,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String INDEX_CONF = "splunk.indexes";
     static final String SOURCE_CONF = "splunk.sources";
     static final String SOURCETYPE_CONF = "splunk.sourcetypes";
+
     static final String TOTAL_HEC_CHANNEL_CONF = "splunk.hec.total.channels";
     static final String MAX_HTTP_CONNECTION_PER_CHANNEL_CONF = "splunk.hec.max.http.connection.per.channel";
     static final String MAX_BATCH_SIZE_CONF = "splunk.hec.max.batch.size"; // record count
@@ -59,9 +60,17 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String USE_RECORD_TIMESTAMP_CONF = "splunk.hec.use.record.timestamp";
     static final String ENRICHMENT_CONF = "splunk.hec.json.event.enrichment";
     static final String TRACK_DATA_CONF = "splunk.hec.track.data";
-    // TBD
+    static final String HEC_EVENT_FORMATTED_CONF = "splunk.hec.json.event.formatted";
+    // Trust store
     static final String SSL_TRUSTSTORE_PATH_CONF = "splunk.hec.ssl.trust.store.path";
     static final String SSL_TRUSTSTORE_PASSWORD_CONF = "splunk.hec.ssl.trust.store.password";
+    //Headers
+    static final String HEADER_SUPPORT_CONF = "splunk.header.support";
+    static final String HEADER_CUSTOM_CONF = "splunk.header.custom";
+    static final String HEADER_INDEX_CONF = "splunk.header.index";
+    static final String HEADER_SOURCE_CONF = "splunk.header.source";
+    static final String HEADER_SOURCETYPE_CONF = "splunk.header.sourcetype";
+    static final String HEADER_HOST_CONF = "splunk.header.host";
 
     // Kafka configuration description strings
     // Required Parameters
@@ -78,7 +87,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             + " the HEC token. By default, this setting is empty.";
     static final String SOURCETYPE_DOC = "Splunk event sourcetype metadata for Kafka topic data. The same configuration "
             + "rules as indexes can be applied here. If left unconfigured, the default source"
-            + " binds to the HEC token. By default, this setting is empty";
+            + " binds to the HEC token. By default, this setting is empty"
+            + "through to splunk. Only use with JSON Event endpoint";
     static final String TOTAL_HEC_CHANNEL_DOC = "Total HEC Channels used to post events to Splunk. When enabling HEC ACK, "
             + "setting to the same or 2X number of indexers is generally good.";
     static final String MAX_HTTP_CONNECTION_PER_CHANNEL_DOC = "Max HTTP connections pooled for one HEC Channel "
@@ -136,9 +146,20 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             + "latency metadata will be indexed along with raw data. This setting only works in "
             + "conjunction with /event HEC endpoint (\"splunk.hec.raw\" : \"false\"). By default"
             + ", this is set to false.";
+    static final String HEC_EVENT_FORMATTED_DOC = "Ensures events that are pre-formatted into the properly formatted HEC "
+            + "JSON format as per http://dev.splunk.com/view/event-collector/SP-CAAAE6P have meta-data and event data indexed "
+            + "correctly by Splunk.";
     // TBD
     static final String SSL_TRUSTSTORE_PATH_DOC = "Path on the local disk to the certificate trust store.";
     static final String SSL_TRUSTSTORE_PASSWORD_DOC = "Password for the trust store.";
+
+    static final String HEADER_SUPPORT_DOC = "Setting will enable Kafka Record headers to be used for meta data override";
+    static final String HEADER_CUSTOM_DOC = "Setting will enable look for Record headers with these values and add them"
+            + "to each event if present. Custom headers are configured separated by comma for multiple headers. ex,  (\"custom_header_1,custom_header_2,custom_header_3\").";
+    static final String HEADER_INDEX_DOC = "Header to use for Splunk Header Index";
+    static final String HEADER_SOURCE_DOC = "Header to use for Splunk Header Source";
+    static final String HEADER_SOURCETYPE_DOC = "Header to use for Splunk Header Sourcetype";
+    static final String HEADER_HOST_DOC = "Header to use for Splunk Header Host";
 
     final String splunkToken;
     final String splunkURI;
@@ -164,6 +185,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final int maxRetries;
 
     final boolean raw;
+    final boolean hecEventFormatted;
+
     final String lineBreaker;
     final boolean useRecordTimestamp;
     final Map<String, String> enrichments;
@@ -172,6 +195,13 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final boolean hasTrustStorePath;
     final String trustStorePath;
     final String trustStorePassword;
+
+    final boolean headerSupport;
+    final String headerCustom;
+    final String headerIndex;
+    final String headerSource;
+    final String headerSourcetype;
+    final String headerHost;
 
     SplunkSinkConnectorConfig(Map<String, String> taskConfig) {
         super(conf(), taskConfig);
@@ -201,55 +231,68 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         lineBreaker = getString(LINE_BREAKER_CONF);
         maxOutstandingEvents = getInt(MAX_OUTSTANDING_EVENTS_CONF);
         maxRetries = getInt(MAX_RETRIES_CONF);
+        hecEventFormatted = getBoolean(HEC_EVENT_FORMATTED_CONF);
         topicMetas = initMetaMap(taskConfig);
+        headerSupport = getBoolean(HEADER_SUPPORT_CONF);
+        headerCustom = getString(HEADER_CUSTOM_CONF);
+        headerIndex = getString(HEADER_INDEX_CONF);
+        headerSource = getString(HEADER_SOURCE_CONF);
+        headerSourcetype = getString(HEADER_SOURCETYPE_CONF);
+        headerHost = getString(HEADER_HOST_CONF);
     }
 
     public static ConfigDef conf() {
         return new ConfigDef()
-            .define(TOKEN_CONF, ConfigDef.Type.PASSWORD, ConfigDef.Importance.HIGH, TOKEN_DOC)
-            .define(URI_CONF, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, URI_DOC)
-            .define(RAW_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.MEDIUM, RAW_DOC)
-            .define(ACK_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.MEDIUM, ACK_DOC)
-            .define(INDEX_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, INDEX_DOC)
-            .define(SOURCETYPE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, SOURCETYPE_DOC)
-            .define(SOURCE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, SOURCE_DOC)
-            .define(HTTP_KEEPALIVE_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, HTTP_KEEPALIVE_DOC)
-            .define(SSL_VALIDATE_CERTIFICATES_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, SSL_VALIDATE_CERTIFICATES_DOC)
-            .define(SSL_TRUSTSTORE_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PATH_DOC)
-            .define(SSL_TRUSTSTORE_PASSWORD_CONF, ConfigDef.Type.PASSWORD, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PASSWORD_DOC)
-            .define(EVENT_TIMEOUT_CONF, ConfigDef.Type.INT, 300, ConfigDef.Importance.MEDIUM, EVENT_TIMEOUT_DOC)
-            .define(ACK_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 10, ConfigDef.Importance.MEDIUM, ACK_POLL_INTERVAL_DOC)
-            .define(ACK_POLL_THREADS_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.MEDIUM, ACK_POLL_THREADS_DOC)
-            .define(MAX_HTTP_CONNECTION_PER_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.MEDIUM, MAX_HTTP_CONNECTION_PER_CHANNEL_DOC)
-            .define(TOTAL_HEC_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.HIGH, TOTAL_HEC_CHANNEL_DOC)
-            .define(SOCKET_TIMEOUT_CONF, ConfigDef.Type.INT, 60, ConfigDef.Importance.LOW, SOCKET_TIMEOUT_DOC)
-            .define(ENRICHMENT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.LOW, ENRICHMENT_DOC)
-            .define(TRACK_DATA_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.LOW, TRACK_DATA_DOC)
-            .define(USE_RECORD_TIMESTAMP_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, USE_RECORD_TIMESTAMP_DOC)
-            .define(HEC_THREDS_CONF, ConfigDef.Type.INT, 1, ConfigDef.Importance.LOW, HEC_THREADS_DOC)
-            .define(LINE_BREAKER_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, LINE_BREAKER_DOC)
-            .define(MAX_OUTSTANDING_EVENTS_CONF, ConfigDef.Type.INT, 1000000, ConfigDef.Importance.MEDIUM, MAX_OUTSTANDING_EVENTS_DOC)
-            .define(MAX_RETRIES_CONF, ConfigDef.Type.INT, -1, ConfigDef.Importance.MEDIUM, MAX_RETRIES_DOC)
-            .define(MAX_BATCH_SIZE_CONF, ConfigDef.Type.INT, 500, ConfigDef.Importance.MEDIUM, MAX_BATCH_SIZE_DOC);
+                .define(TOKEN_CONF, ConfigDef.Type.PASSWORD, ConfigDef.Importance.HIGH, TOKEN_DOC)
+                .define(URI_CONF, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, URI_DOC)
+                .define(RAW_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.MEDIUM, RAW_DOC)
+                .define(ACK_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.MEDIUM, ACK_DOC)
+                .define(INDEX_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, INDEX_DOC)
+                .define(SOURCETYPE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, SOURCETYPE_DOC)
+                .define(SOURCE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, SOURCE_DOC)
+                .define(HTTP_KEEPALIVE_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, HTTP_KEEPALIVE_DOC)
+                .define(SSL_VALIDATE_CERTIFICATES_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, SSL_VALIDATE_CERTIFICATES_DOC)
+                .define(SSL_TRUSTSTORE_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PATH_DOC)
+                .define(SSL_TRUSTSTORE_PASSWORD_CONF, ConfigDef.Type.PASSWORD, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PASSWORD_DOC)
+                .define(EVENT_TIMEOUT_CONF, ConfigDef.Type.INT, 300, ConfigDef.Importance.MEDIUM, EVENT_TIMEOUT_DOC)
+                .define(ACK_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 10, ConfigDef.Importance.MEDIUM, ACK_POLL_INTERVAL_DOC)
+                .define(ACK_POLL_THREADS_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.MEDIUM, ACK_POLL_THREADS_DOC)
+                .define(MAX_HTTP_CONNECTION_PER_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.MEDIUM, MAX_HTTP_CONNECTION_PER_CHANNEL_DOC)
+                .define(TOTAL_HEC_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.HIGH, TOTAL_HEC_CHANNEL_DOC)
+                .define(SOCKET_TIMEOUT_CONF, ConfigDef.Type.INT, 60, ConfigDef.Importance.LOW, SOCKET_TIMEOUT_DOC)
+                .define(ENRICHMENT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.LOW, ENRICHMENT_DOC)
+                .define(TRACK_DATA_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.LOW, TRACK_DATA_DOC)
+                .define(USE_RECORD_TIMESTAMP_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, USE_RECORD_TIMESTAMP_DOC)
+                .define(HEC_THREDS_CONF, ConfigDef.Type.INT, 1, ConfigDef.Importance.LOW, HEC_THREADS_DOC)
+                .define(LINE_BREAKER_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, LINE_BREAKER_DOC)
+                .define(MAX_OUTSTANDING_EVENTS_CONF, ConfigDef.Type.INT, 1000000, ConfigDef.Importance.MEDIUM, MAX_OUTSTANDING_EVENTS_DOC)
+                .define(MAX_RETRIES_CONF, ConfigDef.Type.INT, -1, ConfigDef.Importance.MEDIUM, MAX_RETRIES_DOC)
+                .define(HEC_EVENT_FORMATTED_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.LOW, HEC_EVENT_FORMATTED_DOC)
+                .define(MAX_BATCH_SIZE_CONF, ConfigDef.Type.INT, 500, ConfigDef.Importance.MEDIUM, MAX_BATCH_SIZE_DOC)
+                .define(HEADER_SUPPORT_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.MEDIUM, HEADER_SUPPORT_DOC)
+                .define(HEADER_CUSTOM_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, HEADER_CUSTOM_DOC)
+                .define(HEADER_INDEX_CONF, ConfigDef.Type.STRING, "splunk.header.index", ConfigDef.Importance.MEDIUM, HEADER_INDEX_DOC)
+                .define(HEADER_SOURCE_CONF, ConfigDef.Type.STRING, "splunk.header.source", ConfigDef.Importance.MEDIUM, HEADER_SOURCE_DOC)
+                .define(HEADER_SOURCETYPE_CONF, ConfigDef.Type.STRING, "splunk.header.sourcetype", ConfigDef.Importance.MEDIUM, HEADER_SOURCETYPE_DOC)
+                .define(HEADER_HOST_CONF, ConfigDef.Type.STRING, "splunk.header.host", ConfigDef.Importance.MEDIUM, HEADER_HOST_DOC);
     }
-
     /**
-        Configuration Method to setup all settings related to Splunk HEC Client
+     Configuration Method to setup all settings related to Splunk HEC Client
      */
     public HecConfig getHecConfig() {
         HecConfig config = new HecConfig(Arrays.asList(splunkURI.split(",")), splunkToken);
         config.setDisableSSLCertVerification(!validateCertificates)
-               .setSocketTimeout(socketTimeout)
-               .setMaxHttpConnectionPerChannel(maxHttpConnPerChannel)
-               .setTotalChannels(totalHecChannels)
-               .setEventBatchTimeout(eventBatchTimeout)
-               .setHttpKeepAlive(httpKeepAlive)
-               .setAckPollInterval(ackPollInterval)
-               .setAckPollThreads(ackPollThreads)
-               .setEnableChannelTracking(trackData)
-               .setTrustStorePath(trustStorePath)
-               .setTrustStorePassword(trustStorePassword)
-               .setHasCustomTrustStore(hasTrustStorePath);
+              .setSocketTimeout(socketTimeout)
+              .setMaxHttpConnectionPerChannel(maxHttpConnPerChannel)
+              .setTotalChannels(totalHecChannels)
+              .setEventBatchTimeout(eventBatchTimeout)
+              .setHttpKeepAlive(httpKeepAlive)
+              .setAckPollInterval(ackPollInterval)
+              .setAckPollThreads(ackPollThreads)
+              .setEnableChannelTracking(trackData)
+              .setTrustStorePath(trustStorePath)
+              .setTrustStorePassword(trustStorePassword)
+              .setHasCustomTrustStore(hasTrustStorePath);
         return config;
     }
 
@@ -266,6 +309,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 + "indexes:" + indexes + ", "
                 + "sourcetypes:" + sourcetypes + ", "
                 + "sources:" + sources + ", "
+                + "headerSupport:" + headerSupport + ", "
+                + "headerCustom:" + headerCustom + ", "
                 + "httpKeepAlive:" + httpKeepAlive + ", "
                 + "validateCertificates:" + validateCertificates + ", "
                 + "trustStorePath:" + trustStorePath + ", "
@@ -282,7 +327,14 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 + "maxOutstandingEvents: " + maxOutstandingEvents + ", "
                 + "maxRetries: " + maxRetries + ", "
                 + "useRecordTimestamp: " + useRecordTimestamp + ", "
-                + "trackData: " + trackData;
+                + "hecEventFormatted" + hecEventFormatted + ", "
+                + "trackData: " + trackData + ","
+                + "headerSupport:" + headerSupport + ","
+                + "headerCustom:" + headerCustom + ","
+                + "headerIndex:" + headerIndex + ","
+                + "headerSource:" + headerSource + ","
+                + "headerSourcetype:" + headerSourcetype + ","
+                + "headerHost" + headerHost;
     }
 
     private static String[] split(String data, String sep) {
