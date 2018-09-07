@@ -29,21 +29,21 @@ Splunk Connect for Kafka is a Kafka Connect Sink for Splunk with the following f
 4. Within Kafka Connect, adjust values for `bootstrap.servers` and `plugin.path` inside `config/connect-distributed.properties` to fit your environment. The following values are also required:
 
     ```
-key.converter=<org.apache.kafka.connect.storage.StringConverter|org.apache.kafka.connect.json.JsonConverter|io.confluent.connect.avro.AvroConverter>
-value.converter=<org.apache.kafka.connect.storage.StringConverter|org.apache.kafka.connect.json.JsonConverter|io.confluent.connect.avro.AvroConverter>
-internal.key.converter=org.apache.kafka.connect.json.JsonConverter
-internal.value.converter=org.apache.kafka.connect.json.JsonConverter
-internal.key.converter.schemas.enable=false
-internal.value.converter.schemas.enable=false
-offset.flush.interval.ms=10000
+	key.converter=<org.apache.kafka.connect.storage.StringConverter|org.apache.kafka.connect.json.JsonConverter|io.confluent.connect.avro.AvroConverter>
+	value.converter=<org.apache.kafka.connect.storage.StringConverter|org.apache.kafka.connect.json.JsonConverter|io.confluent.connect.avro.AvroConverter>
+	internal.key.converter=org.apache.kafka.connect.json.JsonConverter
+	internal.value.converter=org.apache.kafka.connect.json.JsonConverter
+	internal.key.converter.schemas.enable=false
+	internal.value.converter.schemas.enable=false
+	offset.flush.interval.ms=10000
 
-- For StringConverter and JsonConverter only -
-key.converter.schemas.enable=false
-value.converter.schemas.enable=false
+	- For StringConverter and JsonConverter only -
+	key.converter.schemas.enable=false
+	value.converter.schemas.enable=false
 
-- For AvroConverter only -
-key.converter.schema.registry.url=<Location of Avro schema registry>
-value.converter.schema.registry.url=<Location of Avro schema registry>
+	- For AvroConverter only -
+	key.converter.schema.registry.url=<Location of Avro schema registry>
+	value.converter.schema.registry.url=<Location of Avro schema registry>
 
     ```
 
