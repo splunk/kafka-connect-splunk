@@ -6,7 +6,7 @@ Splunk Connect for Kafka is a Kafka Connect Sink for Splunk with the following f
 * In-flight data transformation and enrichment.
 
 ## Requirements
-1. Kafka version 0.10 and above.
+1. Kafka version 1.0.0 and above.
 2. Java 8 and above.
 3. A Splunk environment of version 6.5 and above, configured with valid HTTP Event Collector (HEC) tokens.
 
@@ -144,10 +144,17 @@ bootstrap.servers=<BOOTSTRAP_SERVERS>
 plugin.path=<PLUGIN_PATH>
 
 #Required
-key.converter=org.apache.kafka.connect.storage.StringConverter
-value.converter=org.apache.kafka.connect.storage.StringConverter
+key.converter=<org.apache.kafka.connect.storage.StringConverter|org.apache.kafka.connect.json.JsonConverter|io.confluent.connect.avro.AvroConverter>
+value.converter=<org.apache.kafka.connect.storage.StringConverter|org.apache.kafka.connect.json.JsonConverter|io.confluent.connect.avro.AvroConverter>
+
+- For StringConverter and JsonConverter only -
 key.converter.schemas.enable=false
 value.converter.schemas.enable=false
+
+- For AvroConverter only -
+key.converter.schema.registry.url=<Location of Avro schema registry>
+value.converter.schema.registry.url=<Location of Avro schema registry>
+
 internal.key.converter=org.apache.kafka.connect.json.JsonConverter
 internal.value.converter=org.apache.kafka.connect.json.JsonConverter
 internal.key.converter.schemas.enable=false
@@ -162,8 +169,6 @@ group.id=kafka-connect-splunk-hec-sink
 
 Please create or modify a Kafka Connect worker properties file to contain these parameters. The default worker properties file is `$KAFKA_CONNECT_HOME/config/connect-distrubuted.properties`. Ensure to replace `<BOOTSTRAP_SERVERS>` to point to your Kafka brokers (ex. `localhost:9092`) and ensure `<PLUGIN_PATH>` points to the top-level directory of where you are storing your connectors. (ex. `/opt/connectors/`).
     
-> Note: - If running Kafka Version 0.10.x - PLUGIN_PATH is not a valid configuration property. To make the connector visible to Kafka Connect the connectors folder must be added to your Java classpath.
-
 4. Start/Restart Kafka Connect - (for ex. `$KAFKA_CONNECT_HOME/bin/connect-distributed.sh $KAFKA_CONNECT_HOME/config/connect-distrubuted.properties`).
 
 5. Validate your connector deployment by running the following command curl `http://<KAFKA_CONNECT_HOST>:8083/connector-plugins`. Response should have an entry named `com.splunk.kafka.connect.SplunkSinkConnector`.
@@ -171,175 +176,14 @@ Please create or modify a Kafka Connect worker properties file to contain these 
 ## Security
 Splunk Connect for Kafka supports the following security mechanisms:
 * `SSL`
-* `SASL/GSSAPI (Kerberos)` - starting at version 0.9.0.0
-* `SASL/PLAIN` - starting at version 0.10.0.0
-* `SASL/SCRAM-SHA-256 and SASL/SCRAM-SHA-512` - starting at version 0.10.2.0
+* `SASL/GSSAPI (Kerberos)`
+* `SASL/PLAIN`
+* `SASL/SCRAM-SHA-256 and SASL/SCRAM-SHA-512`
 
 See [Confluent's documentation](https://docs.confluent.io/current/connect/security.html#security) to understand the impact of using security within the Kafka Connect framework, specifically [ACL considerations](https://docs.confluent.io/current/connect/security.html#acl-considerations).
 
 The following examples assume you're deploying to an [existing Kafka Connect cluster](#connector-in-an-existing-kafka-connect-cluster) or a [dedicated Kafka Connect cluster](#connector-in-a-dedicated-kafka-connect-cluster).
 
-If you are using [Quick Start](#quick-start), adjust the config file to **config/connect-distributed-quickstart.properties**.
-
-### SSL
-This section documents how to configure Kafka Connect if your Kafka Cluster is secured using [SSL](http://kafka.apache.org/documentation/#security_ssl).
-
-Configure the Kafka Connect worker and consumer settings to use SSL in **config/connect-distributed.properties**
-
-```
-# Worker security are located at the top level
-security.protocol=SSL
-ssl.truststore.location=/var/private/ssl/kafka.client.truststore.jks
-ssl.truststore.password=test1234
-
-# Sink security settings are prefixed with "consumer."
-consumer.security.protocol=SSL
-consumer.ssl.truststore.location=/var/private/ssl/kafka.client.truststore.jks
-consumer.ssl.truststore.password=test1234
-```
-
-> Note: You will need to adjust the settings **consumer.ssl.truststore.location** and **ssl.truststore.password** to reflect your setup.
-
-> Note: As of now, there is no way to change the configuration for connectors individually, but if your server supports client authentication over SSL, it is possible to use a separate principal for the worker and the connectors. See [Confluent's documentation on configuring workers and connectors with security](https://docs.confluent.io/current/connect/security.html#configuring-connectors-with-security) for more information.
-
-Start Kafka Connect
-
-```
-./bin/connect-distributed.sh config/connect-distributed-quickstart.properties
-```
-
-Workers and sink tasks should work with your SSL secured cluster.
-
-### SASL/GSSAPI (Kerberos)
-This section documents how to configure Kafka Connect if your Kafka Cluster is secured using [Kerberos](http://kafka.apache.org/documentation/#security_sasl_kerberos).
-
-Configure the Kafka Connect worker and consumer settings to use Kerberos in **config/connect-distributed.properties**
-
-```
-# Worker security are located at the top level
-security.protocol=SASL_PLAINTEXT
-sasl.mechanism=GSSAPI
-
-# Sink security settings are prefixed with "consumer."
-consumer.sasl.mechanism=GSSAPI
-consumer.security.protocol=SASL_PLAINTEXT
-sasl.kerberos.service.name=kafka
-```
-
-Modify **bin/connect-distributed.sh** by editing the `EXTRA_ARGS` environment variable. Pass in the location of the JAAS conf file. Optionally, you can specify the path to your Kerberos config file and set Kerberos debugging to true for troubleshooting connection issues.
-
-```
-EXTRA_ARGS=${EXTRA_ARGS-'-name connectDistributed -Djava.security.krb5.conf=/etc/krb5.conf -Djava.security.auth.login.config=/root/kafka_connect_jaas.conf -Dsun.security.krb5.debug=true'}
-```
-
-See [Confluent's documentation](https://docs.confluent.io/current/kafka/sasl.html#sasl-configuration-for-kafka-clients) for more information on configuring Kafka Connect using JAAS.
-
-For example, a Kafka Client JAAS file using the principal `connect`.
-
-```
-KafkaClient {
-	com.sun.security.auth.module.Krb5LoginModule required
-	useKeyTab=true
-	storeKey=true
-	keyTab="/etc/security/keytabs/connect.keytab"
-	principal="connect/_HOST@REALM";
-};
-
-```
-> Note: Modify the **keyTab** and **principal** settings to reflect your environment.
-
-Start Kafka Connect
-
-```
-./bin/connect-distributed.sh config/connect-distributed.properties
-```
-
-Workers and sink tasks should work with your Kerberos secured cluster.
-
-### SASL/PLAIN
-> Warning: Do not run SASL/PLAIN in produciton without SSL. See [Confluent's documentation](https://docs.confluent.io/current/kafka/sasl.html#use-of-sasl-plain-in-production) for details.
-
-This section documents how to configure Kafka Connect if your Kafka Cluster is secured using [SASL/PLAIN](http://kafka.apache.org/documentation/#security_sasl_plain).
-
-Configure the Kafka Connect worker and consumer settings to use SASL/PLAIN in **config/connect-distributed.properties**
-
-```
-# Worker security are located at the top level
-security.protocol=SASL_SSL
-sasl.mechanism=PLAIN
-
-# Sink security settings are prefixed with "consumer."
-consumer.security.protocol=SASL_SSL
-consumer.sasl.mechanism=PLAIN
-```
-
-Modify **bin/connect-distributed.sh** by editing the `EXTRA_ARGS` environment variable. Pass in the location of the JAAS conf file.
-
-```
-EXTRA_ARGS=${EXTRA_ARGS-'-name connectDistributed -Djava.security.auth.login.config=/root/kafka_connect_jaas.conf'}
-```
-
-See [Confluent's documentation](https://docs.confluent.io/current/kafka/sasl.html#sasl-configuration-for-kafka-clients) for more information on configuring Kafka Connect using JAAS.
-
-For example, a Kafka Client JAAS file for SASL/PLAIN.
-
-```
-KafkaClient {
-  org.apache.kafka.common.security.plain.PlainLoginModule required
-  username="alice"
-  password="alice-secret";
-};
-```
-
-Start Kafka Connect
-
-```
-./bin/connect-distributed.sh config/connect-distributed.properties
-```
-
-Workers and sink tasks should work with your SASL/PLAIN secured cluster.
-
-### SASL/SCRAM-SHA-256 and SASL/SCRAM-SHA-512
-
-This section documents how to configure Kafka Connect if your Kafka Cluster is secured using [SASL/SCRAM](http://kafka.apache.org/documentation/#security_sasl_scram).
-
-Configure the Kafka Connect worker and consumer settings to use SASL/SCRAM in **config/connect-distributed.properties**
-
-```
-# Worker security are located at the top level
-security.protocol=SASL_SSL
-sasl.mechanism=SCRAM-SHA-256 (or SCRAM-SHA-512)
-
-# Sink security settings are prefixed with "consumer."
-consumer.security.protocol=SASL_SSL
-consumer.sasl.mechanism=SCRAM-SHA-256 (or SCRAM-SHA-512)
-```
-
-Modify **bin/connect-distributed.sh** by editing the `EXTRA_ARGS` environment variable. Pass in the location of the JAAS conf file.
-
-```
-EXTRA_ARGS=${EXTRA_ARGS-'-name connectDistributed -Djava.security.auth.login.config=/root/kafka_connect_jaas.conf'}
-```
-
-See [Confluent's documentation](https://docs.confluent.io/current/kafka/sasl.html#sasl-configuration-for-kafka-clients) for more information on configuring Kafka Connect using JAAS.
-
-For example, a Kafka Client JAAS file for SASL/SCRAM.
-
-```
-KafkaClient {
-  org.apache.kafka.common.security.scram.ScramLoginModule required
-  username="alice"
-  password="alice-secret";
-};
-```
-
-Start Kafka Connect
-
-```
-./bin/connect-distributed.sh config/connect-distributed.properties
-```
-
-Workers and sink tasks should work with your SASL/SCRAM secured cluster.
 
 ## Configuration
 
@@ -353,36 +197,46 @@ Use the below schema to configure Splunk Connect for Kafka
 {
 "name": "<connector-name>",
 "config": {
-   "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
-   "tasks.max": "<number-of-tasks>",
-   "topics": "<list-of-topics-separated-by-comma>",
-   "splunk.indexes": "<list-of-indexes-for-topics-data-separated-by-comma>",
-   "splunk.sources": "<list-of-sources-for-topics-data-separated-by-comma>",
-   "splunk.sourcetypes": "<list-of-sourcetypes-for-topics-data-separated-by-comma>",
-   "splunk.hec.uri": "<Splunk-HEC-URI>",
-   "splunk.hec.token": "<Splunk-HEC-Token>",
-   "splunk.hec.raw": "<true|false>",
-   "splunk.hec.raw.line.breaker": "<line breaker separator>",
-   "splunk.hec.json.event.enrichment": "<key value pairs separated by comma, only applicable to /event HEC>",
-   "splunk.hec.ack.enabled": "<true|false>",
-   "splunk.hec.ack.poll.interval": "<event ack poll interval>",
-   "splunk.hec.ack.poll.threads": "<number of threads used to poll event acks>",
-   "splunk.hec.ssl.validate.certs": "<true|false>",
-   "splunk.hec.http.keepalive": "<true|false>",
-   "splunk.hec.max.http.connection.per.channel": "<max number of http connections per channel>",
-   "splunk.hec.total.channels": "<total number of channels>",
-   "splunk.hec.max.batch.size": "<max number of kafka records post in one batch>",
-   "splunk.hec.threads": "<number of threads to use to do HEC post for single task>",
-   "splunk.hec.event.timeout": "<timeout in seconds>",
-   "splunk.hec.socket.timeout": "<timeout in seconds>",
-   "splunk.hec.track.data": "<true|false, tracking data loss and latency, for debugging lagging and data loss>"
-   "splunk.header.support": "<true|false>",
-   "splunk.header.custom": "<list-of-custom-headers-to-be-used-from-kafka-headers-separated-by-comma>", 
-   "splunk.header.index": "<header-value-to-be-used-as-splunk-index>",
-   "splunk.header.source": "<header-value-to-be-used-as-splunk-source>",
-   "splunk.header.sourcetype": "<header-value-to-be-used-as-splunk-sourcetype>",
-   "splunk.header.host": "<header-value-to-be-used-as-splunk-host>"
-  }
+ "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+ "tasks.max": "<number-of-tasks>",
+ "topics": "<list-of-topics-separated-by-comma>",
+ "splunk.indexes":
+"<list-of-indexes-for-topics-data-separated-by-comma>",
+ "splunk.sources":
+"<list-of-sources-for-topics-data-separated-by-comma>",
+ "splunk.sourcetypes":
+"<list-of-sourcetypes-for-topics-data-separated-by-comma>",
+ "splunk.hec.uri": "<Splunk-HEC-URI>",
+ "splunk.hec.token": "<Splunk-HEC-Token>",
+ "splunk.hec.raw": "<true|false>",
+ "splunk.hec.raw.line.breaker": "<line breaker separator>",
+ "splunk.hec.json.event.enrichment": "<key value pairs separated by
+comma, only applicable to /event HEC>",
+ "splunk.hec.ack.enabled": "<true|false>",
+ "splunk.hec.ack.poll.interval": "<event ack poll interval>",
+ "splunk.hec.ack.poll.threads": "<number of threads used to poll
+event acks>",
+ "splunk.hec.ssl.validate.certs": "<true|false>",
+ "splunk.hec.http.keepalive": "<true|false>",
+ "splunk.hec.max.http.connection.per.channel": "<max number of http
+connections per channel>",
+ "splunk.hec.total.channels": "<total number of channels>",
+ "splunk.hec.max.batch.size": "<max number of kafka records post in
+one batch>",
+ "splunk.hec.threads": "<number of threads to use to do HEC post for
+single task>",
+ "splunk.hec.event.timeout": "<timeout in seconds>",
+ "splunk.hec.socket.timeout": "<timeout in seconds>",
+ "splunk.hec.track.data": "<true|false, tracking data loss and
+latency, for debugging lagging and data loss>",
+ "splunk.header.support": "<true|false>",
+ "splunk.header.custom": "<custom_header_1,custom_header_2,custom_header_3>",
+ "splunk.header.index": "<reocrd header key to be used for index>",
+ "splunk.header.source": "<reocrd header key to be used for source>",
+ "splunk.header.sourcetype": "<reocrd header key to be used for sourcetype>",
+ "splunk.header.host": "<reocrd header key to be used for host>",
+ "splunk.hec.json.event.formatted": "<true|false>"
+ }
 }
 ```
 
@@ -410,6 +264,7 @@ Use the below schema to configure Splunk Connect for Kafka
 | `splunk.hec.max.batch.size` | Maximum batch size when posting events to Splunk. The size is the actual number of Kafka events, and not byte size. |`100`|
 | `splunk.hec.threads` | Controls how many threads are spawned to do data injection via HEC in a **single** connector task. |`1`|
 | `splunk.hec.socket.timeout` | Internal TCP socket timeout when connecting to Splunk. Value is in seconds. |`60`|
+| `splunk.hec.json.event.formatted` | Valid settings are `true` or `false`. Allows HEC-formatted events to pass through as is. |`false`|
 ### Acknowledgement Parameters
 #### Use Ack
 | Name              | Description                | Default Value  |
@@ -618,56 +473,6 @@ Splunk Connect for Kafka uses the timestamp of the record to track the time elap
 ### Malformed data
 
 If the raw data of the Kafka records is a JSON object but is not able to be marshaled, or if the raw data is in bytes but it is not UTF-8 encodable, Splunk Connect for Kafka considers these records malformed. It will log the exception with Kafka specific information (topic, partition, offset) for these records within the console, as well as the malformed records information will be indexed in Splunk. Users can search "type=malformed" within Splunk to return any malformed Kafka records encountered.
-
-## FAQ
-
-1. When should I use HEC acknowledgements?
-
-	Enable HEC token acknowledgements to avoid data loss. Without HEC token acknowledgement, data loss may occur, especially in case of a system restart or crash.
-
-2. When should I use /raw HEC endpoint and /event HEC endpoint?
-
-	If raw events need go through Splunk's index time extraction to use features like timestamp extraction or data manipulation for raw data, you will need use HEC's /raw event endpoint.
-	When using the /raw HEC endpoint and when your raw data does not contain a timestamp or contains multiple timestamps or carriage returns, you may want to configure the **splunk.hec.raw.line.breaker** and setup a corresponding **props.conf** inside your Splunk platform to honor this line breaker setting. This will assist Splunk to do event breaking.
-	Example:
-
-	In connection configuration, set **"splunk.hec.raw.line.breaker":"####"** for sourcetype "s1"
-
-	In **props.conf**, you can set up the line breaker as follows.
-
-	```
-	[s1] # sourcetype name
-	LINE_BREAKER = (####)
-	SHOULD_LINEMERGE = false
-	```
-
-   If you don't care about the timestamp, or by default, the auto assigned timestamp is good enough, then stick to the /event HEC endpoint.
-
-4. How many tasks should I configure?
-
-	Do not create more tasks than the number of partitions. Generally speaking, creating 2 * CPU tasks per instance of Splunk Connect for Kafka is a safe estimate.
-	> Note: For example, assume there are 5 Kafka Connects running Splunk Connect for Kafka. Each host is 8 CPUs with 16 GB memory. And there are 200 partitions to collect data from. `max.tasks` will be: `max.tasks` = 2 * CPUs/host * Kafka Connect instances = 2 * 8 * 5 = 80 tasks. Alternatively, if there are only 60 partitions to consume from, then just set max.tasks to 60. Otherwise, the remaining 20 will be pending, doing nothing.
-
-5. How many Kafka Connect instances should I deploy?
-
-	This is highly dependent on how much volume per day Splunk Connect for Kafka needs to index in Splunk. In general an 8 CPU, 16 GB memory machine, can potentially achieve 50 - 60 MB/s throughput from Kafka into Splunk if Splunk is sized correctly.
-
-6. How can I track data loss and data collection latency?
-
-	Please refer to the **Data loss and latency monitoring** section.
-
-7. Is there a recommended deployment architecture?
-
-	There are two typical architectures.
-
-	* Setting up a heavy forwarder layer in front of a Splunk platform indexer cluster in order to offload the data injection load to your Splunk platform indexer cluster. Setting up a heavy forwarder layer has performance benefits for the Splunk search app.
-
-		Kafka Connect Cluster (in containers or virtual machines or physical machines) -> Heavy Forwarders (HEC) -> Splunk Indexer Cluster
-
-	* Direct inject data to Splunk Indexer cluster
-
-		Kafka Connect Cluster (in containers or virtual machines or physical machines) -> Splunk Indexer Cluster (HEC)
-
 
 ## Troubleshooting
 
