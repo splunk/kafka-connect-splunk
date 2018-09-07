@@ -25,11 +25,30 @@ Splunk Connect for Kafka is a Kafka Connect Sink for Splunk with the following f
 
 1. [Start](https://kafka.apache.org/quickstart) your Kafka Cluster and confirm it is running.
 2. If this is a new install, create a test topic (eg: `perf`). Inject events into the topic. This can be done using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen) or the Kafka bundle [kafka-console-producer](https://kafka.apache.org/quickstart#quickstart_send).
-3. Place the jar file created by the maven build (splunk-kafka-connect-v*.jar) in or under the location specified in `plugin.path` (see step 5).
-4. Navigate to splunk-kafka-connect directory `cd splunk-kafka-connect`.
-5. Adjust values for `bootstrap.servers` and `plugin.path` inside `config/connect-distributed-quickstart.properties` to fit your environment. Default values should work for experimentation.
-6. Run `./bin/connect-distributed.sh config/connect-distributed-quickstart.properties` to start Kafka Connect.
-7. Run the following command to create connector tasks. Adjust `topics` to set the topic, and  `splunk.hec.token`  to set your HEC token.
+3. Place the jar file created by the maven build (splunk-kafka-connect-v*.jar) in or under the location specified in `plugin.path` (see step 4).
+4. Within Kafka Connect, adjust values for `bootstrap.servers` and `plugin.path` inside `config/connect-distributed.properties` to fit your environment. The following values are also required:
+
+    ```
+key.converter=<org.apache.kafka.connect.storage.StringConverter|org.apache.kafka.connect.json.JsonConverter|io.confluent.connect.avro.AvroConverter>
+value.converter=<org.apache.kafka.connect.storage.StringConverter|org.apache.kafka.connect.json.JsonConverter|io.confluent.connect.avro.AvroConverter>
+internal.key.converter=org.apache.kafka.connect.json.JsonConverter
+internal.value.converter=org.apache.kafka.connect.json.JsonConverter
+internal.key.converter.schemas.enable=false
+internal.value.converter.schemas.enable=false
+offset.flush.interval.ms=10000
+
+- For StringConverter and JsonConverter only -
+key.converter.schemas.enable=false
+value.converter.schemas.enable=false
+
+- For AvroConverter only -
+key.converter.schema.registry.url=<Location of Avro schema registry>
+value.converter.schema.registry.url=<Location of Avro schema registry>
+
+    ```
+
+5. Run `./bin/connect-distributed.sh config/connect-distributed.properties` to start Kafka Connect.
+6. Run the following command to create connector tasks. Adjust `topics` to set the topic, and  `splunk.hec.token`  to set your HEC token.
 
     ```
 	curl localhost:8083/connectors -X POST -H "Content-Type: application/json" -d '{
@@ -62,8 +81,8 @@ Splunk Connect for Kafka is a Kafka Connect Sink for Splunk with the following f
 	}'
     ```
 
-8. Verify that data is flowing into your Splunk platform instance by searching using the index, sourcetype or source from your configuration.
-9. Use the following commands to check status, and manage connectors and tasks:
+7. Verify that data is flowing into your Splunk platform instance by searching using the index, sourcetype or source from your configuration.
+8. Use the following commands to check status, and manage connectors and tasks:
 
     ```
     # List active connectors
