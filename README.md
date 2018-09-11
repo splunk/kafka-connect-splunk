@@ -25,28 +25,28 @@ Splunk Connect for Kafka is a Kafka Connect Sink for Splunk with the following f
 
 1. [Start](https://kafka.apache.org/quickstart) your Kafka Cluster and confirm it is running.
 2. If this is a new install, create a test topic (eg: `perf`). Inject events into the topic. This can be done using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen) or the Kafka bundle [kafka-console-producer](https://kafka.apache.org/quickstart#quickstart_send).
-3. Within Kafka Connect, adjust values for `bootstrap.servers` and `plugin.path` inside `config/connect-distributed.properties` to fit your environment.
+3. Within your Kafka Connect deployment adjust the values for `bootstrap.servers` and `plugin.path` inside the `$KAFKA_HOME/config/connect-distributed.properties` file. `bootstrap.servers` should be configured to point to your Kafka Brokers. `plugin.path` should be configured to point to the install directory of your Kafka Connect Sink and Source Connectors. For more information on installing Kafka Connect plugins please refer to the [Confluent Documentation.](https://docs.confluent.io/current/connect/userguide.html#id3)
 4. Place the jar file created by the `mvn package` (`splunk-kafka-connect-[VERSION].jar`) in or under the location specified in `plugin.path` 
 5. Run `./bin/connect-distributed.sh config/connect-distributed.properties` to start Kafka Connect.
-6. Run the following command to create connector tasks. Adjust `topics` to set the topic, and  `splunk.hec.token`  to set your HEC token.
+6. Run the following command to create connector tasks. Adjust `topics` to set the topic, and  `splunk.hec.token`  to set your HEC token and `splunk.hec.uri` to the URI for your Splunk HEC endpoint. For more information on Splunk HEC configuration refer to [Splunk Documentation.](http://docs.splunk.com/Documentation/SplunkCloud/latest/Data/UsetheHTTPEventCollector)
 
 ```
-curl localhost:8083/connectors -X POST -H "Content-Type: application/json" -d '{
-"name": "kafka-connect-splunk",
-"config": {
-   "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
-   "tasks.max": "3",
-   "topics":"<YOUR_TOPIC>",
-   "splunk.hec.uri": "https://localhost:8088",
-   "splunk.hec.token": "<YOUR_TOKEN>"
-  }
-}'    
+  curl localhost:8083/connectors -X POST -H "Content-Type: application/json" -d '{
+    "name": "kafka-connect-splunk",
+    "config": {
+      "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+      "tasks.max": "3",
+      "topics":"<YOUR_TOPIC>",
+      "splunk.hec.uri": "<SPLUNK_HEC_URI:SPLUNK_HEC_PORT>",
+      "splunk.hec.token": "<YOUR_TOKEN>"
+    }
+  }'    
 ```
 
 7. Verify that data is flowing into your Splunk platform instance by searching using the index, sourcetype or source from your configuration.
 8. Use the following commands to check status, and manage connectors and tasks:
 
-
+```
     # List active connectors
     curl http://localhost:8083/connectors
 
@@ -61,9 +61,9 @@ curl localhost:8083/connectors -X POST -H "Content-Type: application/json" -d '{
 
     # Get kafka-connect-splunk connector task info
     curl http://localhost:8083/connectors/kafka-connect-splunk/tasks
-    ```
+```
 
-    See the [the Confluent doucumentation](https://docs.confluent.io/current/connect/managing.html#common-rest-examples) for additional REST examples.
+See the [the Confluent doucumentation](https://docs.confluent.io/current/connect/managing.html#common-rest-examples) for additional REST examples.
 
 ## Deployment
 
