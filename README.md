@@ -25,41 +25,22 @@ Splunk Connect for Kafka is a Kafka Connect Sink for Splunk with the following f
 
 1. [Start](https://kafka.apache.org/quickstart) your Kafka Cluster and confirm it is running.
 2. If this is a new install, create a test topic (eg: `perf`). Inject events into the topic. This can be done using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen) or the Kafka bundle [kafka-console-producer](https://kafka.apache.org/quickstart#quickstart_send).
-3. Place the jar file created by the maven build (`splunk-kafka-connect-[VERSION].jar`) in or under the location specified in `plugin.path` (see step 4).
+3. Place the jar file created by the maven package (`splunk-kafka-connect-[VERSION].jar`) in or under the location specified in `plugin.path` (see step 4).
 4. Within Kafka Connect, adjust values for `bootstrap.servers` and `plugin.path` inside `config/connect-distributed.properties` to fit your environment. 
 5. Run `./bin/connect-distributed.sh config/connect-distributed.properties` to start Kafka Connect.
 6. Run the following command to create connector tasks. Adjust `topics` to set the topic, and  `splunk.hec.token`  to set your HEC token.
 
     ```
-	curl localhost:8083/connectors -X POST -H "Content-Type: application/json" -d '{
-	"name": "kafka-connect-splunk",
-	"config": {
-	   "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
-	   "tasks.max": "3",
-	   "topics":"<YOUR_TOPIC>",
-	   "splunk.indexes": "",
-	   "splunk.sources": "",
-	   "splunk.sourcetypes": "",
-	   "splunk.hec.uri": "https://localhost:8088",
-	   "splunk.hec.token": "<YOUR_TOKEN>",
-	   "splunk.hec.raw": "true",
-	   "splunk.hec.raw.line.breaker": "",
-	   "splunk.hec.json.event.enrichment": "<key value pairs separated by comma, only applicable to /event HEC>",
-	   "splunk.hec.ack.enabled": "true",
-	   "splunk.hec.ack.poll.interval": "10",
-	   "splunk.hec.ack.poll.threads": "2",
-	   "splunk.hec.ssl.validate.certs": "false",
-	   "splunk.hec.http.keepalive": "true",
-	   "splunk.hec.max.http.connection.per.channel": "4",
-	   "splunk.hec.total.channels": "8",
-	   "splunk.hec.max.batch.size": "1000000",
-	   "splunk.hec.threads": "2",
-	   "splunk.hec.event.timeout": "300",
-	   "splunk.hec.socket.timeout": "120",
-	   "splunk.hec.track.data": "true"
-	  }
-	}'
-    ```
+curl localhost:8083/connectors -X POST -H "Content-Type: application/json" -d '{
+"name": "kafka-connect-splunk",
+"config": {
+   "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+   "tasks.max": "3",
+   "topics":"<YOUR_TOPIC>",
+   "splunk.hec.uri": "https://localhost:8088",
+   "splunk.hec.token": "<YOUR_TOKEN>"
+  }
+}'    ```
 
 7. Verify that data is flowing into your Splunk platform instance by searching using the index, sourcetype or source from your configuration.
 8. Use the following commands to check status, and manage connectors and tasks:
@@ -135,8 +116,6 @@ Use the below schema to configure Splunk Connect for Kafka
    "splunk.hec.json.event.formatted": "<true|false>",
    "splunk.hec.ssl.trust.store.path": "<Java KeyStore location>",
    "splunk.hec.ssl.trust.store.password": "<Java KeyStore password>"
- }
-
   }
 }
 ```
