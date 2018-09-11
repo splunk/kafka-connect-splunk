@@ -19,23 +19,14 @@ Splunk Connect for Kafka is a Kafka Connect Sink for Splunk with the following f
 
 1. Clone the repo from https://github.com/splunk/kafka-connect-splunk
 2. Verify that Java8 JRE or JDK is installed.
-3. Run `mvn package`. This will build the jar in the /target directory. The name will be "splunk-kafka-connect-[VERSION].jar".
+3. Run `mvn package`. This will build the jar in the /target directory. The name will be `splunk-kafka-connect-[VERSION].jar`.
 
 ## Quick Start
 
 1. [Start](https://kafka.apache.org/quickstart) your Kafka Cluster and confirm it is running.
 2. If this is a new install, create a test topic (eg: `perf`). Inject events into the topic. This can be done using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen) or the Kafka bundle [kafka-console-producer](https://kafka.apache.org/quickstart#quickstart_send).
 3. Place the jar file created by the maven build (splunk-kafka-connect-[VERSION].jar) in or under the location specified in `plugin.path` (see step 4).
-4. Within Kafka Connect, adjust values for `bootstrap.servers` and `plugin.path` inside `config/connect-distributed.properties` to fit your environment. The following values are also required:
-
-    ```
-	internal.key.converter=org.apache.kafka.connect.json.JsonConverter
-	internal.value.converter=org.apache.kafka.connect.json.JsonConverter
-	internal.key.converter.schemas.enable=false
-	internal.value.converter.schemas.enable=false
-	offset.flush.interval.ms=10000
-    ```
-
+4. Within Kafka Connect, adjust values for `bootstrap.servers` and `plugin.path` inside `config/connect-distributed.properties` to fit your environment. 
 5. Run `./bin/connect-distributed.sh config/connect-distributed.properties` to start Kafka Connect.
 6. Run the following command to create connector tasks. Adjust `topics` to set the topic, and  `splunk.hec.token`  to set your HEC token.
 
@@ -210,19 +201,23 @@ Use the below schema to configure Splunk Connect for Kafka
 
 ## Load balancing
 
-See [Splunk Docs](https://docs.splunk.com/Documentation/KafkaConnect/latest/User/LoadBalancing) for information on load balancing.
+[Use load balancing in your deployment.](https://docs.splunk.com/Documentation/KafkaConnect/latest/User/LoadBalancing)
 
 ## Benchmark Results
 
-See [Splunk Docs](https://docs.splunk.com/Documentation/KafkaConnect/latest/User/Planyourdeployment) for information on benchmark results.
+[Information on benchmarking results.](https://docs.splunk.com/Documentation/KafkaConnect/latest/User/Planyourdeployment) 
 
-## Scaling out your environment
+## Scale out your environment
 
-See [Splunk Docs](https://docs.splunk.com/Documentation/KafkaConnect/latest/User/ConfigureSplunkKafkaConnect#Scale_your_environment) for information on load balancing.
+[Scale your environment.](https://docs.splunk.com/Documentation/KafkaConnect/latest/User/ConfigureSplunkKafkaConnect#Scale_your_environment)
+
+## Data loss and latency monitoring
+
+[Guidelines for tracking data loss and latency.](https://docs.splunk.com/Documentation/KafkaConnect/latest/User/ConfigureSplunkKafkaConnect#Data_loss_and_latency_monitoring)
 
 ## Troubleshooting
 
-See [Splunk Docs](https://docs.splunk.com/Documentation/KafkaConnect/latest/User/Troubleshootyourdeployment) for information on troubleshooting.
+[Troubleshoot your deployment.](https://docs.splunk.com/Documentation/KafkaConnect/latest/User/Troubleshootyourdeployment)
 
 ## License
 
