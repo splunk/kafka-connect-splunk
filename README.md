@@ -25,7 +25,7 @@ Splunk Connect for Kafka is a Kafka Connect Sink for Splunk with the following f
 
 1. [Start](https://kafka.apache.org/quickstart) your Kafka Cluster and confirm it is running.
 2. If this is a new install, create a test topic (eg: `perf`). Inject events into the topic. This can be done using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen) or the Kafka bundle [kafka-console-producer](https://kafka.apache.org/quickstart#quickstart_send).
-3. Place the jar file created by the maven package (`splunk-kafka-connect-[VERSION].jar`) in or under the location specified in `plugin.path` (see step 4).
+3. Place the jar file created by the mvn package (`splunk-kafka-connect-[VERSION].jar`) in or under the location specified in `plugin.path` (see step 4).
 4. Within Kafka Connect, adjust values for `bootstrap.servers` and `plugin.path` inside `config/connect-distributed.properties` to fit your environment. 
 5. Run `./bin/connect-distributed.sh config/connect-distributed.properties` to start Kafka Connect.
 6. Run the following command to create connector tasks. Adjust `topics` to set the topic, and  `splunk.hec.token`  to set your HEC token.
