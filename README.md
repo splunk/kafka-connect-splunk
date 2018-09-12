@@ -24,11 +24,11 @@ Splunk Connect for Kafka is a Kafka Connect Sink for Splunk with the following f
 ## Quick Start
 
 1. [Start](https://kafka.apache.org/quickstart) your Kafka Cluster and confirm it is running.
-2. If this is a new install, create a test topic (eg: `perf`). Inject events into the topic. This can be done using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen) or the Kafka bundle [kafka-console-producer](https://kafka.apache.org/quickstart#quickstart_send).
+2. If this is a new install, create a test topic (eg: `perf`). Inject events into the topic. This can be done using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen) or the Kafka-bundled [kafka-console-producer](https://kafka.apache.org/quickstart#quickstart_send).
 3. Within your Kafka Connect deployment adjust the values for `bootstrap.servers` and `plugin.path` inside the `$KAFKA_HOME/config/connect-distributed.properties` file. `bootstrap.servers` should be configured to point to your Kafka Brokers. `plugin.path` should be configured to point to the install directory of your Kafka Connect Sink and Source Connectors. For more information on installing Kafka Connect plugins please refer to the [Confluent Documentation.](https://docs.confluent.io/current/connect/userguide.html#id3)
-4. Place the jar file created by the `mvn package` (`splunk-kafka-connect-[VERSION].jar`) in or under the location specified in `plugin.path` 
-5. Run `./bin/connect-distributed.sh config/connect-distributed.properties` to start Kafka Connect.
-6. Run the following command to create connector tasks. Adjust `topics` to set the topic, `splunk.indexes` to set the Splunk indexes, `splunk.hec.token` to set your HEC token and `splunk.hec.uri` to the URI for your Splunk HEC endpoint. For more information on Splunk HEC configuration refer to [Splunk Documentation.](http://docs.splunk.com/Documentation/SplunkCloud/latest/Data/UsetheHTTPEventCollector)
+4. Place the jar file created by `mvn package` (`splunk-kafka-connect-[VERSION].jar`) in or under the location specified in `plugin.path` 
+5. Run `.$KAFKA_HOME/bin/connect-distributed.sh $KAFKA_HOME/config/connect-distributed.properties` to start Kafka Connect.
+6. Run the following command to create connector tasks. Adjust `topics` to configure the Kafka topic to be ingested, `splunk.indexes` to set the destination Splunk indexes, `splunk.hec.token` to set your Http Event Collector (HEC) token and `splunk.hec.uri` to the URI for your destination Splunk HEC endpoint. For more information on Splunk HEC configuration refer to [Splunk Documentation.](http://docs.splunk.com/Documentation/SplunkCloud/latest/Data/UsetheHTTPEventCollector)
 
 ```
   curl localhost:8083/connectors -X POST -H "Content-Type: application/json" -d '{
@@ -77,7 +77,7 @@ See [Splunk Docs](https://docs.splunk.com/Documentation/KafkaConnect/latest/User
 ## Configuration
 
 After Kafka Connect is brought up on every host, all of the Kafka Connect instances will form a cluster automatically.
-A REST call can be executed against one of the cluster instances, and will automatically propogate to the other instances in the cluster.
+A REST call can be executed against one of the cluster instances, and the configuration will automatically propogate to all instances in the cluster.
 
 ### Configuration schema structure
 Use the below schema to configure Splunk Connect for Kafka
@@ -127,10 +127,10 @@ Use the below schema to configure Splunk Connect for Kafka
 #### Required Parameters
 | Name              | Description                | Default Value  |
 |--------           |----------------------------|-----------------------|
-|`name` | Connector name. A consumer group with this name will be created with tasks to be distributed evenly across the connector cluster nodes.||
+|`name` | Connector name. A consumer group with this name will be created with tasks to be distributed evenly across the connector cluster nodes.|
 | `connector.class` | The Java class used to perform connector jobs. Keep the default unless you modify the connector.|`com.splunk.kafka.connect.SplunkSinkConnector`|
 | `tasks.max` |  The number of tasks generated to handle data collection jobs in parallel. The tasks will be spread evenly across all Splunk Kafka Connector nodes.||
-| `splunk.hec.uri` | Splunk HEC URIs. Either a list of FQDNs or IPs of all Splunk indexers, separated with a ",", or a load balancer. The connector will load balance to indexers using round robin. Splunk Connector will round robin to this list of indexers.```https://hec1.splunk.com:8088,https://hec2.splunk.com:8088,https://hec3.splunk.com:8088```|
+| `splunk.hec.uri` | Splunk HEC URIs. Either a list of FQDNs or IPs of all Splunk indexers, separated with a ",", or a load balancer. The connector will load balance to indexers using round robin. Splunk Connector will round robin to this list of indexers. `https://hec1.splunk.com:8088,https://hec2.splunk.com:8088,https://hec3.splunk.com:8088`||
 | `splunk.hec.token` |  [Splunk Http Event Collector token](http://docs.splunk.com/Documentation/SplunkCloud/6.6.3/Data/UsetheHTTPEventCollector#About_Event_Collector_tokens).||
 | `topics` |  Comma separated list of Kafka topics for Splunk to consume. `prod-topic1,prod-topc2,prod-topic3`||
 #### General Optional Parameters
