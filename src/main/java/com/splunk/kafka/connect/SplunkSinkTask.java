@@ -189,29 +189,42 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         Header sourceHeader = headers.lastWithName(connectorConfig.headerSource);
         Header sourcetypeHeader = headers.lastWithName(connectorConfig.headerSourcetype);
 
+        Map<String, String> metas = connectorConfig.topicMetas.get(sinkRecord.topic());
+
+
         StringBuilder headerString = new StringBuilder();
 
         if(indexHeader != null) {
             headerString.append(indexHeader.value().toString());
+        } else {
+            headerString.append(metas.get("index"));
         }
 
         headerString.append(insertHeaderToken());
 
         if(hostHeader != null) {
             headerString.append(hostHeader.value().toString());
+        } else {
+            headerString.append("default-host");
         }
 
         headerString.append(insertHeaderToken());
 
         if(sourceHeader != null) {
             headerString.append(sourceHeader.value().toString());
+        } else {
+            headerString.append(metas.get("source"));
         }
 
         headerString.append(insertHeaderToken());
 
         if(sourcetypeHeader != null) {
             headerString.append(sourcetypeHeader.value().toString());
+        } else {
+            headerString.append(metas.get("sourcetype"));
         }
+
+        headerString.append(insertHeaderToken());
 
         return headerString.toString();
     }
@@ -263,13 +276,13 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     }
 
     private EventBatch createRawHeaderEventBatch(String splunkSinkRecord) {
-        String[] split = splunkSinkRecord.split("[$]{3}");
+        String[] split = splunkSinkRecord.split("[$]{3}", -1);
 
         return RawEventBatch.factory()
                 .setIndex(split[0])
-                .setSourcetype(split[1])
+                .setHost(split[1])
                 .setSource(split[2])
-                .setHost(split[3])
+                .setSourcetype(split[3])
                 .build();
     }
 
