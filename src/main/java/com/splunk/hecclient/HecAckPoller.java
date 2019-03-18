@@ -44,6 +44,7 @@ public final class HecAckPoller implements Poller {
     private ScheduledThreadPoolExecutor scheduler;
     private ExecutorService executorService;
     private AtomicBoolean started;
+    private AtomicBoolean stickySessionStarted;
 
     public HecAckPoller(PollerCallback cb) {
         outstandingEventBatches = new ConcurrentHashMap<>();
@@ -53,6 +54,11 @@ public final class HecAckPoller implements Poller {
         pollThreads = 2;
         pollerCallback = cb;
         started = new AtomicBoolean(false);
+        stickySessionStarted = new AtomicBoolean(false);
+    }
+
+    public void setStickySessionToTrue() {
+        stickySessionStarted.compareAndSet(false, true);
     }
 
     @Override
@@ -132,7 +138,7 @@ public final class HecAckPoller implements Poller {
         }
 
         if (channelEvents.get(resp.getAckId()) != null) {
-            log.error("ackId={} already exists for channel={} index={}", resp.getAckId(), channel, channel.getIndexer());
+            log.warn("ackId={} already exists for channel={} index={} data may be duplicated in Splunk", resp.getAckId(), channel, channel.getIndexer());
             return;
         }
 
@@ -182,6 +188,56 @@ public final class HecAckPoller implements Poller {
 
     public int getAckPollInterval() {
         return ackPollInterval;
+    }
+
+    /**
+     * StickySessionHandler is used to reassign channel id and fail the batches for that HecChannel.
+     * Also, the HecChannel will be unavailable during this period.
+     * StickySessionHandler follows the following flow:
+     * 1) Set channel unavailable
+     * 2) Get batches for the channel
+     * 3) Remove batches for the channel from the poller
+     * 4) Remove batches from kafka record tracker to fail them and resend
+     * 5) Remove channel
+     * 6) Change channel id
+     * 7) Set channel available
+     *
+     * @param  channel  HecChannel is the channel for which id has tobe changed and batches have to be failed.
+     * @see          HecChannel
+     * @since        1.1.0
+     */
+    public void stickySessionHandler(HecChannel channel) {
+        if (!stickySessionStarted.get()) {
+            return;
+        }
+        String oldChannelId = channel.getId();
+        channel.setAvailable(false);
+        log.info("Channel {} set to be not available", oldChannelId);
+        ConcurrentHashMap<Long, EventBatch> channelBatches = outstandingEventBatches.get(channel);
+        if(channelBatches != null && channelBatches.size() > 0) {
+            log.info("Failing {} batches for the channel {}, these will be resent by the connector.", channelBatches.size(), oldChannelId);
+            if (pollerCallback != null) {
+                List<EventBatch> expired = new ArrayList<>();
+                Iterator<Map.Entry<Long,EventBatch>> iter = channelBatches.entrySet().iterator();
+                while(iter.hasNext()) {
+                    Map.Entry<Long, EventBatch> pair = iter.next();
+                    EventBatch batch = pair.getValue();
+                    totalOutstandingEventBatches.decrementAndGet();
+                    batch.fail();
+                    expired.add(batch);
+                    iter.remove();
+                }
+                pollerCallback.onEventFailure(expired, new HecException("sticky_session_expired"));
+            }
+        }
+        outstandingEventBatches.remove(channel);
+        channel.setId();
+        String newChannelId = channel.getId();
+        log.info("Changed channel id from {} to {}", oldChannelId, newChannelId);
+
+        channel.setAvailable(true);
+        log.info("Channel {} is available", newChannelId);
+        stickySessionStarted.compareAndSet(true, false);
     }
 
     private void poll() {
@@ -259,6 +315,7 @@ public final class HecAckPoller implements Poller {
             log.error("failed to handle ack polled result", ex);
             return;
         }
+        stickySessionHandler(channel);
         handleAckPollResult(channel, ackPollResult);
     }
 
@@ -273,19 +330,22 @@ public final class HecAckPoller implements Poller {
 
         List<EventBatch> committedBatches = new ArrayList<>();
         ConcurrentHashMap<Long, EventBatch> channelBatches = outstandingEventBatches.get(channel);
-        for (Long id: ids) {
-            EventBatch batch = channelBatches.remove(id);
-            if (batch == null) {
-                log.warn("event batch id={} for channel={} on host={} is not in map anymore", id, channel, channel.getIndexer());
-                continue;
+        // Added null check as channelBatches might still be null(It may be removed while handling sticky sessions and not added until we send more data)
+        if (channelBatches != null) {
+            for (Long id: ids) {
+                EventBatch batch = channelBatches.remove(id);
+                if (batch == null) {
+                    log.warn("event batch id={} for channel={} on host={} is not in map anymore", id, channel, channel.getIndexer());
+                    continue;
+                }
+                totalOutstandingEventBatches.decrementAndGet();
+                batch.commit();
+                committedBatches.add(batch);
             }
-            totalOutstandingEventBatches.decrementAndGet();
-            batch.commit();
-            committedBatches.add(batch);
-        }
 
-        if (!committedBatches.isEmpty() && pollerCallback != null) {
-            pollerCallback.onEventCommitted(committedBatches);
+            if (!committedBatches.isEmpty() && pollerCallback != null) {
+                pollerCallback.onEventCommitted(committedBatches);
+            }
         }
     }
 

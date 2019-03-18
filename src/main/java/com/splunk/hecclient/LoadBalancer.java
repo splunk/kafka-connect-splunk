@@ -52,7 +52,7 @@ public final class LoadBalancer implements LoadBalancerInf {
         for (int tried = 0; tried != channels.size(); tried++) {
             HecChannel channel = channels.get(index);
             index = (index + 1) % channels.size();
-            if (!channel.hasBackPressure()) {
+            if (!channel.hasBackPressure() && !channel.isNotAvailable()) {
                 channel.send(batch);
                 return;
             }

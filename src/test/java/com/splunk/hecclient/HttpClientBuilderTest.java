@@ -15,10 +15,10 @@
  */
 package com.splunk.hecclient;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Assert;
 import org.junit.Test;
+
 
 public class HttpClientBuilderTest {
     @Test
@@ -34,13 +34,25 @@ public class HttpClientBuilderTest {
     }
 
     @Test
-    public void buildSecure() {
+    public void buildSecureDefault() {
         HttpClientBuilder builder = new HttpClientBuilder();
         CloseableHttpClient client = builder.setMaxConnectionPoolSizePerDestination(1)
                 .setMaxConnectionPoolSize(2)
                 .setSocketSendBufferSize(1024)
                 .setSocketTimeout(120)
                 .setDisableSSLCertVerification(false)
+                .build();
+        Assert.assertNotNull(client);
+    }
+    @Test
+    public void buildSecureCustomKeystore() {
+        HttpClientBuilder builder = new HttpClientBuilder();
+        CloseableHttpClient client = builder.setMaxConnectionPoolSizePerDestination(1)
+                .setMaxConnectionPoolSize(2)
+                .setSocketSendBufferSize(1024)
+                .setSocketTimeout(120)
+                .setDisableSSLCertVerification(false)
+                .setSslContext(Hec.loadCustomSSLContext("./src/test/resources/keystoretest.jks","Notchangeme"))
                 .build();
         Assert.assertNotNull(client);
     }

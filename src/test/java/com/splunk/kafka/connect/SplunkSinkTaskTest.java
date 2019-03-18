@@ -32,7 +32,7 @@ public class SplunkSinkTaskTest {
     @Test
     public void startStopDefault() {
         SplunkSinkTask task = new SplunkSinkTask();
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
         // shall not throw
         task.stop();
 
@@ -43,7 +43,7 @@ public class SplunkSinkTaskTest {
     @Test
     public void startStopWithoutAck() {
         SplunkSinkTask task = new SplunkSinkTask();
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
         Map<String, String> config = uu.createTaskConfig();
         config.put(SplunkSinkConnectorConfig.ACK_CONF, String.valueOf(false));
 
@@ -54,7 +54,7 @@ public class SplunkSinkTaskTest {
     @Test
     public void startStopConcurrent() {
         SplunkSinkTask task = new SplunkSinkTask();
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
         Map<String, String> config = uu.createTaskConfig();
         config.put(SplunkSinkConnectorConfig.HEC_THREDS_CONF, "2");
 
@@ -70,7 +70,7 @@ public class SplunkSinkTaskTest {
 
     @Test
     public void putWithoutMaxBatchAligned() {
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
         Map<String, String> config = uu.createTaskConfig();
         config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
         config.put(SplunkSinkConnectorConfig.ACK_CONF, String.valueOf(true));
@@ -85,7 +85,7 @@ public class SplunkSinkTaskTest {
         task.put(createSinkRecords(120));
         Assert.assertEquals(2, hec.getBatches().size());
         Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>();
-        offsets.put(new TopicPartition(uu.topics, 1), new OffsetAndMetadata(120));
+        offsets.put(new TopicPartition(uu.configProfile.getTopics(), 1), new OffsetAndMetadata(120));
         Assert.assertEquals(offsets, task.preCommit(new HashMap<>()));
         Assert.assertTrue(task.getTracker().getAndRemoveFailedRecords().isEmpty());
         task.stop();
@@ -93,7 +93,7 @@ public class SplunkSinkTaskTest {
 
     @Test
     public void putWithFailure() {
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
         Map<String, String> config = uu.createTaskConfig();
         config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
         config.put(SplunkSinkConnectorConfig.ACK_CONF, String.valueOf(true));
@@ -115,7 +115,7 @@ public class SplunkSinkTaskTest {
 
     @Test(expected = RetriableException.class)
     public void putWithFailureAndBackpressure() {
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
         Map<String, String> config = uu.createTaskConfig();
         config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
         config.put(SplunkSinkConnectorConfig.ACK_CONF, String.valueOf(true));
@@ -136,7 +136,7 @@ public class SplunkSinkTaskTest {
 
     @Test(expected = RetriableException.class)
     public void putWithFailureHandleFailedBatches() {
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
         Map<String, String> config = uu.createTaskConfig();
         config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
         config.put(SplunkSinkConnectorConfig.ACK_CONF, String.valueOf(true));
@@ -158,7 +158,7 @@ public class SplunkSinkTaskTest {
 
     @Test(expected = RetriableException.class)
     public void putWithMaxEvents() {
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
         Map<String, String> config = uu.createTaskConfig();
         config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
         config.put(SplunkSinkConnectorConfig.ACK_CONF, String.valueOf(true));
@@ -178,7 +178,7 @@ public class SplunkSinkTaskTest {
 
     @Test
     public void putWithEmptyRecords() {
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
         Map<String, String> config = uu.createTaskConfig();
         config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
         config.put(SplunkSinkConnectorConfig.ACK_CONF, String.valueOf(true));
@@ -199,7 +199,7 @@ public class SplunkSinkTaskTest {
 
     @Test
     public void putWithInvalidEvent() {
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
         Map<String, String> config = uu.createTaskConfig();
         config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
         config.put(SplunkSinkConnectorConfig.ACK_CONF, String.valueOf(true));
@@ -230,7 +230,7 @@ public class SplunkSinkTaskTest {
         int batchSize = 100;
         int total = 1000;
 
-        UnitUtil uu = new UnitUtil();
+        UnitUtil uu = new UnitUtil(0);
         Map<String, String> config = uu.createTaskConfig();
         config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(raw));
         config.put(SplunkSinkConnectorConfig.ACK_CONF, String.valueOf(true));
@@ -271,7 +271,7 @@ public class SplunkSinkTaskTest {
                     int n = i * 100 + j;
                     Assert.assertEquals(String.valueOf(n), event.getFields().get("kafka_offset"));
                     Assert.assertEquals(String.valueOf(1), event.getFields().get("kafka_partition"));
-                    Assert.assertEquals(new UnitUtil().topics, event.getFields().get("kafka_topic"));
+                    Assert.assertEquals(new UnitUtil(0).configProfile.getTopics(), event.getFields().get("kafka_topic"));
                     Assert.assertEquals(String.valueOf(0), event.getFields().get("kafka_timestamp"));
                     j++;
                 }
@@ -281,7 +281,7 @@ public class SplunkSinkTaskTest {
         }
 
         Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>();
-        offsets.put(new TopicPartition(uu.topics, 1), new OffsetAndMetadata(1000));
+        offsets.put(new TopicPartition(uu.configProfile.getTopics(), 1), new OffsetAndMetadata(1000));
         Assert.assertEquals(offsets, task.preCommit(new HashMap<>()));
         Assert.assertTrue(task.getTracker().getAndRemoveFailedRecords().isEmpty());
         task.stop();
@@ -298,7 +298,7 @@ public class SplunkSinkTaskTest {
     private Collection<SinkRecord> createSinkRecords(int numOfRecords, int start, String value) {
         List<SinkRecord> records = new ArrayList<>();
         for (int i = start; i < start + numOfRecords; i++) {
-            SinkRecord rec = new SinkRecord(new UnitUtil().topics, 1, null, null, null, value, i, 0L, TimestampType.NO_TIMESTAMP_TYPE);
+            SinkRecord rec = new SinkRecord(new UnitUtil(0).configProfile.getTopics(), 1, null, null, null, value, i, 0L, TimestampType.NO_TIMESTAMP_TYPE);
             records.add(rec);
         }
         return records;

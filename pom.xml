@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.splunk.kafka.connect</groupId>
-    <artifactId>kafka-connect-splunk</artifactId>
-    <version>dev-SNAPSHOT</version>
-    <name>kafka-connect-splunk</name>
+    <artifactId>splunk-kafka-connect</artifactId>
+    <version>v1.1.0-LAR</version>
+    <name>splunk-kafka-connect</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -18,6 +18,7 @@
         <junit.jupiter.version>5.0.1</junit.jupiter.version>
         <junit.vintage.version>${junit.version}.1</junit.vintage.version>
         <junit.platform.version>1.0.1</junit.platform.version>
+
     </properties>
 
     <dependencies>
@@ -25,18 +26,21 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-            <version>2.9.2</version>
+            <version>2.9.5</version>
+            <scope>compile</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.9.2</version>
+            <version>2.9.5</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>connect-api</artifactId>
-            <version>0.11.0.1</version>
+            <version>2.0.0</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -76,18 +80,45 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.5.3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-codec</groupId>
+                    <artifactId>commons-codec</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
+        <!-- commons-logging and commons-codec are both in the AK packages.
+        Use the version already in the classpath -->
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.2</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.11</version>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.25</version>
+            <scope>test</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.25</version>
+            <scope>compile</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/commons-cli/commons-cli -->
         <dependency>
@@ -101,6 +132,13 @@
             <artifactId>apiguardian-api</artifactId>
             <version>1.0.0</version>
             <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.7</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
@@ -190,7 +228,8 @@
                         </goals>
                         <configuration>
                             <!-- Sets the path to the file which contains the execution data. -->
-                            <destFile>${project.build.directory}/coverage-reports/jacoco-ut.exec</destFile>
+                            <destFile>${project.build.directory}/coverage-reports/jacoco-ut.exec
+                            </destFile>
                             <!--
                                 Sets the name of the property containing the settings
                                 for JaCoCo runtime agent.
@@ -210,9 +249,11 @@
                         </goals>
                         <configuration>
                             <!-- Sets the path to the file which contains the execution data. -->
-                            <dataFile>${project.build.directory}/coverage-reports/jacoco-ut.exec</dataFile>
+                            <dataFile>${project.build.directory}/coverage-reports/jacoco-ut.exec
+                            </dataFile>
                             <!-- Sets the output directory for the code coverage report. -->
-                            <outputDirectory>${project.build.directory}/coverage-reports/jacoco-ut</outputDirectory>
+                            <outputDirectory>${project.build.directory}/coverage-reports/jacoco-ut
+                            </outputDirectory>
                         </configuration>
                     </execution>
                 </executions>

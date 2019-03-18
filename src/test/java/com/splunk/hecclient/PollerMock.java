@@ -62,6 +62,9 @@ public class PollerMock implements Poller {
         this.response = resp;
     }
 
+    @Override
+    public void stickySessionHandler(HecChannel channel) {}
+
     public boolean isStarted() {
         return started;
     }
@@ -84,5 +87,7 @@ public class PollerMock implements Poller {
 
     public String getResponse() {
         return response;
+    }
+    public void setStickySessionToTrue() {
     }
 }

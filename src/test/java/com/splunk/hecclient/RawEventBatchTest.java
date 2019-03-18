@@ -103,4 +103,23 @@ public class RawEventBatchTest {
         Assert.assertEquals("index", batch.getIndex());
         Assert.assertEquals(1, batch.getTime());
     }
+
+    @Test
+    public void checkEquals() {
+        RawEventBatch batchOne = RawEventBatch.factory()
+                .setSource("source3")
+                .setIndex("idx1")
+                .setSourcetype("sourcetype2")
+                .setHost("host4")
+                .build();
+
+        RawEventBatch batchTwo = RawEventBatch.factory()
+                .setSource("source")
+                .setIndex("idx")
+                .setSourcetype("1sourcetype2")
+                .setHost("3host4")
+                .build();
+
+        Assert.assertFalse(batchOne.equals(batchTwo));
+    }
 }

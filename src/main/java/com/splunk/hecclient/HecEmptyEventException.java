@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Splunk, Inc..
+ * Copyright 2018 Splunk, Inc..
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,21 @@
  */
 package com.splunk.hecclient;
 
-public interface Poller {
-    void start();
-    void stop();
-    void add(HecChannel channel, EventBatch batch, String response);
-    void fail(HecChannel channel, EventBatch batch, Exception ex);
-    void stickySessionHandler(HecChannel channel);
-    void setStickySessionToTrue();
-        // minimum load channel
-    HecChannel getMinLoadChannel();
-    long getTotalOutstandingEventBatches();
+/**
+ * HecEmptyEventException is an exception which is triggered during the creation of an Event(JsonEvent or RawEvent)
+ * when Event is created with an empty String ("").
+ *
+ * @version     1.1.0
+ * @since       1.1.0
+ */
+public class HecEmptyEventException extends HecException {
+    private static final long serialVersionUID = 34L;
+
+    public HecEmptyEventException(String message) {
+        super(message);
+    }
+
+    public HecEmptyEventException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

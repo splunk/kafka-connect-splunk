@@ -18,6 +18,7 @@ package com.splunk.hecclient;
 import java.util.List;
 
 public final class HecConfig {
+
     private List<String> uris;
     private String token;
     private boolean disableSSLCertVerification = false;
@@ -30,6 +31,9 @@ public final class HecConfig {
     private int socketTimeout = 60; // in seconds
     private int socketSendBufferSize = 8 * 1024 * 1024; // in byte
     private boolean enableChannelTracking = false;
+    private boolean hasCustomTrustStore = false;
+    private String trustStorePath;
+    private String trustStorePassword;
 
     public HecConfig(List<String> uris, String token) {
         this.uris = uris;
@@ -84,6 +88,13 @@ public final class HecConfig {
         return enableChannelTracking;
     }
 
+    public boolean getHasCustomTrustStore() { return hasCustomTrustStore; }
+
+    public String getTrustStorePath() { return trustStorePath; }
+
+    public String getTrustStorePassword() { return trustStorePassword; }
+
+
     public HecConfig setDisableSSLCertVerification(boolean disableVerfication) {
         disableSSLCertVerification = disableVerfication;
         return this;
@@ -126,6 +137,21 @@ public final class HecConfig {
 
     public HecConfig setTotalChannels(int channels) {
         totalChannels = channels;
+        return this;
+    }
+
+    public HecConfig setTrustStorePath(String path) {
+        trustStorePath = path;
+        return this;
+    }
+
+    public HecConfig setTrustStorePassword(String pass) {
+        trustStorePassword = pass;
+        return this;
+    }
+
+    public HecConfig setHasCustomTrustStore(boolean hasStore) {
+        hasCustomTrustStore = hasStore;
         return this;
     }
 
