@@ -264,7 +264,7 @@ public class SplunkSinkTaskTest {
 
         // assert data tracking
         if (!raw) {
-            int i = 0;;
+            int i = 0;
             for (EventBatch batch: hec.getBatches()) {
                 int j = 0;
                 for (Event event: batch.getEvents()) {

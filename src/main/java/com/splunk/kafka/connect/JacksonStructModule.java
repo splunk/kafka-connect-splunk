@@ -26,7 +26,10 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+
 public class JacksonStructModule extends SimpleModule {
+  private static final long serialVersionUID = 123431242;
+
   public JacksonStructModule() {
     addSerializer(Struct.class, new StructSerializer());
   }

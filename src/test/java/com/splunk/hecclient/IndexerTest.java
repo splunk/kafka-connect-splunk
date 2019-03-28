@@ -106,10 +106,24 @@ public class IndexerTest {
 
         Indexer indexer = assertFailure(client);
         Assert.assertTrue(indexer.hasBackPressure());
-        indexer.setBackPressureThreshhold(2000);
+        indexer.setBackPressureThreshold(2);
         UnitUtil.milliSleep(2500);
         Assert.assertFalse(indexer.hasBackPressure());
         // Assert again
+        Assert.assertFalse(indexer.hasBackPressure());
+    }
+
+    @Test
+    public void ConfirmShortBackPressureConfig() {
+        CloseableHttpClientMock client = new CloseableHttpClientMock();
+        client.setResponse(CloseableHttpClientMock.serverBusy);
+
+        Indexer indexer = assertFailure(client);
+        Assert.assertTrue(indexer.hasBackPressure());
+        indexer.setBackPressureThreshold(10);
+        UnitUtil.milliSleep(5000);
+        Assert.assertTrue(indexer.hasBackPressure());
+        UnitUtil.milliSleep(5000);
         Assert.assertFalse(indexer.hasBackPressure());
     }
 
