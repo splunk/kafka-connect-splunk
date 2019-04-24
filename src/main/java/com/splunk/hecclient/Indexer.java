@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
 
 final class Indexer implements IndexerInf {
     private static final Logger log = LoggerFactory.getLogger(Indexer.class);
@@ -44,7 +43,7 @@ final class Indexer implements IndexerInf {
     private Poller poller;
     private long backPressure;
     private long lastBackPressure;
-    private long backPressureThreshhold = 60 * 1000; // 1 min
+    private long backPressureThreshold = 60 * 1000; // 1 min
 
     // Indexer doesn't own client, ack poller
     public Indexer(String baseUrl, String hecToken, CloseableHttpClient client, Poller poller) {
@@ -66,8 +65,8 @@ final class Indexer implements IndexerInf {
         setKeepAlive(true);
     }
 
-    public Indexer setBackPressureThreshhold(long threshhold /* milli-seconds */) {
-        backPressureThreshhold = threshhold;
+    public Indexer setBackPressureThreshold(long threshold)  { //seconds
+        backPressureThreshold = threshold * 1000;
         return this;
     }
 
@@ -205,8 +204,8 @@ final class Indexer implements IndexerInf {
     @Override
     public boolean hasBackPressure() {
         if (backPressure > 0) {
-            if (System.currentTimeMillis() - lastBackPressure < backPressureThreshhold) {
-                // still in the backpressure window
+            if (System.currentTimeMillis() - lastBackPressure < backPressureThreshold) {
+                // still in the back-pressure window
                 return true;
             } else {
                 clearBackPressure();

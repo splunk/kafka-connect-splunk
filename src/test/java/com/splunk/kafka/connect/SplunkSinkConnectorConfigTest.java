@@ -152,10 +152,10 @@ public class SplunkSinkConnectorConfigTest {
         Map<String, Map<String, String>> topicMetas = new HashMap<>();
         for (int i = 1; i < 4; i++) {
             Map<String, String> meta = new HashMap<>();
-            meta.put(SplunkSinkConnectorConfig.INDEX, "i" + String.valueOf(i));
-            meta.put(SplunkSinkConnectorConfig.SOURCE, "s" + String.valueOf(i));
-            meta.put(SplunkSinkConnectorConfig.SOURCETYPE, "e" + String.valueOf(i));
-            topicMetas.put("t" + String.valueOf(i), meta);
+            meta.put(SplunkSinkConnectorConfig.INDEX, "i" + i);
+            meta.put(SplunkSinkConnectorConfig.SOURCE, "s" + i);
+            meta.put(SplunkSinkConnectorConfig.SOURCETYPE, "e" + i);
+            topicMetas.put("t" + i, meta);
         }
         Assert.assertEquals(topicMetas, connectorConfig.topicMetas);
         Assert.assertTrue(connectorConfig.hasMetaDataConfigured());
@@ -178,9 +178,9 @@ public class SplunkSinkConnectorConfigTest {
         for (int i = 1; i < 4; i++) {
             Map<String, String> meta = new HashMap<>();
             meta.put(SplunkSinkConnectorConfig.INDEX, "i1");
-            meta.put(SplunkSinkConnectorConfig.SOURCE, "s" + String.valueOf(i));
-            meta.put(SplunkSinkConnectorConfig.SOURCETYPE, "e" + String.valueOf(i));
-            topicMetas.put("t" + String.valueOf(i), meta);
+            meta.put(SplunkSinkConnectorConfig.SOURCE, "s" + i);
+            meta.put(SplunkSinkConnectorConfig.SOURCETYPE, "e" + i);
+            topicMetas.put("t" + i, meta);
         }
         Assert.assertEquals(topicMetas, connectorConfig.topicMetas);
         Assert.assertTrue(connectorConfig.hasMetaDataConfigured());

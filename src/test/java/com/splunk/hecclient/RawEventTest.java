@@ -20,6 +20,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,13 +62,8 @@ public class RawEventTest {
         for (int i = 0; i < 2; i++) {
             byte[] data = event.getBytes();
             Assert.assertNotNull(data);
-            try {
-                String got = new String(data, "UTF-8");
-                Assert.assertEquals(got, "ni");
-            } catch (UnsupportedEncodingException ex) {
-                Assert.assertFalse("failed to get string out of byte", true);
-                throw new HecException("failed to get string out of byte", ex);
-            }
+            String got = new String(data, StandardCharsets.UTF_8);
+            Assert.assertEquals(got, "ni");
         }
 
         // byte payload
