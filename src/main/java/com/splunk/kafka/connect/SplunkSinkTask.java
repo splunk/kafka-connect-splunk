@@ -126,22 +126,24 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             return;
         }
 
-        log.debug("going to handle {} failed batches", failed.size());
+        log.debug("handling {} failed batches", failed.size());
         long failedEvents = 0;
         // if there are failed ones, first deal with them
         for (final EventBatch batch: failed) {
             failedEvents += batch.size();
             if (connectorConfig.maxRetries > 0 && batch.getFailureCount() > connectorConfig.maxRetries) {
-                log.error("dropping EventBatch with {} events in it since it reaches max retries {}",
-                        batch.size(), connectorConfig.maxRetries);
+                log.error("dropping EventBatch {} with {} events after reaching maximum retries {}",
+                           batch.getUUID(), batch.size(), connectorConfig.maxRetries);
                 continue;
             }
+            log.warn("attempting to resend batch {} with {} events, this is attempt {} out of {} for this batch ",
+                      batch.getUUID(), batch.size(), batch.getFailureCount(), connectorConfig.maxRetries);
             send(batch);
         }
 
         log.info("handled {} failed batches with {} events", failed.size(), failedEvents);
         if (failedEvents * 10 > connectorConfig.maxOutstandingEvents) {
-            String msg = String.format("failed events reach 10 %% of max outstanding events %d, pause the pull for a while", connectorConfig.maxOutstandingEvents);
+            String msg = String.format("failed events have reached 10 %% of max outstanding events %d, pausing the pull of events for a while", connectorConfig.maxOutstandingEvents);
             throw new RetriableException(new HecException(msg));
         }
     }
@@ -284,7 +286,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         } catch (Exception ex) {
             batch.fail();
             onEventFailure(Arrays.asList(batch), ex);
-            log.error("failed to send batch", ex);
+            log.error("failed to send batch {}" ,batch.getUUID(), ex);
         }
     }
 

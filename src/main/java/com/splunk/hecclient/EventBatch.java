@@ -24,13 +24,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.SequenceInputStream;
+
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public abstract class EventBatch {
     private static Logger log = LoggerFactory.getLogger(EventBatch.class);
+
+    private UUID batchUUID = UUID.randomUUID();
 
     private static final int INIT = 0;
     private static final int COMMITTED = 1;
@@ -102,6 +106,8 @@ public abstract class EventBatch {
     public final List<Event> getEvents() {
         return events;
     }
+
+    public final String getUUID() {return batchUUID.toString(); }
 
     // Total length of data for all events
     public final int length() {
