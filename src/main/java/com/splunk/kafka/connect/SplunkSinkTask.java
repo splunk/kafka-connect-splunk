@@ -25,6 +25,8 @@ import org.apache.kafka.connect.sink.SinkTask;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.connect.header.Header;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 
 import org.slf4j.Logger;
@@ -41,6 +43,16 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     private List<SinkRecord> bufferedRecords;
     private long lastFlushed = System.currentTimeMillis();
     private long threadId = Thread.currentThread().getId();
+
+    private static final String HOSTNAME;
+    static {
+        String h = null;
+        try {
+            h = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+        }
+        HOSTNAME = h;
+    }
 
     @Override
     public void start(Map<String, String> taskConfig) {
@@ -174,9 +186,10 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
         Iterator<Map.Entry<String, ArrayList<SinkRecord>>> itr = recordsWithSameHeaders.entrySet().iterator();
         while(itr.hasNext()) {
-            Map.Entry set = itr.next();
-            String splunkSinkRecordKey = (String)set.getKey();
-            ArrayList<SinkRecord> recordArrayList = (ArrayList)set.getValue();
+            Map.Entry<String, ArrayList<SinkRecord>> set = itr.next();
+            String splunkSinkRecordKey = set.getKey();
+            ArrayList<SinkRecord> recordArrayList = set.getValue();
+
             EventBatch batch = createRawHeaderEventBatch(splunkSinkRecordKey);
             sendEvents(recordArrayList, batch);
         }
@@ -191,29 +204,42 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         Header sourceHeader = headers.lastWithName(connectorConfig.headerSource);
         Header sourcetypeHeader = headers.lastWithName(connectorConfig.headerSourcetype);
 
+        Map<String, String> metas = connectorConfig.topicMetas.get(sinkRecord.topic());
+
+
         StringBuilder headerString = new StringBuilder();
 
         if(indexHeader != null) {
             headerString.append(indexHeader.value().toString());
+        } else {
+            headerString.append(metas.get("index"));
         }
 
         headerString.append(insertHeaderToken());
 
         if(hostHeader != null) {
             headerString.append(hostHeader.value().toString());
+        } else {
+            headerString.append("default-host");
         }
 
         headerString.append(insertHeaderToken());
 
         if(sourceHeader != null) {
             headerString.append(sourceHeader.value().toString());
+        } else {
+            headerString.append(metas.get("source"));
         }
 
         headerString.append(insertHeaderToken());
 
         if(sourcetypeHeader != null) {
             headerString.append(sourcetypeHeader.value().toString());
+        } else {
+            headerString.append(metas.get("sourcetype"));
         }
+
+        headerString.append(insertHeaderToken());
 
         return headerString.toString();
     }
@@ -265,13 +291,13 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     }
 
     private EventBatch createRawHeaderEventBatch(String splunkSinkRecord) {
-        String[] split = splunkSinkRecord.split("[$]{3}");
+        String[] split = splunkSinkRecord.split("[$]{3}", -1);
 
         return RawEventBatch.factory()
                 .setIndex(split[0])
-                .setSourcetype(split[1])
+                .setHost(split[1])
                 .setSource(split[2])
-                .setHost(split[3])
+                .setSourcetype(split[3])
                 .build();
     }
 
@@ -343,8 +369,9 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         if(connectorConfig.hecEventFormatted) {
             try {
                 event = objectMapper.readValue(record.value().toString(), JsonEvent.class);
+                event.addFields(connectorConfig.enrichments);
             } catch(Exception e) {
-                log.error("event does not follow correct HEC pre-formatted format", record.toString());
+                log.error("event does not follow correct HEC pre-formatted format: {}", record.value().toString());
                 event = createHECEventNonFormatted(record);
             }
         } else {
@@ -361,6 +388,8 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             trackMetas.put("kafka_timestamp", String.valueOf(record.timestamp()));
             trackMetas.put("kafka_topic", record.topic());
             trackMetas.put("kafka_partition", String.valueOf(record.kafkaPartition()));
+            if (HOSTNAME != null)
+                trackMetas.put("kafka_connect_host", HOSTNAME);
             event.addFields(trackMetas);
         }
         event.validate();
