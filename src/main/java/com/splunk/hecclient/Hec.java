@@ -198,6 +198,7 @@ public class Hec implements HecInf {
             for (String uri : config.getUris()) {
                 Indexer indexer = new Indexer(uri, config.getToken(), httpClient, poller);
                 indexer.setKeepAlive(config.getHttpKeepAlive());
+                indexer.setBackPressureThreshold(config.getBackoffThresholdSeconds());
                 loadBalancer.add(indexer.getChannel().setTracking(config.getEnableChannelTracking()));
                 i++;
             }

@@ -30,6 +30,7 @@ public final class HecConfig {
     private int ackPollThreads = 2;
     private int socketTimeout = 60; // in seconds
     private int socketSendBufferSize = 8 * 1024 * 1024; // in byte
+    private int backoffThresholdSeconds = 60 * 1000;
     private boolean enableChannelTracking = false;
     private boolean hasCustomTrustStore = false;
     private String trustStorePath;
@@ -88,12 +89,15 @@ public final class HecConfig {
         return enableChannelTracking;
     }
 
+    public int getBackoffThresholdSeconds() {
+        return backoffThresholdSeconds;
+    }
+
     public boolean getHasCustomTrustStore() { return hasCustomTrustStore; }
 
     public String getTrustStorePath() { return trustStorePath; }
 
     public String getTrustStorePassword() { return trustStorePassword; }
-
 
     public HecConfig setDisableSSLCertVerification(boolean disableVerfication) {
         disableSSLCertVerification = disableVerfication;
@@ -157,6 +161,11 @@ public final class HecConfig {
 
     public HecConfig setEnableChannelTracking(boolean trackChannel) {
         enableChannelTracking = trackChannel;
+        return this;
+    }
+
+    public HecConfig setBackoffThresholdSeconds(int backoffSeconds) {
+        backoffThresholdSeconds = backoffSeconds * 1000;
         return this;
     }
 }

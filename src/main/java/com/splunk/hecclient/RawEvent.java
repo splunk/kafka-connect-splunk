@@ -16,6 +16,7 @@
 package com.splunk.hecclient;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 /**
  *  RawEvent is used as the Object to represented Splunk events when the /services/collector/raw HEC endpoint is to be
@@ -56,12 +57,7 @@ public final class RawEvent extends Event {
 
         if (event instanceof String) {
             String s = (String) event;
-            try {
-                bytes = s.getBytes("UTF-8");
-            } catch (UnsupportedEncodingException ex) {
-                log.error("failed to encode as UTF-8", ex);
-                throw new HecException("Not UTF-8 encodable ", ex);
-            }
+            bytes = s.getBytes(StandardCharsets.UTF_8);
         } else if (event instanceof byte[]) {
             bytes = (byte[]) event;
         } else {
@@ -103,11 +99,6 @@ public final class RawEvent extends Event {
      */
     @Override
     public String toString() {
-        try {
-            return new String(getBytes(), "UTF-8");
-        } catch (UnsupportedEncodingException ex) {
-            log.error("failed to decode as UTF-8", ex);
-            throw new HecException("Not UTF-8 decodable", ex);
-        }
+        return new String(getBytes(), StandardCharsets.UTF_8);
     }
 }

@@ -25,7 +25,7 @@ public class HecTest {
         Hec hec = Hec.newHecWithAck(config, null);
         Assert.assertNotNull(hec);
 
-        hec = Hec.newHecWithAck(config, Hec.createHttpClient(config), (PollerCallback) null);
+        hec = Hec.newHecWithAck(config, Hec.createHttpClient(config), null);
         Assert.assertNotNull(hec);
 
         hec = Hec.newHecWithAck(config, null, new LoadBalancerMock());
@@ -34,7 +34,7 @@ public class HecTest {
         hec = Hec.newHecWithoutAck(config, null);
         Assert.assertNotNull(hec);
 
-        hec = Hec.newHecWithoutAck(config, Hec.createHttpClient(config), (PollerCallback) null);
+        hec = Hec.newHecWithoutAck(config, Hec.createHttpClient(config), null);
         Assert.assertNotNull(hec);
 
         hec = Hec.newHecWithoutAck(config, null, new LoadBalancerMock());
