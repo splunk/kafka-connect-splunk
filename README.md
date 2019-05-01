@@ -149,6 +149,8 @@ Use the below schema to configure Splunk Connect for Kafka
 | `splunk.hec.ssl.trust.store.path` | Location of Java KeyStore. |`""`|
 | `splunk.hec.ssl.trust.store.password` | Password for Java KeyStore. |`""`|
 | `splunk.hec.json.event.formatted` | Set to `true` for events that are already in HEC format. Valid settings are `true` or `false`. |`false`|
+| `splunk.hec.max.outstanding.events` | Maximum amount of un-acknowledged events kept in memory by connector. Will trigger back-pressure event to slow down collection if reached. | `1000000` |
+| `splunk.hec.max.retries` | Amount of times a failed batch will attempt to resend before dropping events completely. Warning: This will result in data loss, default is `-1` which will retry indefinitely  | `-1` |
 ### Acknowledgement Parameters
 #### Use Ack
 | Name              | Description                | Default Value  |

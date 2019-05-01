@@ -176,6 +176,7 @@ public class SplunkSinkTaskTest {
         task.stop();
     }
 
+
     @Test
     public void putWithEmptyRecords() {
         UnitUtil uu = new UnitUtil(0);
