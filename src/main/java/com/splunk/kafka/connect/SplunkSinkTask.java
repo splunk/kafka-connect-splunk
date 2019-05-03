@@ -363,7 +363,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             return event;
         }
 
-        JsonEvent event = null;
+        JsonEvent event;
         ObjectMapper objectMapper = new ObjectMapper();
 
         if(connectorConfig.hecEventFormatted) {
@@ -424,7 +424,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         // Custom headers are configured with a comma separated list passed in configuration
         // "custom_header_1,custom_header_2,custom_header_3"
         if (!connectorConfig.headerCustom.isEmpty()) {
-            String[] customHeaders = connectorConfig.headerCustom.split(",");
+            String[] customHeaders = connectorConfig.headerCustom.split(",\\s?");
             Map<String, String> headerMap = new HashMap<>();
             for (String header : customHeaders) {
                     Header customHeader = headers.lastWithName(header);
