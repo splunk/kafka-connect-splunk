@@ -66,7 +66,7 @@ final class Indexer implements IndexerInf {
     }
 
     public Indexer setBackPressureThreshold(long threshold)  { //seconds
-        backPressureThreshold = threshold * 1000;
+        backPressureThreshold = threshold;
         return this;
     }
 
@@ -204,10 +204,12 @@ final class Indexer implements IndexerInf {
     @Override
     public boolean hasBackPressure() {
         if (backPressure > 0) {
-            if (System.currentTimeMillis() - lastBackPressure < backPressureThreshold) {
+            if ((System.currentTimeMillis() - lastBackPressure) < backPressureThreshold) {
+                log.warn("Still in Backpressure window {}:{}", System.currentTimeMillis() - lastBackPressure, backPressureThreshold);
                 // still in the back-pressure window
                 return true;
             } else {
+                log.info("Clearing Backpressure");
                 clearBackPressure();
                 return false;
             }

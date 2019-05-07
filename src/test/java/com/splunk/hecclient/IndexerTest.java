@@ -106,7 +106,7 @@ public class IndexerTest {
 
         Indexer indexer = assertFailure(client);
         Assert.assertTrue(indexer.hasBackPressure());
-        indexer.setBackPressureThreshold(2);
+        indexer.setBackPressureThreshold(2000);
         UnitUtil.milliSleep(2500);
         Assert.assertFalse(indexer.hasBackPressure());
         // Assert again
@@ -120,10 +120,10 @@ public class IndexerTest {
 
         Indexer indexer = assertFailure(client);
         Assert.assertTrue(indexer.hasBackPressure());
-        indexer.setBackPressureThreshold(10);
+        indexer.setBackPressureThreshold(10000);
         UnitUtil.milliSleep(5000);
         Assert.assertTrue(indexer.hasBackPressure());
-        UnitUtil.milliSleep(5000);
+        UnitUtil.milliSleep(6000);
         Assert.assertFalse(indexer.hasBackPressure());
     }
 
