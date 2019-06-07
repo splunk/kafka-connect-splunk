@@ -77,7 +77,7 @@ See [Splunk Docs](https://docs.splunk.com/Documentation/KafkaConnect/latest/User
 ## Configuration
 
 After Kafka Connect is brought up on every host, all of the Kafka Connect instances will form a cluster automatically.
-A REST call can be executed against one of the cluster instances, and the configuration will automatically propogate to all instances in the cluster.
+A REST call can be executed against one of the cluster instances, and the configuration will automatically propagate to all instances in the cluster.
 
 ### Configuration schema structure
 Use the below schema to configure Splunk Connect for Kafka
