@@ -1,3 +1,4 @@
+[![CircleCI](https://circleci.com/gh/git-lfs/git-lfs.svg?style=shield&circle-token=856152c2b02bfd236f54d21e1f581f3e4ebf47ad)](https://circleci.com/gh/splunk/kafka-connect-splunk)
 ## Splunk Connect for Kafka
 
 Splunk Connect for Kafka is a Kafka Connect Sink for Splunk with the following features:
