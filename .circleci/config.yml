@@ -1,0 +1,25 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:8-jdk-browsers
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache: # restore the saved cache after the first run or if `pom.xml` has changed
+          key: kafka-connect-splunk-{{ checksum "pom.xml" }}
+      - run: mvn dependency:go-offline # gets the project dependencies
+      - save_cache: # saves the project dependencies
+          paths:
+            - ~/.m2
+          key: kafka-connect-splunk-{{ checksum "pom.xml" }}
+      - run:
+          name: Builder
+          command: mvn compile
+      - run:
+          name: Run tests
+          command: mvn package -Dsurefire.useSystemClassLoader=false -q # run the actual tests
+      - store_test_results: # uploads the test metadata from the `target/surefire-reports` directory so that it can show up in the CircleCI dashboard.
+          path: target/surefire-reports
+      - store_artifacts: # store the uberjar as an artifact
+          path: target/splunk-kafka-connect-v1.1.1.jar
