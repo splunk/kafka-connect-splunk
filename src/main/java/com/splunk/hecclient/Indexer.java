@@ -65,7 +65,7 @@ final class Indexer implements IndexerInf {
         setKeepAlive(true);
     }
 
-    public Indexer setBackPressureThreshold(long threshold)  { //seconds
+    public Indexer setBackPressureThreshold(long threshold)  { //milliseconds
         backPressureThreshold = threshold;
         return this;
     }
