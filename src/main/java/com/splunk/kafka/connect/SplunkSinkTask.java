@@ -369,6 +369,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         if(connectorConfig.hecEventFormatted) {
             try {
                 event = objectMapper.readValue(record.value().toString(), JsonEvent.class);
+                event.setTied(record);
                 event.addFields(connectorConfig.enrichments);
             } catch(Exception e) {
                 log.error("event does not follow correct HEC pre-formatted format: {}", record.value().toString());
