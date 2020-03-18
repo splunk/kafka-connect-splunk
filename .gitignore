@@ -30,3 +30,4 @@ pom.xml.versionsBackup
 .classpath
 .project
 *.iml
+.settings/

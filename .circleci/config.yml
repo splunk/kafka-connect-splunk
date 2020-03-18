@@ -22,4 +22,4 @@ jobs:
       - store_test_results: # uploads the test metadata from the `target/surefire-reports` directory so that it can show up in the CircleCI dashboard.
           path: target/surefire-reports
       - store_artifacts: # store the uberjar as an artifact
-          path: target/splunk-kafka-connect-v1.1.1.jar
+          path: target/splunk-kafka-connect-*.jar
