@@ -1,13 +1,44 @@
 version: 2
 jobs:
   build:
-    docker:
-      - image: circleci/openjdk:8-jdk-browsers
+    resource_class: large
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      CHANGE_MINIKUBE_NONE_USER: true
+      GOPATH: /home/circleci/go
+      KUBECONFIG: /home/circleci/.kube/config
+      KUBERNETES_VERSION: v1.15.2
+      MINIKUBE_HOME: /home/circleci
+      MINIKUBE_VERSION: v1.2.0
+      MINIKUBE_WANTUPDATENOTIFICATION: false
+      MINIKUBE_WANTREPORTERRORPROMPT: false
+      SKAFFOLD_VERSION: v0.33.0
+      GO111MODULE: "on"
+      CI_SPLUNK_VERSION: "7.3.2"
+      CI_SPLUNK_FILENAME: splunk-7.3.2-c60db69f8e32-linux-2.6-amd64.deb
+      CI_SPLUNK_HOST: 127.0.0.1
+      CI_SPLUNK_PORT: 8089
+      CI_SPLUNK_USERNAME: admin
+      CI_SPLUNK_HEC_TOKEN: a6b5e77f-d5f6-415a-bd43-930cecb12959
+      CI_SPLUNK_HEC_TOKEN_PERF: a6b5e77f-d5f6-415a-bd43-930cecb12959
+      CI_SPLUNK_PASSWORD: helloworld
+      CI_HEC_PROTOCOL: http
+      CI_INDEX_EVENTS: circleci_events
+      CI_INDEX_OBJECTS: circleci_objects
+      CI_INDEX_METRICS: circleci_metrics
+      CI_DATAGEN_IMAGE: rock1017/log-generator:latest
     working_directory: ~/repo
     steps:
       - checkout
       - restore_cache: # restore the saved cache after the first run or if `pom.xml` has changed
           key: kafka-connect-splunk-{{ checksum "pom.xml" }}
+      # - run:
+      #     name: Install Java and Maven
+      #     command: |
+      #       sudo add-apt-repository ppa:openjdk-r/ppa
+      #       sudo apt-get update
+      #       sudo apt-get install openjdk-8-jdk
       - run: mvn dependency:go-offline # gets the project dependencies
       - save_cache: # saves the project dependencies
           paths:
