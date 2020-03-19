@@ -1,44 +1,28 @@
 version: 2
 jobs:
-  build:
+  build_test:
     resource_class: large
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      CHANGE_MINIKUBE_NONE_USER: true
-      GOPATH: /home/circleci/go
-      KUBECONFIG: /home/circleci/.kube/config
-      KUBERNETES_VERSION: v1.15.2
       MINIKUBE_HOME: /home/circleci
-      MINIKUBE_VERSION: v1.2.0
-      MINIKUBE_WANTUPDATENOTIFICATION: false
-      MINIKUBE_WANTREPORTERRORPROMPT: false
-      SKAFFOLD_VERSION: v0.33.0
-      GO111MODULE: "on"
       CI_SPLUNK_VERSION: "7.3.2"
       CI_SPLUNK_FILENAME: splunk-7.3.2-c60db69f8e32-linux-2.6-amd64.deb
       CI_SPLUNK_HOST: 127.0.0.1
       CI_SPLUNK_PORT: 8089
       CI_SPLUNK_USERNAME: admin
       CI_SPLUNK_HEC_TOKEN: a6b5e77f-d5f6-415a-bd43-930cecb12959
-      CI_SPLUNK_HEC_TOKEN_PERF: a6b5e77f-d5f6-415a-bd43-930cecb12959
+      CI_SPLUNK_HEC_TOKEN_ACK: a6b5e77f-d5f6-415a-bd43-930cecb12950
       CI_SPLUNK_PASSWORD: helloworld
-      CI_HEC_PROTOCOL: http
       CI_INDEX_EVENTS: circleci_events
-      CI_INDEX_OBJECTS: circleci_objects
-      CI_INDEX_METRICS: circleci_metrics
       CI_DATAGEN_IMAGE: rock1017/log-generator:latest
     working_directory: ~/repo
     steps:
+      - attach_workspace:
+          at: /tmp
       - checkout
       - restore_cache: # restore the saved cache after the first run or if `pom.xml` has changed
           key: kafka-connect-splunk-{{ checksum "pom.xml" }}
-      # - run:
-      #     name: Install Java and Maven
-      #     command: |
-      #       sudo add-apt-repository ppa:openjdk-r/ppa
-      #       sudo apt-get update
-      #       sudo apt-get install openjdk-8-jdk
       - run: mvn dependency:go-offline # gets the project dependencies
       - save_cache: # saves the project dependencies
           paths:
@@ -54,3 +38,68 @@ jobs:
           path: target/surefire-reports
       - store_artifacts: # store the uberjar as an artifact
           path: target/splunk-kafka-connect-*.jar
+      - restore_cache: # restore the saved cache of install splunk
+          key: splunk-enterprise-kafka
+      - run:
+          name: Install Splunk
+          command: |
+            if [ -d "/opt/splunk" ]
+            then 
+              echo "restoring cache failed. installing splunk"
+              cd /tmp && wget -O $CI_SPLUNK_FILENAME 'https://www.splunk.com/bin/splunk/DownloadActivityServlet?architecture=x86_64&platform=linux&version='$CI_SPLUNK_VERSION'&product=splunk&filename='$CI_SPLUNK_FILENAME'&wget=true'
+              sudo dpkg -i $CI_SPLUNK_FILENAME
+              # Set user seed
+              hashed_pwd=$(sudo /opt/splunk/bin/splunk hash-passwd $CI_SPLUNK_PASSWORD)
+              sudo tee /opt/splunk/etc/system/local/user-seed.conf > /dev/null << EOF
+              [user_info]
+              USERNAME = $CI_SPLUNK_USERNAME
+              HASHED_PASSWORD = $hashed_pwd
+              EOF
+              # Add delete capability to admin role
+              sudo tee -a /opt/splunk/etc/system/local/authorize.conf > /dev/null << EOF
+              [role_admin]
+              delete_by_keyword = enabled
+              EOF
+              # start Splunk
+              sudo /opt/splunk/bin/splunk start --accept-license --answer-yes --no-prompt
+              # Enable HEC services
+              curl -X POST -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -k https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/servicesNS/nobody/splunk_httpinput/data/inputs/http/http/enable
+              # Create new HEC token
+              curl -X POST -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -k -d "name=splunk_hec_token&token=$CI_SPLUNK_HEC_TOKEN" https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/servicesNS/nobody/splunk_httpinput/data/inputs/http
+              # Enable HEC new-token
+              sudo /opt/splunk/bin/splunk http-event-collector enable -name splunk_hec_token -uri https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT -auth $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD
+              # Disable SSL for HEC new-token
+              sudo /opt/splunk/bin/splunk http-event-collector update -uri https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT -enable-ssl 0 -auth $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD
+              # Setup Indexes
+              sudo /opt/splunk/bin/splunk add index $CI_INDEX_EVENTS -auth $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD
+              sudo /opt/splunk/bin/splunk http-event-collector update -uri https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT -name splunk_hec_token -auth $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -index $CI_INDEX_EVENTS -indexes $CI_INDEX_EVENTS
+            else
+              echo "using cached splunk"
+            fi
+      - save_cache:
+          paths:
+            - /opt/splunk
+          key: splunk-enterprise-kafka
+      - run:
+          name: Restart Splunk
+          command: sudo /opt/splunk/bin/splunk restart --accept-license --answer-yes --no-prompt      
+      - run:
+          name: Install Kakfa
+          command: echo "TODO"
+      - run: 
+          name: Generate data
+          command: echo "TODO"
+      - run:
+          name: run functional test
+          command: echo "TODO"
+workflows:
+  version: 2
+  test:
+    jobs:
+      - build_test:
+          filters:
+            branches:
+              ignore: 
+                - /^release\/.*/
+                - master
+
