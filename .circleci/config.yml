@@ -38,8 +38,11 @@ jobs:
           path: target/surefire-reports
       - store_artifacts: # store the uberjar as an artifact
           path: target/splunk-kafka-connect-*.jar
+      - run:
+          name: create file for checksum
+          command: echo $CI_SPLUNK_VERSION > /tmp/splunk_version.txt
       - restore_cache: # restore the saved cache of install splunk
-          key: splunk-enterprise-kafka
+          key: splunk-enterprise-kafka-{{ checksum "/tmp/splunk_version.txt" }}
       - run:
           name: Install Splunk
           command: |
@@ -79,13 +82,19 @@ jobs:
       - save_cache:
           paths:
             - /opt/splunk
-          key: splunk-enterprise-kafka
+          key: splunk-enterprise-kafka-{{ checksum "/tmp/splunk_version.txt" }}
       - run:
           name: Restart Splunk
           command: sudo /opt/splunk/bin/splunk restart --accept-license --answer-yes --no-prompt      
       - run:
           name: Install Kakfa
-          command: echo "TODO"
+          command: |
+            cd /tmp && wget wget http://www-us.apache.org/dist/kafka/2.4.0/kafka_2.13-2.4.0.tgz
+            tar xzf kafka_2.13-2.4.0.tgz
+            sudo mv kafka_2.13-2.4.0 /usr/local/kafka
+            # run zookeeper and kafka in the background
+            nohup bin/zookeeper-server-start.sh config/zookeeper.properties &>/tmp/zookeeper.log &
+            nohup bin/kafka-server-start.sh config/server.properties &>/tmp/kafka.log &
       - run: 
           name: Generate data
           command: echo "TODO"
