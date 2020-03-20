@@ -43,7 +43,7 @@ jobs:
       - run:
           name: Install Splunk
           command: |
-            if [ -d "/opt/splunk" ]
+            if [ ! -d "/opt/splunk" ]
             then 
               echo "restoring cache failed. installing splunk"
               cd /tmp && wget -O $CI_SPLUNK_FILENAME 'https://www.splunk.com/bin/splunk/DownloadActivityServlet?architecture=x86_64&platform=linux&version='$CI_SPLUNK_VERSION'&product=splunk&filename='$CI_SPLUNK_FILENAME'&wget=true'
@@ -54,12 +54,12 @@ jobs:
               [user_info]
               USERNAME = $CI_SPLUNK_USERNAME
               HASHED_PASSWORD = $hashed_pwd
-              EOF
+            EOF
               # Add delete capability to admin role
               sudo tee -a /opt/splunk/etc/system/local/authorize.conf > /dev/null << EOF
               [role_admin]
               delete_by_keyword = enabled
-              EOF
+            EOF
               # start Splunk
               sudo /opt/splunk/bin/splunk start --accept-license --answer-yes --no-prompt
               # Enable HEC services
