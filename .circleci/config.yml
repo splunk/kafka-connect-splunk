@@ -120,7 +120,8 @@ jobs:
             sudo cp /home/circleci/repo/target/splunk-kafka-connect*.jar /usr/local/share/kafka/plugins/
             sed -i 's/plugin\.path\=connectors\//plugin\.path\=\/usr\/local\/share\/kafka\/plugins\//' /home/circleci/repo/config/connect-distributed.properties
             sed -i 's/bootstrap\.servers.*/bootstrap\.servers\=localhost\:9092/' /home/circleci/repo/config/connect-distributed.properties
-            /usr/local/kafka/bin/connect-distributed.sh /home/circleci/repo/config/connect-distributed.properties
+            nohup /usr/local/kafka/bin/connect-distributed.sh /home/circleci/repo/config/connect-distributed.properties &
+            disown
       - run: 
           name: Generate data
           command: echo "TODO"
