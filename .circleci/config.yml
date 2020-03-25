@@ -77,8 +77,11 @@ jobs:
       - run:
           name: Install Kafka
           command: |
-            cd /tmp && wget wget http://www-us.apache.org/dist/kafka/$CI_KAFKA_VERSION/$CI_KAFKA_FILENAME
-            tar xzf $CI_KAFKA_FILENAME -C /usr/local/kafka
+            cd /tmp && wget http://www-us.apache.org/dist/kafka/$CI_KAFKA_VERSION/$CI_KAFKA_FILENAME
+            sudo mkdir -p /usr/local/kafka
+            sudo tar xzf $CI_KAFKA_FILENAME
+            rm $CI_KAFKA_FILENAME
+            sudo mv kafka_* /usr/local/kafka
             sudo tee /etc/systemd/system/zookeeper.service > /dev/null << EOF
             [Unit]
             Description=Apache Zookeeper server
@@ -110,6 +113,14 @@ jobs:
             sudo systemctl daemon-reload
             sudo systemctl start zookeeper
             sudo systemctl start kafka
+      - run: 
+          name: start kafka connect
+          command: |
+            sudo mkdir -p /usr/local/share/kafka/plugins/
+            sudo cp /home/circleci/repo/target/splunk-kafka-connect*.jar /usr/local/share/kafka/plugins/
+            sed -i 's/plugin\.path\=connectors\//plugin\.path\=\/usr\/local\/share\/kafka\/plugins\//' /home/circleci/repo/config/connect-distributed.properties
+            sed -i 's/bootstrap\.servers.*/bootstrap\.servers\=localhost\:9092/' /home/circleci/repo/config/connect-distributed.properties
+            /usr/local/kafka/bin/connect-distributed.sh /home/circleci/repo/config/connect-distributed.properties
       - run: 
           name: Generate data
           command: echo "TODO"
