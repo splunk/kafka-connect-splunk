@@ -119,6 +119,9 @@ jobs:
             sudo cp /home/circleci/repo/target/splunk-kafka-connect*.jar /usr/local/share/kafka/plugins/
             sed -i 's/plugin\.path\=connectors\//plugin\.path\=\/usr\/local\/share\/kafka\/plugins\//' /home/circleci/repo/config/connect-distributed.properties
             sed -i 's/bootstrap\.servers.*/bootstrap\.servers\=localhost\:9092/' /home/circleci/repo/config/connect-distributed.properties
+            sed -i 's/config\.storage\.replication\.factor.*/config\.storage\.replication\.factor\=1/' /home/circleci/repo/config/connect-distributed.properties
+            sed -i 's/offset\.storage\.replication\.factor.*/offset\.storage\.replication\.factor\=1/' /home/circleci/repo/config/connect-distributed.properties
+            sed -i 's/status\.storage\.replication\.factor.*/status\.storage\.replication\.factor\=1/' /home/circleci/repo/config/connect-distributed.properties
             sudo /usr/local/kafka/bin/connect-distributed.sh -daemon /home/circleci/repo/config/connect-distributed.properties
       - run: 
           name: Generate data
