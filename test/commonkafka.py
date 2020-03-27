@@ -17,6 +17,7 @@ limitations under the License.
 import logging
 import requests
 import sys
+import json
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -28,16 +29,25 @@ logger.addHandler(handler)
 
 def create_kafka_connector(setup, params):
     '''
-    send a search request to splunk and return the events from the result
+    Create kafka connect connector using kafka connect REST API
     '''
+    response = requests.post(url=setup["kafka_connect_url"]+"/connectors", data=json.dumps(params),
+                      headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
 
-    # sending get request and saving the response as response object
-    r = requests.get(url=setup["kafka_connect_url"], params=params)
+    if response.status_code == 201:
+        logger.info("Created connector successfully - " + json.dumps(params))
+        return True
 
-    # extracting data in json format
-    data = r.json()
+    return False
 
-    # printing the output
-    print(data)
+def delete_kafka_connector(setup, params):
+    '''
+    Delete kafka connect connector using kafka connect REST API
+    '''
+    response = requests.delete(url=setup["kafka_connect_url"]+"/connectors/" + params["name"],
+                        headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
+    if response.status_code == 204:
+        logger.info("Deleted connector successfully - " + json.dumps(params))
+        return True
 
-    return events
+    return False

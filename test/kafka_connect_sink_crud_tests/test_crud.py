@@ -1,7 +1,7 @@
 import pytest
-import requests
 import logging
 import sys
+from ..commonkafka import create_kafka_connector, delete_kafka_connector
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -11,42 +11,31 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 @pytest.mark.parametrize("test_input,expected", [
-    ("create_valid_task", True)
+    ("create_and_delete_valid_task", True)
 ])
-def test_create_valid_task(setup, test_input, expected):
+def test_create_and_delete_valid_task(setup, test_input, expected):
     '''
     Test that valid kafka connect task can be created
     '''
-    logger.info("testing create_valid_task input={0} expected={1} ".format(
+    logger.info("testing create_and_delete_valid_task input={0} expected={1} ".format(
         test_input, expected))
 
-    print(setup)
-
-    # defining a params dict for the parameters to be sent to the API
-    PARAMS = {
+    # defining a connector definition dict for the parameters to be sent to the API
+    connector_definition = {
             "name": "kafka-connect-splunk",
             "config": {
                "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
                "tasks.max": "3",
                "topics": "test-datagen",  # set kafka topic later
                "splunk.indexes": setup["kafka_topic"],
-               "splunk.hec.uri": setup["splunkd_url"],
-               "splunk.hec.token": setup["splunkd_token"],
+               "splunk.hec.uri": setup["splunk_url"],
+               "splunk.hec.token": setup["splunk_token"],
                "splunk.hec.raw": "false",
                "splunk.hec.ack.enabled": "false",
                "splunk.hec.ssl.validate.certs": "true"
               }
             }
 
-    # sending get request and saving the response as response object
-    r = requests.get(url=setup["kafka_connect_url"], params=PARAMS)
+    assert create_kafka_connector(setup, connector_definition) == expected
 
-    # extracting data in json format
-    data = r.json()
-
-    # printing the output
-    print(data)
-
-    assert r.json != None
-
-    logger.info("Created valid task successfully")
+    assert delete_kafka_connector(setup, connector_definition) == expected
