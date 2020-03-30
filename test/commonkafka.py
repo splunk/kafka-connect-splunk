@@ -31,10 +31,23 @@ def create_kafka_connector(setup, params):
     '''
     Create kafka connect connector using kafka connect REST API
     '''
-    response = requests.post(url=setup["kafka_connect_url"]+"/connectors", data=json.dumps(params),
+    response = requests.post(url=setup["kafka_connect_url"] + "/connectors", data=json.dumps(params),
                       headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
 
     if response.status_code == 201:
+        logger.info("Created connector successfully - " + json.dumps(params))
+        return True
+
+    return False
+
+def update_kafka_connector(setup, params):
+    '''
+    Update kafka connect connector using kafka connect REST API
+    '''
+    response = requests.put(url=setup["kafka_connect_url"] + "/connectors/" + params["name"] + "/config", data=json.dumps(params["config"]),
+                      headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
+
+    if response.status_code == 200:
         logger.info("Created connector successfully - " + json.dumps(params))
         return True
 
@@ -44,12 +57,76 @@ def delete_kafka_connector(setup, params):
     '''
     Delete kafka connect connector using kafka connect REST API
     '''
-    response = requests.delete(url=setup["kafka_connect_url"]+"/connectors/" + params["name"],
+    response = requests.delete(url=setup["kafka_connect_url"] + "/connectors/" + params["name"],
                         headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
+
     if response.status_code == 204:
         logger.info("Deleted connector successfully - " + json.dumps(params))
         return True
-    else:
-        logger.error("failed to create connector", param)
-        logger.error(response.status_code)
-        return False
+
+    return False
+
+def get_kafka_connector_tasks(setup, params):
+    '''
+    Get kafka connect connector tasks using kafka connect REST API
+    '''
+    response = requests.get(url=setup["kafka_connect_url"] + "/connectors/" + params["name"] + "/tasks",
+                      headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
+
+    if response.status_code == 200:
+        logger.info("Created connector successfully - " + json.dumps(params))
+        return response.json()
+
+    return None
+
+def get_kafka_connector_status(setup, params):
+    '''
+    Get kafka connect connector tasks using kafka connect REST API
+    '''
+    response = requests.get(url=setup["kafka_connect_url"] + "/connectors/" + params["name"] + "/status",
+                      headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
+
+    if response.status_code == 200:
+        logger.info("Created connector successfully - " + json.dumps(params))
+        return response.json()
+
+    return None
+
+def pause_kafka_connector(setup, params):
+    '''
+    Pause kafka connect connector using kafka connect REST API
+    '''
+    response = requests.put(url=setup["kafka_connect_url"] + "/connectors/" + params["name"] + "/pause",
+                      headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
+
+    if response.status_code == 200:
+        logger.info("Created connector successfully - " + json.dumps(params))
+        return True
+
+    return False
+
+def resume_kafka_connector(setup, params):
+    '''
+    Resume kafka connect connector using kafka connect REST API
+    '''
+    response = requests.put(url=setup["kafka_connect_url"] + "/connectors/" + params["name"] + "/resume",
+                      headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
+
+    if response.status_code == 200:
+        logger.info("Created connector successfully - " + json.dumps(params))
+        return True
+
+    return False
+
+def restart_kafka_connector(setup, params):
+    '''
+    Restart kafka connect connector using kafka connect REST API
+    '''
+    response = requests.post(url=setup["kafka_connect_url"] + "/connectors/" + params["name"] + "/restart",
+                      headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
+
+    if response.status_code == 200:
+        logger.info("Created connector successfully - " + json.dumps(params))
+        return True
+
+    return False
