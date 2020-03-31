@@ -18,6 +18,7 @@ jobs:
       CI_DATAGEN_IMAGE: rock1017/log-generator:latest
       CI_KAFKA_VERSION: 2.4.0
       CI_KAFKA_FILENAME: kafka_2.13-2.4.0.tgz
+      CI_KAFKA_TOPIC: test-datagen
     working_directory: ~/repo
     steps:
       - attach_workspace:
@@ -25,7 +26,9 @@ jobs:
       - checkout
       - restore_cache: # restore the saved cache after the first run or if `pom.xml` has changed
           key: kafka-connect-splunk-{{ checksum "pom.xml" }}
-      - run: mvn dependency:go-offline # gets the project dependencies
+      - run:
+          name: Get maven dependencies
+          command: mvn dependency:go-offline
       - save_cache: # saves the project dependencies
           paths:
             - ~/.m2
@@ -34,14 +37,14 @@ jobs:
           name: Builder
           command: mvn compile
       - run:
-          name: Run tests
+          name: Run Unit tests
           command: mvn package -Dsurefire.useSystemClassLoader=false -q # run the actual tests
       - store_test_results: # uploads the test metadata from the `target/surefire-reports` directory so that it can show up in the CircleCI dashboard.
           path: target/surefire-reports
       - store_artifacts: # store the uberjar as an artifact
           path: target/splunk-kafka-connect-*.jar
       - run:
-          name: create file for checksum
+          name: Create file for checksum
           command: echo $CI_SPLUNK_VERSION > /tmp/splunk_version.txt
       - run:
           name: Install Splunk
@@ -113,22 +116,35 @@ jobs:
             sudo systemctl start zookeeper
             sudo systemctl start kafka
       - run: 
-          name: start kafka connect
+          name: Start kafka connect
           command: |
             sudo mkdir -p /usr/local/share/kafka/plugins/
             sudo cp /home/circleci/repo/target/splunk-kafka-connect*.jar /usr/local/share/kafka/plugins/
-            sed -i 's/plugin\.path\=connectors\//plugin\.path\=\/usr\/local\/share\/kafka\/plugins\//' /home/circleci/repo/config/connect-distributed.properties
-            sed -i 's/bootstrap\.servers.*/bootstrap\.servers\=localhost\:9092/' /home/circleci/repo/config/connect-distributed.properties
-            sed -i 's/config\.storage\.replication\.factor.*/config\.storage\.replication\.factor\=1/' /home/circleci/repo/config/connect-distributed.properties
-            sed -i 's/offset\.storage\.replication\.factor.*/offset\.storage\.replication\.factor\=1/' /home/circleci/repo/config/connect-distributed.properties
-            sed -i 's/status\.storage\.replication\.factor.*/status\.storage\.replication\.factor\=1/' /home/circleci/repo/config/connect-distributed.properties
-            sudo /usr/local/kafka/bin/connect-distributed.sh -daemon /home/circleci/repo/config/connect-distributed.properties
-      - run: 
+            sed -i 's/plugin\.path\=connectors\//plugin\.path\=\/usr\/local\/share\/kafka\/plugins\//' /home/circleci/repo/config/connect-distributed-quickstart.properties
+            sudo /usr/local/kafka/bin/connect-distributed.sh /home/circleci/repo/config/connect-distributed-quickstart.properties
+          background: true
+
+      - run:
           name: Generate data
           command: echo "TODO"
       - run:
-          name: run functional test
-          command: echo "TODO"
+          name: Run Functional tests
+          command: |
+            echo "Create Kafka topic"
+            /usr/local/kafka/bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic $CI_KAFKA_TOPIC
+            pyenv global 3.6.5
+            pip install --upgrade pip
+            pip install -r test/requirements.txt
+            export PYTHONWARNINGS="ignore:Unverified HTTPS request"
+            echo "Running functional tests....."
+            python -m pytest \
+            	--splunk-url https://$CI_SPLUNK_HOST:8089 \
+            	--splunk-user $CI_SPLUNK_USERNAME \
+            	--splunk-password $CI_SPLUNK_PASSWORD \
+                --splunk-token $CI_SPLUNK_HEC_TOKEN \
+                --kafka-topic $CI_KAFKA_TOPIC \
+            	-p no:warnings -s
+
 workflows:
   version: 2
   test:
