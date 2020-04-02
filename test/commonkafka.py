@@ -36,7 +36,7 @@ def create_kafka_connector(setup, params):
 
     if response.status_code == 201:
         status = get_kafka_connector_status(setup, params)
-        while status is not None and status["connector"]["state"] != "RUNNING" and status["tasks"][0]["state"] != "RUNNING":
+        while status is not None and status["connector"]["state"] != "RUNNING":
             status = get_kafka_connector_status(setup, params)
         logger.info("Created connector successfully - " + json.dumps(params))
         return True
