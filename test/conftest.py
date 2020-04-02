@@ -164,7 +164,7 @@ def pytest_configure():
                         headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
 
         if response.status_code == 201:
-            logger.info("Created connector successfully - " + json.dumps(params))   
+            logger.info("Created connector successfully - " + json.dumps(param))   
         else:
             logger.error("failed to create connector", param)
             print(response)
