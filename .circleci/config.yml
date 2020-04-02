@@ -132,7 +132,6 @@ jobs:
           command: |
             echo "Create Kafka topic"
             /usr/local/kafka/bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic $CI_KAFKA_TOPIC
-            sed -i ''
             pyenv global 3.6.5
             pip install --upgrade pip
             pip install -r test/requirements.txt
