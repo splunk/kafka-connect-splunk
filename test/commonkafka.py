@@ -18,6 +18,7 @@ import logging
 import requests
 import sys
 import json
+import time
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -33,13 +34,20 @@ def create_kafka_connector(setup, params):
     '''
     response = requests.post(url=setup["kafka_connect_url"] + "/connectors", data=json.dumps(params),
                       headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
-
-    if response.status_code == 201:
+    if response.status_code != 201:
+        return False
+    else:
         status = get_kafka_connector_status(setup, params)
         while status is not None and status["connector"]["state"] != "RUNNING":
             status = get_kafka_connector_status(setup, params)
-        logger.info("Created connector successfully - " + json.dumps(params))
-        return True
+
+        t_end = time.time() + 10
+        while time.time() < t_end:
+            status = get_kafka_connector_status(setup, params)
+
+        if len(status["tasks"]) > 0 and status["tasks"][0]["state"] == "RUNNING":
+            logger.info("Created connector successfully - " + json.dumps(params))
+            return True
 
     return False
 
@@ -88,14 +96,13 @@ def get_kafka_connector_status(setup, params):
     '''
     Get kafka connect connector tasks using kafka connect REST API
     '''
-    response = requests.get(url=setup["kafka_connect_url"] + "/connectors/" + params["name"] + "/status",
-                      headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
+    status = -1
+    while status != 200:
+        response = requests.get(url=setup["kafka_connect_url"] + "/connectors/" + params["name"] + "/status",
+                                headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
+        status = response.status_code
 
-    if response.status_code == 200:
-        logger.info("Got connector status successfully")
-        return response.json()
-
-    return None
+    return response.json()
 
 def pause_kafka_connector(setup, params):
     '''

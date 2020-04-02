@@ -1,6 +1,7 @@
 import pytest
 import logging
 import sys
+import time
 from ..commonkafka import create_kafka_connector, delete_kafka_connector, update_kafka_connector, get_kafka_connector_tasks, get_kafka_connector_status, pause_kafka_connector, resume_kafka_connector, restart_kafka_connector
 
 logger = logging.getLogger(__name__)
@@ -134,6 +135,44 @@ def test_invalid_CRUD_tasks(setup, test_input, expected):
                "splunk.hec.raw": "false",
                "splunk.hec.ack.enabled": "false",
                "splunk.hec.ssl.validate.certs": "false"
+              }
+            }
+
+    assert create_kafka_connector(setup, connector_definition_invalid_tasks) == expected
+
+    # connector definition with splunk.hec.json.event.enrichment invalid(non key value pairs)
+    connector_definition_invalid_tasks = {
+            "name": "kafka-connect-splunk",
+            "config": {
+               "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+               "tasks.max": "3",
+               "topics": "test-datagen",
+               "splunk.indexes": setup["kafka_topic"],
+               "splunk.hec.uri": setup["splunk_url"],
+               "splunk.hec.token": setup["splunk_token"],
+               "splunk.hec.raw": "false",
+               "splunk.hec.ack.enabled": "false",
+               "splunk.hec.ssl.validate.certs": "false",
+               "splunk.hec.json.event.enrichment": "testing-testing non KV"
+              }
+            }
+
+    assert create_kafka_connector(setup, connector_definition_invalid_tasks) == expected
+
+    # connector definition with splunk.hec.json.event.enrichment invalid(key value pairs not separated by commas)
+    connector_definition_invalid_tasks = {
+            "name": "kafka-connect-splunk",
+            "config": {
+               "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+               "tasks.max": "3",
+               "topics": "test-datagen",
+               "splunk.indexes": setup["kafka_topic"],
+               "splunk.hec.uri": setup["splunk_url"],
+               "splunk.hec.token": setup["splunk_token"],
+               "splunk.hec.raw": "false",
+               "splunk.hec.ack.enabled": "false",
+               "splunk.hec.ssl.validate.certs": "false",
+                "splunk.hec.json.event.enrichment": "key1=value1 key2=value2"
               }
             }
 
