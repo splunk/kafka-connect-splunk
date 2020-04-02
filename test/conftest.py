@@ -24,6 +24,8 @@ import yaml
 import json
 import time
 from kafka import KafkaProducer
+from .connect_params import connect_params
+from .commonkafka import create_kafka_connector, delete_kafka_connector
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -35,14 +37,11 @@ logger.addHandler(handler)
 with open('test/config.yaml', 'r') as yaml_file:
     config = yaml.load(yaml_file)
 
-with open('test/connect_params.json', 'r') as json_file:
-    connect_params = json.load(json_file)
-
 @pytest.fixture()
 def setup(request):
     return config
 
-def pytest_configure(): 
+def pytest_configure():   
     # Generate data
     producer = KafkaProducer(bootstrap_servers='localhost:9092', value_serializer=lambda v: json.dumps(v).encode('utf-8'))
     msg = {'foo': 'bar'} 
@@ -51,16 +50,11 @@ def pytest_configure():
 
     # Launch all connectors for tests
     for param in connect_params:
-        response = requests.post(url=config["kafka_connect_url"]+"/connectors", data=json.dumps(param),
-                        headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
-
-        if response.status_code == 201:
-            logger.info("Created connector successfully - " + json.dumps(param))   
-        else:
-            logger.error("failed to create connector", param)
-            print(response)
+        create_kafka_connector(config, param)
     # wait for data to be ingested to Splunk
     time.sleep(30)
 
 def pytest_unconfigure():
-    pass
+    # Delete launched connectors
+    for param in connect_params:
+        delete_kafka_connector(config, param)

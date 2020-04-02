@@ -49,5 +49,7 @@ def delete_kafka_connector(setup, params):
     if response.status_code == 204:
         logger.info("Deleted connector successfully - " + json.dumps(params))
         return True
-
-    return False
+    else:
+        logger.error("failed to create connector", param)
+        logger.error(response.status_code)
+        return False
