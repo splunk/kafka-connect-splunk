@@ -14,7 +14,7 @@ jobs:
       CI_SPLUNK_HEC_TOKEN: a6b5e77f-d5f6-415a-bd43-930cecb12959
       CI_SPLUNK_HEC_TOKEN_ACK: a6b5e77f-d5f6-415a-bd43-930cecb12950
       CI_SPLUNK_PASSWORD: helloworld
-      CI_INDEX_EVENTS: circleci_events
+      CI_INDEX_EVENTS: main
       CI_DATAGEN_IMAGE: rock1017/log-generator:latest
       CI_KAFKA_VERSION: 2.4.0
       CI_KAFKA_FILENAME: kafka_2.13-2.4.0.tgz
@@ -121,12 +121,10 @@ jobs:
             sudo mkdir -p /usr/local/share/kafka/plugins/
             sudo cp /home/circleci/repo/target/splunk-kafka-connect*.jar /usr/local/share/kafka/plugins/
             sed -i 's/plugin\.path\=connectors\//plugin\.path\=\/usr\/local\/share\/kafka\/plugins\//' /home/circleci/repo/config/connect-distributed-quickstart.properties
+            sed -i 's/key\.converter\=org\.apache\.kafka\.connect\.storage\.StringConverter/key\.converter\=org\.apache\.kafka\.connect\.json\.JsonConverter/' /home/circleci/repo/config/connect-distributed-quickstart.properties
+            sed -i 's/value\.converter\=org\.apache\.kafka\.connect\.storage\.StringConverter/value\.converter\=org\.apache\.kafka\.connect\.json\.JsonConverter/' /home/circleci/repo/config/connect-distributed-quickstart.properties
             sudo /usr/local/kafka/bin/connect-distributed.sh /home/circleci/repo/config/connect-distributed-quickstart.properties
           background: true
-
-      - run:
-          name: Generate data
-          command: echo "TODO"
       - run:
           name: Run Functional tests
           command: |
