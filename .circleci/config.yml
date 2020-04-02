@@ -132,18 +132,13 @@ jobs:
           command: |
             echo "Create Kafka topic"
             /usr/local/kafka/bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic $CI_KAFKA_TOPIC
+            sed -i ''
             pyenv global 3.6.5
             pip install --upgrade pip
             pip install -r test/requirements.txt
             export PYTHONWARNINGS="ignore:Unverified HTTPS request"
             echo "Running functional tests....."
-            python -m pytest \
-            	--splunk-url https://$CI_SPLUNK_HOST:8089 \
-            	--splunk-user $CI_SPLUNK_USERNAME \
-            	--splunk-password $CI_SPLUNK_PASSWORD \
-                --splunk-token $CI_SPLUNK_HEC_TOKEN \
-                --kafka-topic $CI_KAFKA_TOPIC \
-            	-p no:warnings -s
+            python -m pytest -p no:warnings -s
 
 workflows:
   version: 2

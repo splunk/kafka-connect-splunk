@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-      http://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,40 +15,158 @@ limitations under the License.
 """
 
 import pytest
+import sys
+import os
+import json
+import logging
+import requests
+import yaml
+import time
+from kafka import KafkaProducer
 
-def pytest_addoption(parser):
-    parser.addoption("--splunk-url",
-                     help="splunk url used to send test data to. \
-                          Eg: https://localhost:8089",
-                     default="https://localhost:8089")
-    parser.addoption("--splunk-user",
-                     help="splunk username",
-                     default="admin")
-    parser.addoption("--splunk-password",
-                     help="splunk user password",
-                     default="password")
-    parser.addoption("--splunk-token",
-                     help="splunk hec token")
-    parser.addoption("--splunk-index",
-                     help="splunk index",
-                     default="main")
-    parser.addoption("--kafka-connect-url",
-                     help="url used to interact with kafka connect. \
-                          Eg: http://localhost:8083",
-                     default="http://localhost:8083")
-    parser.addoption("--kafka-topic",
-                     help="kafka topic used to get data with kafka connect")
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(message)s')
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
+with open('test/config.yaml', 'r') as yaml_file:
+        config = yaml.load(yaml_file)
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def setup(request):
-    config = {}
-    config["splunk_url"] = request.config.getoption("--splunk-url")
-    config["splunk_user"] = request.config.getoption("--splunk-user")
-    config["splunk_password"] = request.config.getoption("--splunk-password")
-    config["splunk_token"] = request.config.getoption("--splunk-token")
-    config["splunk_index"] = request.config.getoption("--splunk-index")
-    config["kafka_connect_url"] = request.config.getoption("--kafka-connect-url")
-    config["kafka_topic"] = request.config.getoption("--kafka-topic")
-
     return config
+
+def pytest_configure():   
+    # Generate data
+    producer = KafkaProducer(bootstrap_servers='localhost:9092', value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+    msg = {'foo': 'bar'} 
+    producer.send(config["kafka_topic"], msg)
+
+    # Launch all connectors for tests
+    connect_params = []
+    param = {
+        "name": "data-enrichment-latin1-sup",
+        "config": {
+            "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+            "tasks.max": "1",
+            "topics": config["kafka_topic"],
+            "splunk.indexes": "main",
+            "splunk.hec.uri": config["splunk_url"],
+            "splunk.hec.token": config["splunk_token"],
+            "splunk.hec.raw": "false",
+            "splunk.hec.ack.enabled": "false",
+            "splunk.hec.ssl.validate.certs": "false",
+            "splunk.hec.json.event.enrichment" : "test=supplement,chars=¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
+        }
+    }
+    connect_params.append(param)
+    param = {
+        "name": "data-enrichment-latin1-A",
+        "config": {
+            "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+            "tasks.max": "1",
+            "topics": config["kafka_topic"],
+            "splunk.indexes": "main",
+            "splunk.hec.uri": config["splunk_url"],
+            "splunk.hec.token": config["splunk_token"],
+            "splunk.hec.raw": "false",
+            "splunk.hec.ack.enabled": "false",
+            "splunk.hec.ssl.validate.certs": "false",
+            "splunk.hec.json.event.enrichment" : "test=extendedA,chars=ĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſ"
+        }
+    }
+    connect_params.append(param)
+    param = {
+        "name": "data-enrichment-latin1-B",
+        "config": {
+            "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+            "tasks.max": "1",
+            "topics": config["kafka_topic"],
+            "splunk.indexes": "main",
+            "splunk.hec.uri": config["splunk_url"],
+            "splunk.hec.token": config["splunk_token"],
+            "splunk.hec.raw": "false",
+            "splunk.hec.ack.enabled": "false",
+            "splunk.hec.ssl.validate.certs": "false",
+            "splunk.hec.json.event.enrichment" : "test=extendedB,chars=ƀƁƂƃƄƅƆƇƈƉƊƋƌƍƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǄǅǆǇǈǉǊǋǌǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǝǞǟǠǡǢǣǤǥǦǧǨǩǪǫǬǭǮǯǰǱǲǳǴǵǶǷǸǹǺǻǼǽǾǿȀȁȂȃȄȅȆȇȈȉȊȋȌȍȎȏȐȑȒȓȔȕȖȗȘșȚțȜȝȞȟȠȡȢȣȤȥȦȧȨȩȪȫȬȭȮȯȰȱȲȳȴȵȶȷȸȹȺȻȼȽȾȿɀɁɂɃɄɅɆɇɈɉɊɋɌɍɎɏ"
+        }
+    }
+    connect_params.append(param)
+    param = {
+        "name": "data-enrichment-latin1-spaceModifier",
+        "config": {
+            "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+            "tasks.max": "1",
+            "topics": config["kafka_topic"],
+            "splunk.indexes": "main",
+            "splunk.hec.uri": config["splunk_url"],
+            "splunk.hec.token": config["splunk_token"],
+            "splunk.hec.raw": "false",
+            "splunk.hec.ack.enabled": "false",
+            "splunk.hec.ssl.validate.certs": "false",
+            "splunk.hec.json.event.enrichment" : "test=spaceModifier,chars=ʰʱʲʳʴʵʶʷʸʹʺʻʼʽʾʿˀˁ˂˃˄˅ˆˇˈˉˊˋˌˍˎˏːˑ˒˓˔˕˖˗˘˙˚˛˜˝˞˟ˠˡˢˣˤ˥˦˧˨˩˪˫ˬ˭ˮ˯˰˱˲˳˴˵˶˷˸˹˺˻˼˽˾˿"
+        }
+    }
+    connect_params.append(param)
+    param = {
+        "name": "data-enrichment-latin1-IPA",
+        "config": {
+            "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+            "tasks.max": "1",
+            "topics": config["kafka_topic"],
+            "splunk.indexes": "main",
+            "splunk.hec.uri": config["splunk_url"],
+            "splunk.hec.token": config["splunk_token"],
+            "splunk.hec.raw": "false",
+            "splunk.hec.ack.enabled": "false",
+            "splunk.hec.ssl.validate.certs": "false",
+            "splunk.hec.json.event.enrichment" : "test=IPAextensions,chars=ɐɑɒɓɔɕɖɗɘəɚɛɜɝɞɟɠɡɢɣɤɥɦɧɨɩɪɫɬɭɮɯɰɱɲɳɴɵɶɷɸɹɺɻɼɽɾɿʀʁʂʃʄʅʆʇʈʉʊʋʌʍʎʏʐʑʒʓʔʕʖʗʘʙʚʛʜʝʞʟʠʡʢʣʤʥʦʧʨʩʪʫʬʭʮʯ"
+        }
+    }
+    connect_params.append(param)
+    param = {
+        "name": "data-enrichment-latin1-greek",
+        "config": {
+            "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+            "tasks.max": "1",
+            "topics": config["kafka_topic"],
+            "splunk.indexes": "main",
+            "splunk.hec.uri": config["splunk_url"],
+            "splunk.hec.token": config["splunk_token"],
+            "splunk.hec.raw": "false",
+            "splunk.hec.ack.enabled": "false",
+            "splunk.hec.ssl.validate.certs": "false",
+            "splunk.hec.json.event.enrichment" : "test=greek,chars=ͰͱͲͳʹ͵Ͷͷ͸͹ͺͻͼͽ;Ϳ΀΁΂΃΄΅Ά·ΈΉΊ΋Ό΍ΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡ΢ΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώϏϐϑϒϓϔϕϖϗϘϙϚϛϜϝϞϟϠϡϢϣϤϥϦϧϨϩϪϫϬϭϮϯϰϱϲϳϴϵ϶ϷϸϹϺϻϼϽϾϿ"
+        }
+    }
+    connect_params.append(param)
+    param = {
+        "name": "data-enrichment-latin1-diacriticalMarks",
+        "config": {
+            "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+            "tasks.max": "1",
+            "topics": config["kafka_topic"],
+            "splunk.indexes": "main",
+            "splunk.hec.uri": config["splunk_url"],
+            "splunk.hec.token": config["splunk_token"],
+            "splunk.hec.raw": "false",
+            "splunk.hec.ack.enabled": "false",
+            "splunk.hec.ssl.validate.certs": "false",
+            "splunk.hec.json.event.enrichment" : "test=diacriticalMarks,chars=	́	̂	̃	̄	̅	̆	̇	̈	̉	̊	̋	̌	̍	̎	̏	̐	̑	̒	̓	̔	̕	̖	̗	̘	̙	̚	̛	̜	̝	̞	̟	̠	̡	̢	̣	̤	̥	̦	̧	̨	̩	̪	̫	̬	̭	̮	̯	̰	̱	̲	̳	̴	̵	̶	̷	̸	̹	̺	̻	̼	̽	̾	̿	̀	́	͂	̓	̈́	ͅ	͆	͇	͈	͉	͊	͋	͌	͍	͎	͏	͐	͑	͒	͓	͔	͕	͖	͗	͘	͙	͚	͛	͜	͝	͞	͟	͠	͡	͢	ͣ	ͤ	ͥ	ͦ	ͧ	ͨ	ͩ	ͪ	ͫ	ͬ	ͭ	ͮ	ͯ"
+        }
+    }
+    connect_params.append(param)
+    
+    for param in connect_params:
+        response = requests.post(url=config["kafka_connect_url"]+"/connectors", data=json.dumps(param),
+                        headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
+
+        if response.status_code == 201:
+            logger.info("Created connector successfully - " + json.dumps(params))   
+        else:
+            logger.error("failed to create connector", param)
+            print(response)
+    # wait for data to be ingested to Splunk
+    time.sleep(30)

@@ -31,3 +31,6 @@ pom.xml.versionsBackup
 .project
 *.iml
 .settings/
+
+**/__pycache__/*
+venv/

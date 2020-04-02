@@ -1,0 +1,8 @@
+splunk_url: https://127.0.0.1:8089
+splunk_user: admin
+splunk_password: helloworld
+splunk_index: main
+splunk_token: a6b5e77f-d5f6-415a-bd43-930cecb12959
+splunk_oken_ack: a6b5e77f-d5f6-415a-bd43-930cecb12950
+kafka_topic: test-datagen
+kafka_connect_url: http://localhost:8083
