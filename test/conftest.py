@@ -52,7 +52,7 @@ def pytest_configure():
     for param in connect_params:
         create_kafka_connector(config, param)
     # wait for data to be ingested to Splunk
-    time.sleep(30)
+    time.sleep(60)
 
 def pytest_unconfigure():
     # Delete launched connectors
