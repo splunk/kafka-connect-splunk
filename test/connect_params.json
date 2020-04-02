@@ -1,0 +1,105 @@
+[{
+    "name": "data-enrichment-latin1-sup",
+    "config": {
+        "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+        "tasks.max": "1",
+        "topics": "kafka_topic",
+        "splunk.indexes": "splunk_index",
+        "splunk.hec.uri": "splunk_url",
+        "splunk.hec.token": "splunk_token",
+        "splunk.hec.raw": "false",
+        "splunk.hec.ack.enabled": "false",
+        "splunk.hec.ssl.validate.certs": "false",
+        "splunk.hec.json.event.enrichment" : "test=supplement,chars=¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
+    }
+},
+{
+    "name": "data-enrichment-latin1-A",
+    "config": {
+        "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+        "tasks.max": "1",
+        "topics": "kafka_topic",
+        "splunk.indexes": "splunk_index",
+        "splunk.hec.uri": "splunk_url",
+        "splunk.hec.token": "splunk_token",
+        "splunk.hec.raw": "false",
+        "splunk.hec.ack.enabled": "false",
+        "splunk.hec.ssl.validate.certs": "false",
+        "splunk.hec.json.event.enrichment" : "test=extendedA,chars=ĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſ"
+    }
+},
+{
+    "name": "data-enrichment-latin1-B",
+    "config": {
+        "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+        "tasks.max": "1",
+        "topics": "kafka_topic",
+        "splunk.indexes": "splunk_index",
+        "splunk.hec.uri": "splunk_url",
+        "splunk.hec.token": "splunk_token",
+        "splunk.hec.raw": "false",
+        "splunk.hec.ack.enabled": "false",
+        "splunk.hec.ssl.validate.certs": "false",
+        "splunk.hec.json.event.enrichment" : "test=extendedB,chars=ƀƁƂƃƄƅƆƇƈƉƊƋƌƍƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǄǅǆǇǈǉǊǋǌǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǝǞǟǠǡǢǣǤǥǦǧǨǩǪǫǬǭǮǯǰǱǲǳǴǵǶǷǸǹǺǻǼǽǾǿȀȁȂȃȄȅȆȇȈȉȊȋȌȍȎȏȐȑȒȓȔȕȖȗȘșȚțȜȝȞȟȠȡȢȣȤȥȦȧȨȩȪȫȬȭȮȯȰȱȲȳȴȵȶȷȸȹȺȻȼȽȾȿɀɁɂɃɄɅɆɇɈɉɊɋɌɍɎɏ"
+    }
+},
+{
+    "name": "data-enrichment-latin1-spaceModifier",
+    "config": {
+        "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+        "tasks.max": "1",
+        "topics": "kafka_topic",
+        "splunk.indexes": "splunk_index",
+        "splunk.hec.uri": "splunk_url",
+        "splunk.hec.token": "splunk_token",
+        "splunk.hec.raw": "false",
+        "splunk.hec.ack.enabled": "false",
+        "splunk.hec.ssl.validate.certs": "false",
+        "splunk.hec.json.event.enrichment" : "test=spaceModifier,chars=ʰʱʲʳʴʵʶʷʸʹʺʻʼʽʾʿˀˁ˂˃˄˅ˆˇˈˉˊˋˌˍˎˏːˑ˒˓˔˕˖˗˘˙˚˛˜˝˞˟ˠˡˢˣˤ˥˦˧˨˩˪˫ˬ˭ˮ˯˰˱˲˳˴˵˶˷˸˹˺˻˼˽˾˿"
+    }
+},
+{
+    "name": "data-enrichment-latin1-IPA",
+    "config": {
+        "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+        "tasks.max": "1",
+        "topics": "kafka_topic",
+        "splunk.indexes": "splunk_index",
+        "splunk.hec.uri": "splunk_url",
+        "splunk.hec.token": "splunk_token",
+        "splunk.hec.raw": "false",
+        "splunk.hec.ack.enabled": "false",
+        "splunk.hec.ssl.validate.certs": "false",
+        "splunk.hec.json.event.enrichment" : "test=IPAextensions,chars=ɐɑɒɓɔɕɖɗɘəɚɛɜɝɞɟɠɡɢɣɤɥɦɧɨɩɪɫɬɭɮɯɰɱɲɳɴɵɶɷɸɹɺɻɼɽɾɿʀʁʂʃʄʅʆʇʈʉʊʋʌʍʎʏʐʑʒʓʔʕʖʗʘʙʚʛʜʝʞʟʠʡʢʣʤʥʦʧʨʩʪʫʬʭʮʯ"
+    }
+},
+{
+    "name": "data-enrichment-latin1-greek",
+    "config": {
+        "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+        "tasks.max": "1",
+        "topics": "kafka_topic",
+        "splunk.indexes": "splunk_index",
+        "splunk.hec.uri": "splunk_url",
+        "splunk.hec.token": "splunk_token",
+        "splunk.hec.raw": "false",
+        "splunk.hec.ack.enabled": "false",
+        "splunk.hec.ssl.validate.certs": "false",
+        "splunk.hec.json.event.enrichment" : "test=greek,chars=ͰͱͲͳʹ͵Ͷͷ͸͹ͺͻͼͽ;Ϳ΀΁΂΃΄΅Ά·ΈΉΊ΋Ό΍ΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡ΢ΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώϏϐϑϒϓϔϕϖϗϘϙϚϛϜϝϞϟϠϡϢϣϤϥϦϧϨϩϪϫϬϭϮϯϰϱϲϳϴϵ϶ϷϸϹϺϻϼϽϾϿ"
+    }
+},
+{
+    "name": "data-enrichment-latin1-diacriticalMarks",
+    "config": {
+        "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+        "tasks.max": "1",
+        "topics": "kafka_topic",
+        "splunk.indexes": "splunk_index",
+        "splunk.hec.uri": "splunk_url",
+        "splunk.hec.token": "splunk_token",
+        "splunk.hec.raw": "false",
+        "splunk.hec.ack.enabled": "false",
+        "splunk.hec.ssl.validate.certs": "false",
+        "splunk.hec.json.event.enrichment" : "test=diacriticalMarks,chars=\t\u0301\t\u0302\t\u0303\t\u0304\t\u0305\t\u0306\t\u0307\t\u0308\t\u0309\t\u030A\t\u030B\t\u030C\t\u030D\t\u030E\t\u030F\t\u0310\t\u0311\t\u0312\t\u0313\t\u0314\t\u0315\t\u0316\t\u0317\t\u0318\t\u0319\t\u031A\t\u031B\t\u031C\t\u031D\t\u031E\t\u031F\t\u0320\t\u0321\t\u0322\t\u0323\t\u0324\t\u0325\t\u0326\t\u0327\t\u0328\t\u0329\t\u032A\t\u032B\t\u032C\t\u032D\t\u032E\t\u032F\t\u0330\t\u0331\t\u0332\t\u0333\t\u0334\t\u0335\t\u0336\t\u0337\t\u0338\t\u0339\t\u033A\t\u033B\t\u033C\t\u033D\t\u033E\t\u033F\t\u0340\t\u0341\t\u0342\t\u0343\t\u0344\t\u0345\t\u0346\t\u0347\t\u0348\t\u0349\t\u034A\t\u034B\t\u034C\t\u034D\t\u034E\t\u034F\t\u0350\t\u0351\t\u0352\t\u0353\t\u0354\t\u0355\t\u0356\t\u0357\t\u0358\t\u0359\t\u035A\t\u035B\t\u035C\t\u035D\t\u035E\t\u035F\t\u0360\t\u0361\t\u0362\t\u0363\t\u0364\t\u0365\t\u0366\t\u0367\t\u0368\t\u0369\t\u036A\t\u036B\t\u036C\t\u036D\t\u036E\t\u036F"
+    }
+}]

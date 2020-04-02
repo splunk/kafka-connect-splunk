@@ -16,9 +16,6 @@
     splunk_user
     * Description: splunk username  
 
-    splunk_password
-    * Description: splunk user password  
-
     splunk_token
     * Description: splunk hec token  
   
