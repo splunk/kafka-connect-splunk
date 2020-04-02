@@ -26,7 +26,7 @@ def test_data_enrichment_latin1(setup, test_scenario, test_input, expected):
         test_scenario, test_input, expected))
     search_query = "index=main " + "chars=" + test_input 
     events = check_events_from_splunk(start_time="-1h@h",
-                                      url=setup["splunkd_url"],
+                                      url=setup["splunk_url"],
                                       user=setup["splunk_user"],
                                       query=["search {0}".format(
                                           search_query)],
