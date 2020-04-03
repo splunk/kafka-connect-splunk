@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-      http://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,40 +15,46 @@ limitations under the License.
 """
 
 import pytest
+import sys
+import os
+import json
+import logging
+import requests
+import yaml
+import json
+import time
+from kafka import KafkaProducer
+from .connect_params import connect_params
+from .commonkafka import create_kafka_connector, delete_kafka_connector
 
-def pytest_addoption(parser):
-    parser.addoption("--splunk-url",
-                     help="splunk url used to send test data to. \
-                          Eg: https://localhost:8089",
-                     default="https://localhost:8089")
-    parser.addoption("--splunk-user",
-                     help="splunk username",
-                     default="admin")
-    parser.addoption("--splunk-password",
-                     help="splunk user password",
-                     default="password")
-    parser.addoption("--splunk-token",
-                     help="splunk hec token")
-    parser.addoption("--splunk-index",
-                     help="splunk index",
-                     default="main")
-    parser.addoption("--kafka-connect-url",
-                     help="url used to interact with kafka connect. \
-                          Eg: http://localhost:8083",
-                     default="http://localhost:8083")
-    parser.addoption("--kafka-topic",
-                     help="kafka topic used to get data with kafka connect")
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(message)s')
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
+with open('test/config.yaml', 'r') as yaml_file:
+    config = yaml.load(yaml_file)
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def setup(request):
-    config = {}
-    config["splunk_url"] = request.config.getoption("--splunk-url")
-    config["splunk_user"] = request.config.getoption("--splunk-user")
-    config["splunk_password"] = request.config.getoption("--splunk-password")
-    config["splunk_token"] = request.config.getoption("--splunk-token")
-    config["splunk_index"] = request.config.getoption("--splunk-index")
-    config["kafka_connect_url"] = request.config.getoption("--kafka-connect-url")
-    config["kafka_topic"] = request.config.getoption("--kafka-topic")
-
     return config
+
+def pytest_configure():   
+    # Generate data
+    producer = KafkaProducer(bootstrap_servers=config["kafka_broker_url"], value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+    msg = {'foo': 'bar'} 
+    producer.send(config["kafka_topic"], msg)
+    producer.flush()
+
+    # Launch all connectors for tests
+    for param in connect_params:
+        create_kafka_connector(config, param)
+    # wait for data to be ingested to Splunk
+    time.sleep(60)
+
+def pytest_unconfigure():
+    # Delete launched connectors
+    for param in connect_params:
+        delete_kafka_connector(config, param)

@@ -14,7 +14,7 @@ jobs:
       CI_SPLUNK_HEC_TOKEN: a6b5e77f-d5f6-415a-bd43-930cecb12959
       CI_SPLUNK_HEC_TOKEN_ACK: a6b5e77f-d5f6-415a-bd43-930cecb12950
       CI_SPLUNK_PASSWORD: helloworld
-      CI_INDEX_EVENTS: circleci_events
+      CI_INDEX_EVENTS: main
       CI_DATAGEN_IMAGE: rock1017/log-generator:latest
       CI_KAFKA_VERSION: 2.4.0
       CI_KAFKA_FILENAME: kafka_2.13-2.4.0.tgz
@@ -74,7 +74,6 @@ jobs:
             # Disable SSL for HEC new-token
             #sudo /opt/splunk/bin/splunk http-event-collector update -uri https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT -enable-ssl 0 -auth $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD
             # Setup Indexes
-            sudo /opt/splunk/bin/splunk add index $CI_INDEX_EVENTS -auth $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD
             sudo /opt/splunk/bin/splunk http-event-collector update -uri https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT -name splunk_hec_token -auth $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -index $CI_INDEX_EVENTS -indexes $CI_INDEX_EVENTS            
             sudo /opt/splunk/bin/splunk restart --accept-license --answer-yes --no-prompt
       - run:
@@ -121,12 +120,10 @@ jobs:
             sudo mkdir -p /usr/local/share/kafka/plugins/
             sudo cp /home/circleci/repo/target/splunk-kafka-connect*.jar /usr/local/share/kafka/plugins/
             sed -i 's/plugin\.path\=connectors\//plugin\.path\=\/usr\/local\/share\/kafka\/plugins\//' /home/circleci/repo/config/connect-distributed-quickstart.properties
+            sed -i 's/key\.converter\=org\.apache\.kafka\.connect\.storage\.StringConverter/key\.converter\=org\.apache\.kafka\.connect\.json\.JsonConverter/' /home/circleci/repo/config/connect-distributed-quickstart.properties
+            sed -i 's/value\.converter\=org\.apache\.kafka\.connect\.storage\.StringConverter/value\.converter\=org\.apache\.kafka\.connect\.json\.JsonConverter/' /home/circleci/repo/config/connect-distributed-quickstart.properties
             sudo /usr/local/kafka/bin/connect-distributed.sh /home/circleci/repo/config/connect-distributed-quickstart.properties
           background: true
-
-      - run:
-          name: Generate data
-          command: echo "TODO"
       - run:
           name: Run Functional tests
           command: |
@@ -137,13 +134,7 @@ jobs:
             pip install -r test/requirements.txt
             export PYTHONWARNINGS="ignore:Unverified HTTPS request"
             echo "Running functional tests....."
-            python -m pytest \
-            	--splunk-url https://$CI_SPLUNK_HOST:8089 \
-            	--splunk-user $CI_SPLUNK_USERNAME \
-            	--splunk-password $CI_SPLUNK_PASSWORD \
-                --splunk-token $CI_SPLUNK_HEC_TOKEN \
-                --kafka-topic $CI_KAFKA_TOPIC \
-            	-p no:warnings -s
+            python -m pytest -p no:warnings -s
 
 workflows:
   version: 2
