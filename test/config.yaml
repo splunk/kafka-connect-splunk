@@ -1,4 +1,4 @@
-splunk_url: https://127.0.0.1:8088
+splunk_url: http://127.0.0.1:8088
 splunk_user: admin
 splunk_password: helloworld
 splunk_index: main
