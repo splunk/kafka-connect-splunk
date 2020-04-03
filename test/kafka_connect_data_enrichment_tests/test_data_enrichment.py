@@ -24,7 +24,7 @@ logger.addHandler(handler)
 def test_data_enrichment_latin1(setup, test_scenario, test_input, expected):
     logger.info("testing {0} input={1} expected={2} event(s)".format(
         test_scenario, test_input, expected))
-    search_query = "index=" + setup['splunk_index'] + "chars::" + test_input
+    search_query = "index=" + setup['splunk_index'] + " chars::" + test_input
     logger.info(search_query)
     events = check_events_from_splunk(start_time="-1h@h",
                                       url=setup["splunkd_url"],
