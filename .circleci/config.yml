@@ -74,7 +74,6 @@ jobs:
             # Disable SSL for HEC new-token
             #sudo /opt/splunk/bin/splunk http-event-collector update -uri https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT -enable-ssl 0 -auth $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD
             # Setup Indexes
-            #sudo /opt/splunk/bin/splunk add index $CI_INDEX_EVENTS -auth $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD
             sudo /opt/splunk/bin/splunk http-event-collector update -uri https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT -name splunk_hec_token -auth $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -index $CI_INDEX_EVENTS -indexes $CI_INDEX_EVENTS            
             sudo /opt/splunk/bin/splunk restart --accept-license --answer-yes --no-prompt
       - run:

@@ -4,6 +4,9 @@ with open('test/config.yaml', 'r') as yaml_file:
     config = yaml.load(yaml_file)
 
 connect_params = []
+data_enrichment_connect_params=[]
+data_onboarding_connect_params=[]
+
 param = {
     "name": "data-enrichment-latin1-sup",
     "config": {
@@ -19,7 +22,7 @@ param = {
         "splunk.hec.json.event.enrichment" : "test=supplement,chars=¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
     }
 }
-connect_params.append(param)
+data_enrichment_connect_params.append(param)
 param = {
     "name": "data-enrichment-latin1-A",
     "config": {
@@ -35,7 +38,7 @@ param = {
         "splunk.hec.json.event.enrichment" : "test=extendedA,chars=ĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſ"
     }
 }
-connect_params.append(param)
+data_enrichment_connect_params.append(param)
 param = {
     "name": "data-enrichment-latin1-B",
     "config": {
@@ -51,7 +54,7 @@ param = {
         "splunk.hec.json.event.enrichment" : "test=extendedB,chars=ƀƁƂƃƄƅƆƇƈƉƊƋƌƍƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǄǅǆǇǈǉǊǋǌǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǝǞǟǠǡǢǣǤǥǦǧǨǩǪǫǬǭǮǯǰǱǲǳǴǵǶǷǸǹǺǻǼǽǾǿȀȁȂȃȄȅȆȇȈȉȊȋȌȍȎȏȐȑȒȓȔȕȖȗȘșȚțȜȝȞȟȠȡȢȣȤȥȦȧȨȩȪȫȬȭȮȯȰȱȲȳȴȵȶȷȸȹȺȻȼȽȾȿɀɁɂɃɄɅɆɇɈɉɊɋɌɍɎɏ"
     }
 }
-connect_params.append(param)
+data_enrichment_connect_params.append(param)
 param = {
     "name": "data-enrichment-latin1-spaceModifier",
     "config": {
@@ -67,7 +70,7 @@ param = {
         "splunk.hec.json.event.enrichment" : "test=spaceModifier,chars=ʰʱʲʳʴʵʶʷʸʹʺʻʼʽʾʿˀˁ˂˃˄˅ˆˇˈˉˊˋˌˍˎˏːˑ˒˓˔˕˖˗˘˙˚˛˜˝˞˟ˠˡˢˣˤ˥˦˧˨˩˪˫ˬ˭ˮ˯˰˱˲˳˴˵˶˷˸˹˺˻˼˽˾˿"
     }
 }
-connect_params.append(param)
+data_enrichment_connect_params.append(param)
 param = {
     "name": "data-enrichment-latin1-IPA",
     "config": {
@@ -83,7 +86,7 @@ param = {
         "splunk.hec.json.event.enrichment" : "test=IPAextensions,chars=ɐɑɒɓɔɕɖɗɘəɚɛɜɝɞɟɠɡɢɣɤɥɦɧɨɩɪɫɬɭɮɯɰɱɲɳɴɵɶɷɸɹɺɻɼɽɾɿʀʁʂʃʄʅʆʇʈʉʊʋʌʍʎʏʐʑʒʓʔʕʖʗʘʙʚʛʜʝʞʟʠʡʢʣʤʥʦʧʨʩʪʫʬʭʮʯ"
     }
 }
-connect_params.append(param)
+data_enrichment_connect_params.append(param)
 param = {
     "name": "data-enrichment-latin1-greek",
     "config": {
@@ -99,7 +102,7 @@ param = {
         "splunk.hec.json.event.enrichment" : "test=greek,chars=ͰͱͲͳʹ͵Ͷͷ͸͹ͺͻͼͽ;Ϳ΀΁΂΃΄΅Ά·ΈΉΊ΋Ό΍ΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡ΢ΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώϏϐϑϒϓϔϕϖϗϘϙϚϛϜϝϞϟϠϡϢϣϤϥϦϧϨϩϪϫϬϭϮϯϰϱϲϳϴϵ϶ϷϸϹϺϻϼϽϾϿ"
     }
 }
-connect_params.append(param)
+data_enrichment_connect_params.append(param)
 param = {
     "name": "data-enrichment-latin1-diacriticalMarks",
     "config": {
@@ -115,4 +118,7 @@ param = {
         "splunk.hec.json.event.enrichment" : "test=diacriticalMarks,chars=	́	̂	̃	̄	̅	̆	̇	̈	̉	̊	̋	̌	̍	̎	̏	̐	̑	̒	̓	̔	̕	̖	̗	̘	̙	̚	̛	̜	̝	̞	̟	̠	̡	̢	̣	̤	̥	̦	̧	̨	̩	̪	̫	̬	̭	̮	̯	̰	̱	̲	̳	̴	̵	̶	̷	̸	̹	̺	̻	̼	̽	̾	̿	̀	́	͂	̓	̈́	ͅ	͆	͇	͈	͉	͊	͋	͌	͍	͎	͏	͐	͑	͒	͓	͔	͕	͖	͗	͘	͙	͚	͛	͜	͝	͞	͟	͠	͡	͢	ͣ	ͤ	ͥ	ͦ	ͧ	ͨ	ͩ	ͪ	ͫ	ͬ	ͭ	ͮ	ͯ"
     }
 }
-connect_params.append(param)
+data_enrichment_connect_params.append(param)
+
+connect_params.extend(data_enrichment_connect_params)
+connect_params.extend(data_onboarding_connect_params)
