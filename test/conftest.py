@@ -43,7 +43,7 @@ def setup(request):
 
 def pytest_configure():   
     # Generate data
-    producer = KafkaProducer(bootstrap_servers='localhost:9092', value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+    producer = KafkaProducer(bootstrap_servers=config["kafka_broker_url"], value_serializer=lambda v: json.dumps(v).encode('utf-8'))
     msg = {'foo': 'bar'} 
     producer.send(config["kafka_topic"], msg)
     producer.flush()
