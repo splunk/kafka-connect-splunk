@@ -35,20 +35,20 @@ def create_kafka_connector(setup, params):
     response = requests.post(url=setup["kafka_connect_url"] + "/connectors", data=json.dumps(params),
                       headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
     if response.status_code != 201:
+        logger.error("Failed to create connector, response code - ", response.status_code)
         return False
     else:
         status = get_kafka_connector_status(setup, params)
         while status is not None and status["connector"]["state"] != "RUNNING":
             status = get_kafka_connector_status(setup, params)
 
-        t_end = time.time() + 10
-        while time.time() < t_end:
-            status = get_kafka_connector_status(setup, params)
-
-        if len(status["tasks"]) > 0 and status["tasks"][0]["state"] == "RUNNING":
+        time.sleep(10)
+        status = get_kafka_connector_status(setup, params)
+        if status is not None and len(status["tasks"]) > 0 and status["tasks"][0]["state"] == "RUNNING":
             logger.info("Created connector successfully - " + json.dumps(params))
             return True
 
+    logger.error("Failed to create connector, connector and tasks are not in a RUNNING state after 10 seconds")
     return False
 
 def update_kafka_connector(setup, params):
@@ -65,6 +65,7 @@ def update_kafka_connector(setup, params):
         logger.info("Updated connector successfully - " + json.dumps(params))
         return True
 
+    logger.error("Failed to update connector, response code - ", response.status_code)
     return False
 
 def delete_kafka_connector(setup, params):
@@ -78,31 +79,37 @@ def delete_kafka_connector(setup, params):
         logger.info("Deleted connector successfully - " + json.dumps(params))
         return True
 
+    logger.error("Failed to delete connector, response code - ", response.status_code)
     return False
 
 def get_kafka_connector_tasks(setup, params):
     '''
     Get kafka connect connector tasks using kafka connect REST API
     '''
-    status = -1
-    while status != 200:
+
+    t_end = time.time() + 10
+    while time.time() < t_end:
         response = requests.get(url=setup["kafka_connect_url"] + "/connectors/" + params["name"] + "/tasks",
                                 headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
         status = response.status_code
+        if status == 200:
+            return len(response.json())
 
-    return len(response.json())
+    return 0
 
 def get_kafka_connector_status(setup, params):
     '''
     Get kafka connect connector tasks using kafka connect REST API
     '''
-    status = -1
-    while status != 200:
+    t_end = time.time() + 10
+    while time.time() < t_end:
         response = requests.get(url=setup["kafka_connect_url"] + "/connectors/" + params["name"] + "/status",
                                 headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
         status = response.status_code
+        if status == 200:
+            return response.json()
 
-    return response.json()
+    return None
 
 def pause_kafka_connector(setup, params):
     '''
@@ -118,6 +125,7 @@ def pause_kafka_connector(setup, params):
         logger.info("Paused connector successfully")
         return True
 
+    logger.error("Failed to pause connector, response code - ", response.status_code)
     return False
 
 def resume_kafka_connector(setup, params):
@@ -134,6 +142,7 @@ def resume_kafka_connector(setup, params):
         logger.info("Resumed connector successfully")
         return True
 
+    logger.error("Failed to resume connector, response code - ", response.status_code)
     return False
 
 def restart_kafka_connector(setup, params):
@@ -150,4 +159,5 @@ def restart_kafka_connector(setup, params):
         logger.info("Restarted connector successfully")
         return True
 
+    logger.error("Failed to restart connector, response code - ", response.status_code)
     return False

@@ -27,8 +27,8 @@ def test_valid_CRUD_tasks(setup, test_input, expected):
             "config": {
                "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
                "tasks.max": "3",
-               "topics": "test-datagen",
-               "splunk.indexes": setup["kafka_topic"],
+               "topics": setup["kafka_topic"],
+               "splunk.indexes": setup["splunk_index"],
                "splunk.hec.uri": setup["splunkd_url"],
                "splunk.hec.token": setup["splunk_token"],
                "splunk.hec.raw": "false",
@@ -46,8 +46,8 @@ def test_valid_CRUD_tasks(setup, test_input, expected):
             "config": {
                "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
                "tasks.max": "5",
-               "topics": "test-datagen",
-               "splunk.indexes": setup["kafka_topic"],
+               "topics": setup["kafka_topic"],
+               "splunk.indexes": setup["splunk_index"],
                "splunk.hec.uri": setup["splunkd_url"],
                "splunk.hec.token": setup["splunk_token"],
                "splunk.hec.raw": "false",
@@ -77,7 +77,7 @@ def test_valid_CRUD_tasks(setup, test_input, expected):
 
 
 @pytest.mark.parametrize("test_input,expected", [
-    ("create_and_update_valid_task", False)
+    ("test_invalid_CRUD_tasks", False)
 ])
 def test_invalid_CRUD_tasks(setup, test_input, expected):
     '''
@@ -92,8 +92,8 @@ def test_invalid_CRUD_tasks(setup, test_input, expected):
             "config": {
                "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
                "tasks.max": "dummy-string",
-               "topics": "test-datagen",
-               "splunk.indexes": setup["kafka_topic"],
+               "topics": setup["kafka_topic"],
+               "splunk.indexes": setup["splunk_index"],
                "splunk.hec.uri": setup["splunkd_url"],
                "splunk.hec.token": setup["splunk_token"],
                "splunk.hec.raw": "false",
@@ -110,8 +110,8 @@ def test_invalid_CRUD_tasks(setup, test_input, expected):
             "config": {
                "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
                "tasks.max": "3",
-               "topics": "test-datagen",
-               "splunk.indexes": setup["kafka_topic"],
+               "topics": setup["kafka_topic"],
+               "splunk.indexes": setup["splunk_index"],
                "splunk.hec.uri": setup["splunkd_url"],
                "splunk.hec.token": setup["splunk_token"],
                "splunk.hec.raw": "disable",
@@ -129,7 +129,7 @@ def test_invalid_CRUD_tasks(setup, test_input, expected):
                "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
                "tasks.max": "3",
                "topics": "",
-               "splunk.indexes": setup["kafka_topic"],
+               "splunk.indexes": setup["splunk_index"],
                "splunk.hec.uri": setup["splunkd_url"],
                "splunk.hec.token": setup["splunk_token"],
                "splunk.hec.raw": "false",
@@ -146,8 +146,8 @@ def test_invalid_CRUD_tasks(setup, test_input, expected):
             "config": {
                "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
                "tasks.max": "3",
-               "topics": "test-datagen",
-               "splunk.indexes": setup["kafka_topic"],
+               "topics": setup["kafka_topic"],
+               "splunk.indexes": setup["splunk_index"],
                "splunk.hec.uri": setup["splunkd_url"],
                "splunk.hec.token": setup["splunk_token"],
                "splunk.hec.raw": "false",
@@ -165,8 +165,8 @@ def test_invalid_CRUD_tasks(setup, test_input, expected):
             "config": {
                "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
                "tasks.max": "3",
-               "topics": "test-datagen",
-               "splunk.indexes": setup["kafka_topic"],
+               "topics": setup["kafka_topic"],
+               "splunk.indexes": setup["splunk_index"],
                "splunk.hec.uri": setup["splunkd_url"],
                "splunk.hec.token": setup["splunk_token"],
                "splunk.hec.raw": "false",
