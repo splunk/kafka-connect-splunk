@@ -28,7 +28,7 @@ def test_create_and_delete_valid_task(setup, test_input, expected):
                "tasks.max": "3",
                "topics": "test-datagen",  # set kafka topic later
                "splunk.indexes": setup["kafka_topic"],
-               "splunk.hec.uri": setup["splunk_url"],
+               "splunk.hec.uri": setup["splunkd_url"],
                "splunk.hec.token": setup["splunk_token"],
                "splunk.hec.raw": "false",
                "splunk.hec.ack.enabled": "false",
