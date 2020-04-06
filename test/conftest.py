@@ -15,17 +15,9 @@ limitations under the License.
 """
 
 import pytest
-import sys
-import os
-import json
-import logging
-import requests
 import yaml
-import json
-import time
-from kafka import KafkaProducer
-from .connect_params import connect_params
-from .commonkafka import create_kafka_connector, delete_kafka_connector
+from datetime import datetime
+from .commonkafka import *
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -37,22 +29,28 @@ logger.addHandler(handler)
 with open('test/config.yaml', 'r') as yaml_file:
     config = yaml.load(yaml_file)
 
-@pytest.fixture()
+
+@pytest.fixture(scope="class")
 def setup(request):
     return config
 
-def pytest_configure():   
+
+def pytest_configure():
     # Generate data
-    producer = KafkaProducer(bootstrap_servers=config["kafka_broker_url"], value_serializer=lambda v: json.dumps(v).encode('utf-8'))
-    msg = {'foo': 'bar'} 
+    now = datetime.now()
+    msg = {"timestamp": str(datetime.timestamp(now))}
+    producer = KafkaProducer(bootstrap_servers=config["kafka_broker_url"],
+                             value_serializer=lambda v: json.dumps(v).encode('utf-8'))
     producer.send(config["kafka_topic"], msg)
     producer.flush()
+    config['timestamp'] = msg["timestamp"]
 
     # Launch all connectors for tests
     for param in connect_params:
         create_kafka_connector(config, param)
     # wait for data to be ingested to Splunk
     time.sleep(60)
+
 
 def pytest_unconfigure():
     # Delete launched connectors
