@@ -4,8 +4,8 @@ with open('test/config.yaml', 'r') as yaml_file:
     config = yaml.load(yaml_file)
 
 connect_params = []
-data_enrichment_connect_params=[]
-data_onboarding_connect_params=[]
+data_enrichment_connect_params = []
+data_onboarding_connect_params = []
 
 param = {
     "name": "data-enrichment-latin1-sup",
@@ -19,7 +19,7 @@ param = {
         "splunk.hec.raw": "false",
         "splunk.hec.ack.enabled": "false",
         "splunk.hec.ssl.validate.certs": "false",
-        "splunk.hec.json.event.enrichment" : "test=supplement,chars=¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
+        "splunk.hec.json.event.enrichment": "test=supplement,chars=¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
     }
 }
 data_enrichment_connect_params.append(param)
@@ -35,7 +35,7 @@ param = {
         "splunk.hec.raw": "false",
         "splunk.hec.ack.enabled": "false",
         "splunk.hec.ssl.validate.certs": "false",
-        "splunk.hec.json.event.enrichment" : "test=extendedA,chars=ĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſ"
+        "splunk.hec.json.event.enrichment": "test=extendedA,chars=ĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſ"
     }
 }
 data_enrichment_connect_params.append(param)
@@ -51,7 +51,7 @@ param = {
         "splunk.hec.raw": "false",
         "splunk.hec.ack.enabled": "false",
         "splunk.hec.ssl.validate.certs": "false",
-        "splunk.hec.json.event.enrichment" : "test=extendedB,chars=ƀƁƂƃƄƅƆƇƈƉƊƋƌƍƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǄǅǆǇǈǉǊǋǌǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǝǞǟǠǡǢǣǤǥǦǧǨǩǪǫǬǭǮǯǰǱǲǳǴǵǶǷǸǹǺǻǼǽǾǿȀȁȂȃȄȅȆȇȈȉȊȋȌȍȎȏȐȑȒȓȔȕȖȗȘșȚțȜȝȞȟȠȡȢȣȤȥȦȧȨȩȪȫȬȭȮȯȰȱȲȳȴȵȶȷȸȹȺȻȼȽȾȿɀɁɂɃɄɅɆɇɈɉɊɋɌɍɎɏ"
+        "splunk.hec.json.event.enrichment": "test=extendedB,chars=ƀƁƂƃƄƅƆƇƈƉƊƋƌƍƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǄǅǆǇǈǉǊǋǌǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǝǞǟǠǡǢǣǤǥǦǧǨǩǪǫǬǭǮǯǰǱǲǳǴǵǶǷǸǹǺǻǼǽǾǿȀȁȂȃȄȅȆȇȈȉȊȋȌȍȎȏȐȑȒȓȔȕȖȗȘșȚțȜȝȞȟȠȡȢȣȤȥȦȧȨȩȪȫȬȭȮȯȰȱȲȳȴȵȶȷȸȹȺȻȼȽȾȿɀɁɂɃɄɅɆɇɈɉɊɋɌɍɎɏ"
     }
 }
 data_enrichment_connect_params.append(param)
@@ -67,7 +67,7 @@ param = {
         "splunk.hec.raw": "false",
         "splunk.hec.ack.enabled": "false",
         "splunk.hec.ssl.validate.certs": "false",
-        "splunk.hec.json.event.enrichment" : "test=spaceModifier,chars=ʰʱʲʳʴʵʶʷʸʹʺʻʼʽʾʿˀˁ˂˃˄˅ˆˇˈˉˊˋˌˍˎˏːˑ˒˓˔˕˖˗˘˙˚˛˜˝˞˟ˠˡˢˣˤ˥˦˧˨˩˪˫ˬ˭ˮ˯˰˱˲˳˴˵˶˷˸˹˺˻˼˽˾˿"
+        "splunk.hec.json.event.enrichment": "test=spaceModifier,chars=ʰʱʲʳʴʵʶʷʸʹʺʻʼʽʾʿˀˁ˂˃˄˅ˆˇˈˉˊˋˌˍˎˏːˑ˒˓˔˕˖˗˘˙˚˛˜˝˞˟ˠˡˢˣˤ˥˦˧˨˩˪˫ˬ˭ˮ˯˰˱˲˳˴˵˶˷˸˹˺˻˼˽˾˿"
     }
 }
 data_enrichment_connect_params.append(param)
@@ -83,7 +83,7 @@ param = {
         "splunk.hec.raw": "false",
         "splunk.hec.ack.enabled": "false",
         "splunk.hec.ssl.validate.certs": "false",
-        "splunk.hec.json.event.enrichment" : "test=IPAextensions,chars=ɐɑɒɓɔɕɖɗɘəɚɛɜɝɞɟɠɡɢɣɤɥɦɧɨɩɪɫɬɭɮɯɰɱɲɳɴɵɶɷɸɹɺɻɼɽɾɿʀʁʂʃʄʅʆʇʈʉʊʋʌʍʎʏʐʑʒʓʔʕʖʗʘʙʚʛʜʝʞʟʠʡʢʣʤʥʦʧʨʩʪʫʬʭʮʯ"
+        "splunk.hec.json.event.enrichment": "test=IPAextensions,chars=ɐɑɒɓɔɕɖɗɘəɚɛɜɝɞɟɠɡɢɣɤɥɦɧɨɩɪɫɬɭɮɯɰɱɲɳɴɵɶɷɸɹɺɻɼɽɾɿʀʁʂʃʄʅʆʇʈʉʊʋʌʍʎʏʐʑʒʓʔʕʖʗʘʙʚʛʜʝʞʟʠʡʢʣʤʥʦʧʨʩʪʫʬʭʮʯ"
     }
 }
 data_enrichment_connect_params.append(param)
@@ -99,7 +99,7 @@ param = {
         "splunk.hec.raw": "false",
         "splunk.hec.ack.enabled": "false",
         "splunk.hec.ssl.validate.certs": "false",
-        "splunk.hec.json.event.enrichment" : "test=greek,chars=ͰͱͲͳʹ͵Ͷͷ͸͹ͺͻͼͽ;Ϳ΀΁΂΃΄΅Ά·ΈΉΊ΋Ό΍ΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡ΢ΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώϏϐϑϒϓϔϕϖϗϘϙϚϛϜϝϞϟϠϡϢϣϤϥϦϧϨϩϪϫϬϭϮϯϰϱϲϳϴϵ϶ϷϸϹϺϻϼϽϾϿ"
+        "splunk.hec.json.event.enrichment": "test=greek,chars=ͰͱͲͳʹ͵Ͷͷ͸͹ͺͻͼͽ;Ϳ΀΁΂΃΄΅Ά·ΈΉΊ΋Ό΍ΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡ΢ΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώϏϐϑϒϓϔϕϖϗϘϙϚϛϜϝϞϟϠϡϢϣϤϥϦϧϨϩϪϫϬϭϮϯϰϱϲϳϴϵ϶ϷϸϹϺϻϼϽϾϿ"
     }
 }
 data_enrichment_connect_params.append(param)
@@ -115,10 +115,77 @@ param = {
         "splunk.hec.raw": "false",
         "splunk.hec.ack.enabled": "false",
         "splunk.hec.ssl.validate.certs": "false",
-        "splunk.hec.json.event.enrichment" : "test=diacriticalMarks,chars=	́	̂	̃	̄	̅	̆	̇	̈	̉	̊	̋	̌	̍	̎	̏	̐	̑	̒	̓	̔	̕	̖	̗	̘	̙	̚	̛	̜	̝	̞	̟	̠	̡	̢	̣	̤	̥	̦	̧	̨	̩	̪	̫	̬	̭	̮	̯	̰	̱	̲	̳	̴	̵	̶	̷	̸	̹	̺	̻	̼	̽	̾	̿	̀	́	͂	̓	̈́	ͅ	͆	͇	͈	͉	͊	͋	͌	͍	͎	͏	͐	͑	͒	͓	͔	͕	͖	͗	͘	͙	͚	͛	͜	͝	͞	͟	͠	͡	͢	ͣ	ͤ	ͥ	ͦ	ͧ	ͨ	ͩ	ͪ	ͫ	ͬ	ͭ	ͮ	ͯ"
+        "splunk.hec.json.event.enrichment": "test=diacriticalMarks,chars=	́	̂	̃	̄	̅	̆	̇	̈	̉	̊	̋	̌	̍	̎	̏	̐	̑	̒	̓	̔	̕	̖	̗	̘	̙	̚	̛	̜	̝	̞	̟	̠	̡	̢	̣	̤	̥	̦	̧	̨	̩	̪	̫	̬	̭	̮	̯	̰	̱	̲	̳	̴	̵	̶	̷	̸	̹	̺	̻	̼	̽	̾	̿	̀	́	͂	̓	̈́	ͅ	͆	͇	͈	͉	͊	͋	͌	͍	͎	͏	͐	͑	͒	͓	͔	͕	͖	͗	͘	͙	͚	͛	͜	͝	͞	͟	͠	͡	͢	ͣ	ͤ	ͥ	ͦ	ͧ	ͨ	ͩ	ͪ	ͫ	ͬ	ͭ	ͮ	ͯ"
     }
 }
 data_enrichment_connect_params.append(param)
+
+param = {
+    "name": "data-onboarding-event-endpoint-no-ack",
+    "config": {
+        "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+        "tasks.max": "1",
+        "topics": config["kafka_topic"],
+        "splunk.indexes": config["splunk_index"],
+        "splunk.hec.uri": config["splunk_hec_url"],
+        "splunk.hec.token": config["splunk_token"],
+        "splunk.hec.raw": "false",
+        "splunk.hec.ack.enabled": "false",
+        "splunk.hec.ssl.validate.certs": "false",
+        "splunk.hec.json.event.enrichment": "chars=data-onboarding-event-endpoint-no-ack"
+    }
+}
+data_onboarding_connect_params.append(param)
+param = {
+    "name": "data-onboarding-raw-endpoint-ack",
+    "config": {
+        "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+        "tasks.max": "1",
+        "topics": config["kafka_topic"],
+        "splunk.indexes": config["splunk_index"],
+        "splunk.hec.uri": config["splunk_hec_url"],
+        "splunk.hec.token": config["splunk_token_ack"],
+        "splunk.hec.raw": "true",
+        "splunk.hec.ack.enabled": "true",
+        "splunk.sourcetypes": "raw_data-ack",
+        "splunk.hec.ssl.validate.certs": "false",
+        "splunk.hec.json.event.enrichment": "chars=data-onboarding-raw-endpoint-ack"
+    }
+}
+data_onboarding_connect_params.append(param)
+param = {
+    "name": "data-onboarding-event-endpoint-ack",
+    "config": {
+        "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+        "tasks.max": "1",
+        "topics": config["kafka_topic"],
+        "splunk.indexes": config["splunk_index"],
+        "splunk.hec.uri": config["splunk_hec_url"],
+        "splunk.hec.token": config["splunk_token_ack"],
+        "splunk.hec.raw": "false",
+        "splunk.hec.ack.enabled": "true",
+        "splunk.hec.ssl.validate.certs": "false",
+        "splunk.hec.json.event.enrichment": "chars=data-onboarding-event-endpoint-ack"
+    }
+}
+data_onboarding_connect_params.append(param)
+param = {
+    "name": "data-onboarding-raw-endpoint-no-ack",
+    "config": {
+        "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+        "tasks.max": "1",
+        "topics": config["kafka_topic"],
+        "splunk.indexes": config["splunk_index"],
+        "splunk.hec.uri": config["splunk_hec_url"],
+        "splunk.hec.token": config["splunk_token"],
+        "splunk.hec.raw": "true",
+        "splunk.hec.ack.enabled": "false",
+        "splunk.sourcetypes": "raw_data-no-ack",
+        "splunk.hec.ssl.validate.certs": "false",
+        "splunk.hec.json.event.enrichment": "chars=data-onboarding-raw-endpoint-no-ack"
+    }
+}
+data_onboarding_connect_params.append(param)
 
 connect_params.extend(data_enrichment_connect_params)
 connect_params.extend(data_onboarding_connect_params)
