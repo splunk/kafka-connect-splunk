@@ -33,4 +33,4 @@ pom.xml.versionsBackup
 .settings/
 
 **/__pycache__/*
-venv/
+test/venv/

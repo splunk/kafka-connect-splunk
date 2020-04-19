@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json
-import logging
+from lib.helper import get_test_folder
+import logging.config
 import time
 import requests
 import os
@@ -26,13 +26,8 @@ from requests.adapters import HTTPAdapter
 
 TIMEROUT = 500
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s -' +
-                              ' %(levelname)s - %(message)s')
-handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+logging.config.fileConfig(os.path.join(get_test_folder(), "logging.conf"))
+logger = logging.getLogger("splunk")
 
 
 def check_events_from_splunk(index="circleci_events",
