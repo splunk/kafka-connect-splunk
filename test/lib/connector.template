@@ -1,0 +1,16 @@
+{
+	"name": "{{name}}",
+	"config" : {
+			"connector.class": "{{connector_class}}",
+			"tasks.max": "{{tasks_max}}",
+			"topics": "{{topics}}",
+			"splunk.indexes": "{{splunk_indexes}}",
+			"splunk.hec.uri": "{{splunk_hec_uri}}",
+			"splunk.hec.token": "{{splunk_hec_token}}",
+			"splunk.hec.raw": "{{splunk_hec_raw}}",
+			"splunk.hec.ack.enabled": "{{splunk_hec_ack_enabled}}",
+			"splunk.hec.ssl.validate.certs": "{{splunk_hec_ssl_validate_certs}}",
+			"splunk.sourcetypes": "{{splunk_sourcetypes}}",
+			"splunk.hec.json.event.enrichment": "{{splunk_hec_json_event_enrichment}}"
+		}
+}

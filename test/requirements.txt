@@ -2,3 +2,5 @@ pytest
 requests
 kafka-python
 pyyaml
+jinja2
+jsonpath

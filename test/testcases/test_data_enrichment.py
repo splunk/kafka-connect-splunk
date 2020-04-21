@@ -1,15 +1,10 @@
-import logging
-import sys
 import pytest
-from ..commonkafka import *
-from ..commonsplunk import check_events_from_splunk
+from lib.commonkafka import *
+from lib.commonsplunk import check_events_from_splunk
+from lib.helper import get_test_folder
 
+logging.config.fileConfig(os.path.join(get_test_folder(), "logging.conf"))
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter('%(message)s')
-handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
 
 
 class TestDataEnrichment:

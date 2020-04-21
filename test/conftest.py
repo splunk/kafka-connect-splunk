@@ -13,20 +13,22 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
+from lib.commonkafka import *
+from lib.connect_params import *
+from kafka.producer import KafkaProducer
+from datetime import datetime
+from lib.helper import get_test_folder
+from lib.data_gen import generate_connector_content
 import pytest
 import yaml
-from datetime import datetime
-from .commonkafka import *
 
+
+logging.config.fileConfig(os.path.join(get_test_folder(), "logging.conf"))
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter('%(message)s')
-handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
 
-with open('test/config.yaml', 'r') as yaml_file:
+
+_config_path = os.path.join(os.path.dirname(__file__), 'config.yaml')
+with open(_config_path, 'r') as yaml_file:
     config = yaml.load(yaml_file)
 
 
@@ -47,7 +49,8 @@ def pytest_configure():
 
     # Launch all connectors for tests
     for param in connect_params:
-        create_kafka_connector(config, param)
+        connector_content = generate_connector_content(param)
+        create_kafka_connector(config, connector_content)
     # wait for data to be ingested to Splunk
     time.sleep(60)
 
