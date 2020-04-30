@@ -5,9 +5,13 @@
 			"tasks.max": "{{tasks_max}}",
 			"topics": "{{topics}}",
 			"splunk.indexes": "{{splunk_indexes}}",
+			"splunk.sources": "{{splunk_sources}}",
 			"splunk.hec.uri": "{{splunk_hec_uri}}",
 			"splunk.hec.token": "{{splunk_hec_token}}",
 			"splunk.hec.raw": "{{splunk_hec_raw}}",
+            {% if splunk_hec_raw_line_breaker %}
+				"splunk.hec.raw.line.breaker": "{{splunk_hec_raw_line_breaker}}",
+			{% endif %}
 			"splunk.hec.ack.enabled": "{{splunk_hec_ack_enabled}}",
 			"splunk.hec.ssl.validate.certs": "{{splunk_hec_ssl_validate_certs}}",
 			"splunk.sourcetypes": "{{splunk_sourcetypes}}",

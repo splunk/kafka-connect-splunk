@@ -15,17 +15,15 @@ limitations under the License.
 """
 from lib.commonkafka import *
 from lib.connect_params import *
-from kafka.producer import KafkaProducer
 from datetime import datetime
+from kafka.producer import KafkaProducer
 from lib.helper import get_test_folder
 from lib.data_gen import generate_connector_content
 import pytest
 import yaml
 
-
 logging.config.fileConfig(os.path.join(get_test_folder(), "logging.conf"))
 logger = logging.getLogger(__name__)
-
 
 _config_path = os.path.join(os.path.dirname(__file__), 'config.yaml')
 with open(_config_path, 'r') as yaml_file:
@@ -38,19 +36,23 @@ def setup(request):
 
 
 def pytest_configure():
-    # Generate data
+    # Generate message data
     now = datetime.now()
-    msg = {"timestamp": str(datetime.timestamp(now))}
-    producer = KafkaProducer(bootstrap_servers=config["kafka_broker_url"],
-                             value_serializer=lambda v: json.dumps(v).encode('utf-8'))
-    producer.send(config["kafka_topic"], msg)
-    producer.flush()
-    config['timestamp'] = msg["timestamp"]
+    time_stamp = str(datetime.timestamp(now))
+    for _ in range(3):
+        producer = KafkaProducer(bootstrap_servers=config["kafka_broker_url"],
+                                 value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+        msg = {"timestamp": time_stamp}
+        producer.send(config["kafka_topic"], msg)
+        producer.flush()
+
+    config['timestamp'] = time_stamp
 
     # Launch all connectors for tests
     for param in connect_params:
         connector_content = generate_connector_content(param)
         create_kafka_connector(config, connector_content)
+
     # wait for data to be ingested to Splunk
     time.sleep(60)
 
