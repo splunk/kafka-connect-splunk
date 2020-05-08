@@ -12,8 +12,8 @@ class TestDataOnboarding:
     @pytest.mark.parametrize("test_scenario, test_input, expected", [
         ("raw_endpoint_no_ack", "sourcetype::raw_data-no-ack", 1),
         ("raw_endpoint_with_ack", "sourcetype::raw_data-ack", 1),
-        ("event-endpoint-no-ack", "chars::data-onboarding-event-endpoint-no-ack", 1),
-        ("event-endpoint-ack", "chars::data-onboarding-event-endpoint-ack", 1),
+        ("event-endpoint-no-ack", "chars::data-onboarding-event-endpoint-no-ack", 3),
+        ("event-endpoint-ack", "chars::data-onboarding-event-endpoint-ack", 3),
     ])
     def test_data_onboarding(self, setup, test_scenario, test_input, expected):
         logger.info("testing {0} input={1} expected={2} event(s)".format(test_scenario, test_input, expected))

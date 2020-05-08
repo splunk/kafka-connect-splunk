@@ -51,5 +51,9 @@ connect_params = [
      "splunk_hec_ack_enabled": "false",
      "splunk_sourcetypes": "raw_data-no-ack",
      "splunk_hec_json_event_enrichment": "chars=data-onboarding-raw-endpoint-no-ack"
-     }
+     },
+    {"name": "line_breaking_of_raw_events",
+     "splunk_sources": "kafka:topictestbreak",
+     "splunk_hec_raw": True,
+     "splunk_hec_raw_line_breaker": "######"}
 ]
