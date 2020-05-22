@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 
 public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class);
-    private static final long flushWindow = 30 * 1000; // 30 seconds
+    private static long flushWindow = 30 * 1000; // 30 seconds
     private static final String HEADERTOKEN = "$$$";
 
     private HecInf hec;
@@ -62,6 +62,9 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         }
         tracker = new KafkaRecordTracker();
         bufferedRecords = new ArrayList<>();
+        if(connectorConfig.flushWindow > 0) {
+            flushWindow = connectorConfig.flushWindow * 1000; // Flush window set to user configured value (Multiply by 1000 as all the calculations are done in milliseconds)
+        }
 
         log.info("kafka-connect-splunk task starts with config={}", connectorConfig);
     }
@@ -94,7 +97,6 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         records = bufferedRecords;
         bufferedRecords = new ArrayList<>();
         lastFlushed = System.currentTimeMillis();
-
         if (connectorConfig.raw) {
             /* /raw endpoint */
             handleRaw(records);
