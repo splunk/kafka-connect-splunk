@@ -1,8 +1,8 @@
 #! /bin/bash
 
 echo "=============install splunk=============="
-args="$@"
-CI_SPLUNK_HOST = ${args[0]}
+
+CI_SPLUNK_HOST=$1
 
 echo "Enable HEC services ..."
 curl -X POST -u ${CI_SPLUNK_USERNAME}:${CI_SPLUNK_PASSWORD} -k https://$CI_SPLUNK_HOST:${CI_SPLUNK_PORT}/servicesNS/nobody/splunk_httpinput/data/inputs/http/http/enable
