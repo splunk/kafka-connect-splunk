@@ -6,8 +6,7 @@ import com.splunk.tool.plugin.docker.extension.BadDockerExitCode;
 def dockerReq = new DockerRequest(steps,
                                   currentBuild,
                                   env,
-                                  [imageName: "repo.splunk.com/splunk/products/splact:1.0.9",
-                                   userId: "10777",
+                                  [userId: "10777",
                                    repoName: "git@github.com:splunk/kafka-connect-splunk.git",
                                    runner: "yarn",
                                    remotePath: "/build"])
@@ -15,8 +14,9 @@ def dockerReq = new DockerRequest(steps,
 
 withSplunkWrapNode("master") {
     try {
-        stage("run orca") {
-            withCredentials([file(credentialsId: 'srv_releases_orca', variable: 'ORCA_CREDENTIALS')]) {
+        stage("setup orca") {
+            println "=============setup orca=============="
+            withCredentials([file(credentialsId: 'gdi_connectors_orca', variable: 'ORCA_CREDENTIALS')]) {
                 sh "tar -ovxf $ORCA_CREDENTIALS";
                 splunkPrepareAndCheckOut request: dockerReq,
                                          files: "${WORKSPACE}/.orca, ${WORKSPACE}/.ssh";
@@ -24,10 +24,24 @@ withSplunkWrapNode("master") {
             splunkRunScript request:dockerReq,
                             script:
                                 """
-                                   pip install splunk_orca==0.8.0 -i https://repo.splunk.com/artifactory/api/pypi/pypi-virtual/simple
-                                   cd ci
-                                   python kafka_orca_gen.py --data_gen_eps 50000 --data_gen_total_events 100000000 --broker_size 5 --zookeeper_size 3 --kafka_connect_size 1 --default_partitions 30 --kafka_connect_max_jvm_memory 8G --kafka_connect_hec_mode raw_and_event --kafka_connect_ack_mode ack_and_no_ack --metric_dest_hec_uri https://kchen-ubu-001:8088 --metric_dest_hec_token 00000000-0000-0000-0000-000000000000 --indexer_size 10 --perf 0
-                                   splunk_orca create --sc kafka-connect
+                                pip install virtualenv
+                                virtualenv venv
+                                source venv/bin/activate
+                                venv/bin/pip install splunk_orca==1.1.0 -i https://repo.splunk.com/artifactory/api/pypi/pypi/simple
+                                venv/bin/splunk_orca --version
+                                """;
+        }
+        stage("run ci") {
+            println "=============run ci build=============="
+            withCredentials([file(credentialsId: 'gdi_connectors_orca', variable: 'ORCA_CREDENTIALS')]) {
+                sh "tar -ovxf $ORCA_CREDENTIALS";
+                splunkPrepareAndCheckOut request: dockerReq,
+                                         files: "${WORKSPACE}/.orca, ${WORKSPACE}/.ssh";
+            }
+            splunkRunScript request:dockerReq,
+                            script:
+                                """
+                                chmod +x ci/cloud_ci_kafka.sh && sh ci/cloud_ci_kafka.sh
                                 """;
         }
     }
