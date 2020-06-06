@@ -1,3 +1,5 @@
+#!/usr/bin/env groovy
+
 @Library('jenkinstools@master') _
 
 import com.splunk.jenkins.DockerRequest;
@@ -13,6 +15,8 @@ def dockerReq = new DockerRequest(steps,
 
 
 withSplunkWrapNode("master") {
+    def imageName = "repo.splunk.com/splunk/gdi/kafka-connect-splunk:build-${env.BUILD_NUMBER}"
+
     try {
         stage("setup orca") {
             println "=============setup orca=============="
@@ -43,6 +47,26 @@ withSplunkWrapNode("master") {
                                 """
                                 chmod +x ci/cloud_ci_kafka.sh && sh ci/cloud_ci_kafka.sh
                                 """;
+        }
+        stage('Build image') {
+            println "=============build image=============="
+            withCredentials([file(credentialsId: 'gdi_connectors_orca', variable: 'ORCA_CREDENTIALS')]) {
+                sh "tar -ovxf $ORCA_CREDENTIALS";
+                splunkPrepareAndCheckOut request: dockerReq,
+                                         files: "${WORKSPACE}/.orca, ${WORKSPACE}/.ssh";
+            }
+            splunkDockerImageBuild workDir: "/build/kafka-connect-splunk/ci",
+                                   imageName: imageName,
+                                   dockerfilePath: "Dockerfile.kafka-connect-splunk"
+        }
+        stage('Run image') {
+            println "=============run kafka and integration tests=============="
+            splunkDockerStart imageName: imageName,
+                              mountBindings: '/var/run/docker.sock:/var/run/docker.sock:ro',
+                              script:
+                              """
+                              /bin/bash -c /kafka-connect/run_kafka_connect.sh
+                              """;
         }
     }
     catch (BadDockerExitCode e) {

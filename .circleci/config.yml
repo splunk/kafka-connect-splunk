@@ -150,5 +150,4 @@ workflows:
               ignore: 
                 - /^release\/.*/
                 - master
-                - dev/ci-pipeline-ADDON-26437
 
