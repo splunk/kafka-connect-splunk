@@ -198,7 +198,7 @@ public class SplunkSinkTaskTest {
     }
 
     @Test
-    public void putWithInvalidEvent() {
+    public void putWithEmptyEvent() {
         UnitUtil uu = new UnitUtil(0);
         Map<String, String> config = uu.createTaskConfig();
         config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
@@ -211,7 +211,26 @@ public class SplunkSinkTaskTest {
         task.setHec(hec);
         task.start(config);
         task.put(createSinkRecords(10, ""));
-        Assert.assertEquals(2, hec.getBatches().size());
+        Assert.assertEquals(0, hec.getBatches().size());
+
+        task.stop();
+    }
+
+    @Test
+    public void putWithNullEvent() {
+        UnitUtil uu = new UnitUtil(0);
+        Map<String, String> config = uu.createTaskConfig();
+        config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
+        config.put(SplunkSinkConnectorConfig.ACK_CONF, String.valueOf(true));
+        config.put(SplunkSinkConnectorConfig.MAX_BATCH_SIZE_CONF, String.valueOf(6));
+
+        SplunkSinkTask task = new SplunkSinkTask();
+        HecMock hec = new HecMock(task);
+        hec.setSendReturnResult(HecMock.success);
+        task.setHec(hec);
+        task.start(config);
+        task.put(createNullSinkRecord());
+        Assert.assertEquals(0, hec.getBatches().size());
 
         task.stop();
     }
@@ -301,6 +320,13 @@ public class SplunkSinkTaskTest {
             SinkRecord rec = new SinkRecord(new UnitUtil(0).configProfile.getTopics(), 1, null, null, null, value, i, 0L, TimestampType.NO_TIMESTAMP_TYPE);
             records.add(rec);
         }
+        return records;
+    }
+
+    private Collection<SinkRecord> createNullSinkRecord() {
+        List<SinkRecord> records = new ArrayList<>();
+        SinkRecord rec = null;
+        records.add(rec);
         return records;
     }
 }
