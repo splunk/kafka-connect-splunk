@@ -167,7 +167,7 @@ public class SplunkSinkTaskTest {
 
         SplunkSinkTask task = new SplunkSinkTask();
         HecMock hec = new HecMock(task);
-        hec.setSendReturnResult(HecMock.success);
+        hec.setSendReturnResult(HecMock.failure);
         task.setHec(hec);
         task.start(config);
         task.put(createSinkRecords(1000));

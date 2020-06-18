@@ -22,21 +22,67 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.connect.sink.SinkRecord;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 final class KafkaRecordTracker {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class);
-    private Map<TopicPartition, TreeMap<Long, EventBatch>> all; // TopicPartition + Long offset represents the SinkRecord
-    private long total;
+    private ConcurrentHashMap<TopicPartition, TreeMap<Long, EventBatch>> all; // TopicPartition + Long offset represents the SinkRecord
+    private AtomicLong total;
     private ConcurrentLinkedQueue<EventBatch> failed;
+    private volatile Map<TopicPartition, OffsetAndMetadata> offsets;
 
     public KafkaRecordTracker() {
-        all = new HashMap<>();
+        all = new ConcurrentHashMap<>();
         failed = new ConcurrentLinkedQueue<>();
-        total = 0;
+        total = new AtomicLong();
+        offsets = new HashMap<>();
+    }
+
+    public void removeAckedEventBatches(final List<EventBatch> batches) {
+        for (final EventBatch batch: batches) {
+            //log.debug("Processing batch {}", batch.getUUID());
+            removeAckedEventBatch(batch);
+        }
+    }
+
+    public void removeAckedEventBatch(final EventBatch batch) {
+        final List<Event> events = batch.getEvents();
+        final Event event = events.get(0);
+        if (event.getTied() instanceof SinkRecord) {
+            final SinkRecord record = (SinkRecord) event.getTied();
+            TopicPartition tp = new TopicPartition(record.topic(), record.kafkaPartition());
+            //log.debug("Processing topic {} partition {}", record.topic(), record.kafkaPartition());
+            TreeMap<Long, EventBatch> tpRecords = all.get(tp);
+            if (tpRecords == null) {
+                log.error("KafkaRecordTracker removing a batch in an unknown partition {} {} {}", record.topic(), record.kafkaPartition(), record.kafkaOffset());
+                return;
+            }
+            long offset = -1;
+            Iterator<Map.Entry<Long, EventBatch>> iter = tpRecords.entrySet().iterator();
+            for (; iter.hasNext();) {
+                Map.Entry<Long, EventBatch> e = iter.next();
+                if (e.getValue().isCommitted()) {
+                    //log.debug("processing offset {}", e.getKey());
+                    offset = e.getKey();
+                    iter.remove();
+                    total.decrementAndGet();
+                } else {
+                    break;
+                }
+            }
+            if (offset >= 0) {
+                if (offsets.containsKey(tp)) {
+                    offsets.replace(tp, new OffsetAndMetadata(offset + 1));
+                } else {
+                    offsets.put(tp, new OffsetAndMetadata(offset + 1));
+                }
+            }
+        }
     }
 
     public void addFailedEventBatch(final EventBatch batch) {
@@ -60,7 +106,7 @@ final class KafkaRecordTracker {
 
                 if (!tpRecords.containsKey(record.kafkaOffset())) {
                     tpRecords.put(record.kafkaOffset(), batch);
-                    total += 1;
+                    total.incrementAndGet();
                 }
             }
         }
@@ -78,32 +124,13 @@ final class KafkaRecordTracker {
     }
 
     // Loop through all SinkRecords for all topic partitions to
-    // find all lowest consecutive committed offsets, caculate
+    // find all lowest consecutive committed offsets, calculate
     // the topic/partition offsets and then remove them
     public Map<TopicPartition, OffsetAndMetadata> computeOffsets() {
-        Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>();
-        for (Map.Entry<TopicPartition, TreeMap<Long, EventBatch>> entry: all.entrySet()) {
-            long offset = -1;
-            Iterator<Map.Entry<Long, EventBatch>> iter = entry.getValue().entrySet().iterator();
-            for (; iter.hasNext();) {
-                Map.Entry<Long, EventBatch> e = iter.next();
-                if (e.getValue().isCommitted()) {
-                    offset = e.getKey();
-                    iter.remove();
-                    total -= 1;
-                } else {
-                    break;
-                }
-            }
-
-            if (offset >= 0) {
-                offsets.put(entry.getKey(), new OffsetAndMetadata(offset + 1));
-            }
-        }
         return offsets;
     }
 
     public long totalEvents() {
-        return total;
+        return total.get();
     }
 }
