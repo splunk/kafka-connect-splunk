@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from lib.helper import get_test_folder
+from kafka.admin import KafkaAdminClient, NewTopic
 import logging.config
 import requests
 import os
@@ -194,3 +195,13 @@ def get_running_connector_list(setup):
 
     connectors = content_text.split(',')
     return connectors
+
+
+def create_kafka_topics(config, topics):
+    client = KafkaAdminClient(bootstrap_servers=config["kafka_broker_url"], client_id='test')
+    broker_topics = client.list_topics()
+    topic_list = []
+    for topic in topics:
+        if topic not in broker_topics:
+            topic_list.append(NewTopic(name=topic, num_partitions=1, replication_factor=1))
+    client.create_topics(new_topics=topic_list, validate_only=False)

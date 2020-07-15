@@ -24,8 +24,15 @@ def generate_connector_content(input_disc=None):
             "splunk_hec_raw_line_breaker": None,
             "splunk_hec_ack_enabled": "false",
             "splunk_hec_ssl_validate_certs": "false",
-            "splunk_sourcetypes": "kafka",
-            "splunk_hec_json_event_enrichment": "test=supplement"
+            "splunk_hec_json_event_enrichment": None,
+            "splunk_header_support": None,
+            "splunk_header_custom": None,
+            "splunk_header_index": None,
+            "splunk_header_source": None,
+            "splunk_header_sourcetype": None,
+            "splunk_header_host": None,
+            "splunk_hec_json_event_formatted": None,
+            "splunk_sourcetypes": "kafka"
         }
 
     if input_disc:
