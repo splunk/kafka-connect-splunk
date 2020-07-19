@@ -15,7 +15,6 @@ jobs:
       CI_SPLUNK_HEC_TOKEN_ACK: a6b5e77f-d5f6-415a-bd43-930cecb12950
       CI_SPLUNK_PASSWORD: helloworld
       CI_INDEX_EVENTS: main
-      CI_KAFKA_TOPIC: test-datagen
       CI_KAFKA_HEADER_INDEX: kafka
       CI_DATAGEN_IMAGE: rock1017/log-generator:latest
       CI_KAFKA_VERSION: 2.4.0
@@ -120,7 +119,7 @@ jobs:
             sudo systemctl daemon-reload
             sudo systemctl start zookeeper
             sudo systemctl start kafka
-      - run: 
+      - run:
           name: Start kafka connect
           command: |
             sudo mkdir -p /usr/local/share/kafka/plugins/
