@@ -15,7 +15,7 @@ limitations under the License.
 """
 from lib.commonkafka import *
 from lib.connect_params import *
-
+from datetime import datetime
 from kafka.producer import KafkaProducer
 from lib.helper import get_test_folder
 from lib.data_gen import generate_connector_content
@@ -46,10 +46,12 @@ def pytest_configure():
                              value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 
     for _ in range(3):
-        id = str(uuid.uuid1())
-        msg = {"timestamp": config['timestamp'], "_id": id}
+        id_1 = str(uuid.uuid1())
+        msg = {"timestamp": config['timestamp'], "_id": id_1}
         producer.send(config["kafka_topic"], msg)
-    #     producer.send(config["kafka_topic_2"], msg)
+        id_2 = str(uuid.uuid1())
+        msg_2 = {"timestamp": str(datetime.now()), "_id": id_2}
+        producer.send(config["kafka_topic_2"], msg_2)
     #
     #     headers_to_send = [('header_index', b'kafka'), ('header_source_event', b'kafka_header_source_event'),
     #                        ('header_host_event', b'kafkahostevent.com'),
@@ -77,7 +79,7 @@ def pytest_configure():
         create_kafka_connector(config, connector_content)
 
     # wait for data to be ingested to Splunk
-    time.sleep(80)
+    time.sleep(200)
 
 
 def pytest_unconfigure():
