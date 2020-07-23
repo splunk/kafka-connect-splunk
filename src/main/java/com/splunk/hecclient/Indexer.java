@@ -15,6 +15,7 @@
  */
 package com.splunk.hecclient;
 
+import com.splunk.kafka.connect.VersionUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -57,9 +58,11 @@ final class Indexer implements IndexerInf {
         channel = new HecChannel(this);
 
         // Init headers
-        headers = new Header[3];
+        headers = new Header[5];
         headers[0] = new BasicHeader("Authorization", String.format("Splunk %s", hecToken));
         headers[1] = new BasicHeader("X-Splunk-Request-Channel", channel.getId());
+        headers[3] = new BasicHeader("__splunk_app_name", VersionUtils.getAppName());
+        headers[4] = new BasicHeader("__splunk_app_version", VersionUtils.getVersionString());
 
         keepAlive = false;
         setKeepAlive(true);
