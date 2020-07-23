@@ -347,9 +347,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     }
 
     public void onEventCommitted(final List<EventBatch> batches) {
-        // for (final EventBatch batch: batches) {
-        // assert batch.isCommitted();
-        // }
+        tracker.removeAckedEventBatches(batches);
     }
 
     public void onEventFailure(final List<EventBatch> batches, Exception ex) {

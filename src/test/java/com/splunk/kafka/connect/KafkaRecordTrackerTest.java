@@ -61,19 +61,22 @@ public class KafkaRecordTrackerTest {
         Assert.assertTrue(offsets.isEmpty());
 
         batches.get(0).commit();
+        tracker.removeAckedEventBatches(batches);
         offsets = tracker.computeOffsets();
         Assert.assertEquals(1, offsets.size());
 
         batches.get(2).commit();
+        tracker.removeAckedEventBatches(batches);
         offsets = tracker.computeOffsets();
-        Assert.assertEquals(0, offsets.size());
+        Assert.assertEquals(1, offsets.size());
 
         batches.get(1).commit();
+        tracker.removeAckedEventBatches(batches);
         offsets = tracker.computeOffsets();
         Assert.assertEquals(1, offsets.size());
 
         offsets = tracker.computeOffsets();
-        Assert.assertEquals(0, offsets.size());
+        Assert.assertEquals(1, offsets.size());
 
     }
 
