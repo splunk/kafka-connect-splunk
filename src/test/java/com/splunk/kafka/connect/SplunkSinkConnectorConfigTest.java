@@ -138,6 +138,15 @@ public class SplunkSinkConnectorConfigTest {
         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
     }
 
+    @Test(expected = ConfigException.class)
+    public void createWithInvalidHttpsConfig() {
+        UnitUtil uu = new UnitUtil(0);
+        uu.configProfile.setValidateCertificates(true);
+        uu.configProfile.setTrustStorePath("");
+        Map<String, String> config = uu.createTaskConfig();
+        SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
+    }
+
     @Test
     public void createWithMetaDataUniform() {
         // index, source, sourcetype have same number of elements

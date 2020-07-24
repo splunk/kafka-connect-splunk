@@ -224,6 +224,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         trustStorePath = getString(SSL_TRUSTSTORE_PATH_CONF);
         hasTrustStorePath = StringUtils.isNotBlank(trustStorePath);
         trustStorePassword = getPassword(SSL_TRUSTSTORE_PASSWORD_CONF).value();
+        validateHttpsConfig(splunkURI);
         eventBatchTimeout = getInt(EVENT_TIMEOUT_CONF);
         ackPollInterval = getInt(ACK_POLL_INTERVAL_CONF);
         ackPollThreads = getInt(ACK_POLL_THREADS_CONF);
@@ -417,5 +418,17 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             idx += 1;
         }
         return metaMap;
+    }
+
+    private void validateHttpsConfig(String uriConf) {
+        List<String> uris = Arrays.asList(uriConf.split(","));
+        for (String uri: uris) {
+            if (uri.startsWith("https://") && this.validateCertificates && !this.hasTrustStorePath) {
+                throw new ConfigException("Invalid Secure HTTP (HTTPS) configuration: "
+                        + SplunkSinkConnectorConfig.URI_CONF + "='" + uriConf + "',"
+                        + SplunkSinkConnectorConfig.SSL_VALIDATE_CERTIFICATES_CONF + "='" + this.validateCertificates + "',"
+                        + SplunkSinkConnectorConfig.SSL_TRUSTSTORE_PATH_CONF + "='" + this.trustStorePath + "'");
+            }
+        }
     }
 }
