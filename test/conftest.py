@@ -15,7 +15,7 @@ limitations under the License.
 """
 from lib.commonkafka import *
 from lib.connect_params import *
-from datetime import datetime
+
 from kafka.producer import KafkaProducer
 from lib.helper import get_test_folder
 from lib.data_gen import generate_connector_content
@@ -37,16 +37,37 @@ def setup(request):
 
 def pytest_configure():
     # Generate message data
-    now = datetime.now()
-    time_stamp = str(datetime.timestamp(now))
-    for _ in range(3):
-        producer = KafkaProducer(bootstrap_servers=config["kafka_broker_url"],
-                                 value_serializer=lambda v: json.dumps(v).encode('utf-8'))
-        msg = {"timestamp": time_stamp}
-        producer.send(config["kafka_topic"], msg)
-        producer.flush()
+    topics = [config["kafka_topic"], config["kafka_topic_2"], config["kafka_header_topic"],
+              "test_splunk_hec_malformed_events"]
 
-    config['timestamp'] = time_stamp
+    create_kafka_topics(config, topics)
+    producer = KafkaProducer(bootstrap_servers=config["kafka_broker_url"],
+                             value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+
+    for _ in range(3):
+        msg = {"timestamp": config['timestamp']}
+        producer.send(config["kafka_topic"], msg)
+        producer.send(config["kafka_topic_2"], msg)
+
+        headers_to_send = [('header_index', b'kafka'), ('header_source_event', b'kafka_header_source_event'),
+                           ('header_host_event', b'kafkahostevent.com'),
+                           ('header_sourcetype_event', b'kafka_header_sourcetype_event')]
+        producer.send(config["kafka_header_topic"], msg, headers=headers_to_send)
+
+        headers_to_send = [('header_index', b'kafka'), ('header_source_raw', b'kafka_header_source_raw'),
+                           ('header_host_raw', b'kafkahostraw.com'),
+                           ('header_sourcetype_raw', b'kafka_header_sourcetype_raw')]
+        producer.send(config["kafka_header_topic"], msg, headers=headers_to_send)
+
+        headers_to_send = [('splunk.header.index', b'kafka'),
+                           ('splunk.header.host', b'kafkahost.com'),
+                           ('splunk.header.source', b'kafka_custom_header_source'),
+                           ('splunk.header.sourcetype', b'kafka_custom_header_sourcetype')]
+        producer.send(config["kafka_header_topic"], msg, headers=headers_to_send)
+
+    producer.send("test_splunk_hec_malformed_events", {})
+    producer.send("test_splunk_hec_malformed_events", {"&&": "null", "message": ["$$$$****////", 123, None]})
+    producer.flush()
 
     # Launch all connectors for tests
     for param in connect_params:

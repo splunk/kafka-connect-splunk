@@ -12,9 +12,38 @@
             {% if splunk_hec_raw_line_breaker %}
 				"splunk.hec.raw.line.breaker": "{{splunk_hec_raw_line_breaker}}",
 			{% endif %}
+			{% if splunk_hec_ssl_trust_store_path %}
+				"splunk.hec.ssl.trust.store.path": "{{splunk_hec_ssl_trust_store_path}}",
+			{% endif %}
+			{% if splunk_hec_ssl_trust_store_password %}
+				"splunk.hec.ssl.trust.store.password": "{{splunk_hec_ssl_trust_store_password}}",
+			{% endif %}
 			"splunk.hec.ack.enabled": "{{splunk_hec_ack_enabled}}",
 			"splunk.hec.ssl.validate.certs": "{{splunk_hec_ssl_validate_certs}}",
-			"splunk.sourcetypes": "{{splunk_sourcetypes}}",
-			"splunk.hec.json.event.enrichment": "{{splunk_hec_json_event_enrichment}}"
+			{% if splunk_hec_json_event_enrichment %}
+				"splunk.hec.json.event.enrichment": "{{splunk_hec_json_event_enrichment}}",
+			{% endif %}
+			{% if splunk_header_support %}
+				"splunk.header.support": "{{splunk_header_support}}",
+			{% endif %}
+			{% if splunk_header_custom %}
+				"splunk.header.custom": "{{splunk_header_custom}}",
+			{% endif %}
+			{% if splunk_header_index %}
+				"splunk.header.index": "{{splunk_header_index}}",
+			{% endif %}
+			{% if splunk_header_source %}
+				"splunk.header.source": "{{splunk_header_source}}",
+			{% endif %}
+			{% if splunk_header_sourcetype %}
+				"splunk.header.sourcetype": "{{splunk_header_sourcetype}}",
+			{% endif %}
+			{% if splunk_header_host %}
+				"splunk.header.host": "{{splunk_header_host}}",
+			{% endif %}
+			{% if splunk_hec_json_event_formatted %}
+				"splunk.hec.json.event.formatted": "{{splunk_hec_json_event_formatted}}",
+			{% endif %}
+			"splunk.sourcetypes": "{{splunk_sourcetypes}}"
 		}
 }

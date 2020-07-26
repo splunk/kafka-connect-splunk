@@ -5,7 +5,7 @@ from lib.data_gen import generate_connector_content
 from lib.commonsplunk import check_events_from_splunk
 
 logging.config.fileConfig(os.path.join(get_test_folder(), "logging.conf"))
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("test_case")
 
 
 class TestCrud:

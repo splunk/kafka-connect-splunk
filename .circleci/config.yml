@@ -15,10 +15,10 @@ jobs:
       CI_SPLUNK_HEC_TOKEN_ACK: a6b5e77f-d5f6-415a-bd43-930cecb12950
       CI_SPLUNK_PASSWORD: helloworld
       CI_INDEX_EVENTS: main
+      CI_KAFKA_HEADER_INDEX: kafka
       CI_DATAGEN_IMAGE: rock1017/log-generator:latest
       CI_KAFKA_VERSION: 2.4.0
       CI_KAFKA_FILENAME: kafka_2.13-2.4.0.tgz
-      CI_KAFKA_TOPIC: test-datagen
     working_directory: ~/repo
     steps:
       - attach_workspace:
@@ -78,7 +78,8 @@ jobs:
             # Disable SSL for HEC new-token
             #sudo /opt/splunk/bin/splunk http-event-collector update -uri https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT -enable-ssl 0 -auth $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD
             # Setup Indexes
-            sudo /opt/splunk/bin/splunk http-event-collector update -uri https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT -name splunk_hec_token -auth $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -index $CI_INDEX_EVENTS -indexes $CI_INDEX_EVENTS            
+            curl -X POST -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -k -d "name=$CI_INDEX_EVENTS&datatype=event" https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/servicesNS/-/search/data/indexes
+            curl -X POST -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -k -d "name=$CI_KAFKA_HEADER_INDEX&datatype=event" https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/servicesNS/-/search/data/indexes
             sudo /opt/splunk/bin/splunk restart --accept-license --answer-yes --no-prompt
       - run:
           name: Install Kafka
@@ -118,7 +119,7 @@ jobs:
             sudo systemctl daemon-reload
             sudo systemctl start zookeeper
             sudo systemctl start kafka
-      - run: 
+      - run:
           name: Start kafka connect
           command: |
             sudo mkdir -p /usr/local/share/kafka/plugins/
@@ -131,8 +132,6 @@ jobs:
       - run:
           name: Run Functional tests
           command: |
-            echo "Create Kafka topic"
-            /usr/local/kafka/bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic $CI_KAFKA_TOPIC
             pyenv global 3.6.5
             pip install --upgrade pip
             pip install -r test/requirements.txt

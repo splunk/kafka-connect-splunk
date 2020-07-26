@@ -5,7 +5,7 @@ import pytest
 import re
 
 logging.config.fileConfig(os.path.join(get_test_folder(), "logging.conf"))
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("test_case")
 
 
 class TestDataEnrichment:
@@ -37,14 +37,15 @@ class TestDataEnrichment:
                     len(events))
         assert len(events) == expected
 
-    @pytest.mark.parametrize("test_case, expected", [
-        ("line_breaking_of_raw_events", 1)
+    @pytest.mark.parametrize("test_case, test_input, expected", [
+        ("line_breaking_of_raw_data", "kafka:topic_test_break_raw", 1),
+        ("line_breaking_of_event_data", "kafka:topic_test_break_event", 3)
     ])
-    def test_line_breaking_of_raw_events(self, setup, test_case, expected):
+    def test_line_breaking_configuration(self, setup, test_case, test_input, expected):
         logger.info("testing {0} expected={1} ".format(test_case, expected))
         search_query = "index={0} | search timestamp=\"{1}\" source::{2}".format(setup['splunk_index'],
-                                                                                         setup["timestamp"],
-                                                                                         "kafka:topictestbreak")
+                                                                                 setup["timestamp"],
+                                                                                 test_input)
         logger.info(search_query)
         events = check_events_from_splunk(start_time="-1h@h",
                                           url=setup["splunkd_url"],
@@ -55,13 +56,14 @@ class TestDataEnrichment:
         logger.info("Splunk received %s events in the last hour",
                     len(events))
         assert len(events) == expected
-        event_raw_data = events[0]['_raw'].strip()
-        # Replace the white spaces since Splunk 8.0.2 and 8.0.3 behave differently
-        actual_raw_data = re.sub(r'\s+', '', event_raw_data)
-        expected_data = "{\"timestamp\":\"%s\"}######" \
-                        "{\"timestamp\":\"%s\"}######" \
-                        "{\"timestamp\":\"%s\"}######" % (
-            setup["timestamp"], setup["timestamp"], setup["timestamp"])
-        assert actual_raw_data == expected_data, \
-            '\nActual value: \n{} \ndoes not match expected value: \n{}'.format(
-                actual_raw_data, expected_data)
+        if test_case == 'line_breaking_of_raw_data':
+            event_raw_data = events[0]['_raw'].strip()
+            # Replace the white spaces since Splunk 8.0.2 and 8.0.3 behave differently
+            actual_raw_data = re.sub(r'\s+', '', event_raw_data)
+            expected_data = "{\"timestamp\":\"%s\"}######" \
+                            "{\"timestamp\":\"%s\"}######" \
+                            "{\"timestamp\":\"%s\"}######" % (
+                                setup["timestamp"], setup["timestamp"], setup["timestamp"])
+            assert actual_raw_data == expected_data, \
+                '\nActual value: \n{} \ndoes not match expected value: \n{}'.format(
+                    actual_raw_data, expected_data)

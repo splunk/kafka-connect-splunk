@@ -4,7 +4,7 @@ from lib.commonkafka import *
 from lib.helper import get_test_folder
 
 logging.config.fileConfig(os.path.join(get_test_folder(), "logging.conf"))
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("test_case")
 
 
 class TestDataOnboarding:
