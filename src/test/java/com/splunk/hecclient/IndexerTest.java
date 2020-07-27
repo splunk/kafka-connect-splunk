@@ -15,6 +15,7 @@
  */
 package com.splunk.hecclient;
 
+import com.splunk.kafka.connect.VersionUtils;
 import org.apache.http.Header;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Assert;
@@ -29,35 +30,47 @@ public class IndexerTest {
         Indexer indexer = new Indexer(baseUrl, token, null, null);
 
         Header[] headers = indexer.getHeaders();
-        Assert.assertEquals(3, headers.length);
+        Assert.assertEquals(5, headers.length);
         Assert.assertEquals("Authorization", headers[0].getName());
         Assert.assertEquals("Splunk " + token, headers[0].getValue());
         Assert.assertEquals("X-Splunk-Request-Channel", headers[1].getName());
         Assert.assertEquals(indexer.getChannel().getId(), headers[1].getValue());
         Assert.assertEquals("Connection", headers[2].getName());
         Assert.assertEquals("Keep-Alive", headers[2].getValue());
+        Assert.assertEquals("__splunk_app_name", headers[3].getName());
+        Assert.assertEquals(VersionUtils.getAppName(), headers[3].getValue());
+        Assert.assertEquals("__splunk_app_version", headers[4].getName());
+        Assert.assertEquals(VersionUtils.getVersionString(), headers[4].getValue());
 
         indexer.setKeepAlive(false);
         Assert.assertFalse(indexer.getKeepAlive());
         headers = indexer.getHeaders();
-        Assert.assertEquals(3, headers.length);
+        Assert.assertEquals(5, headers.length);
         Assert.assertEquals("Authorization", headers[0].getName());
         Assert.assertEquals("Splunk " + token, headers[0].getValue());
         Assert.assertEquals("X-Splunk-Request-Channel", headers[1].getName());
         Assert.assertEquals(indexer.getChannel().getId(), headers[1].getValue());
         Assert.assertEquals("Connection", headers[2].getName());
         Assert.assertEquals("close", headers[2].getValue());
+        Assert.assertEquals("__splunk_app_name", headers[3].getName());
+        Assert.assertEquals(VersionUtils.getAppName(), headers[3].getValue());
+        Assert.assertEquals("__splunk_app_version", headers[4].getName());
+        Assert.assertEquals(VersionUtils.getVersionString(), headers[4].getValue());
 
         // try again
         indexer.setKeepAlive(false);
         headers = indexer.getHeaders();
-        Assert.assertEquals(3, headers.length);
+        Assert.assertEquals(5, headers.length);
         Assert.assertEquals("Authorization", headers[0].getName());
         Assert.assertEquals("Splunk " + token, headers[0].getValue());
         Assert.assertEquals("X-Splunk-Request-Channel", headers[1].getName());
         Assert.assertEquals(indexer.getChannel().getId(), headers[1].getValue());
         Assert.assertEquals("Connection", headers[2].getName());
         Assert.assertEquals("close", headers[2].getValue());
+        Assert.assertEquals("__splunk_app_name", headers[3].getName());
+        Assert.assertEquals(VersionUtils.getAppName(), headers[3].getValue());
+        Assert.assertEquals("__splunk_app_version", headers[4].getName());
+        Assert.assertEquals(VersionUtils.getVersionString(), headers[4].getValue());
 
     }
 

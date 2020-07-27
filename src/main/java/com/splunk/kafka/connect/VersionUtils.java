@@ -28,11 +28,12 @@ import org.slf4j.LoggerFactory;
 public final class VersionUtils {
     private static final String VERSION_PROPERTIES_FILE = "/version.properties";
     private static final String DEFAULT_VERSION = "dev";
+    private static final String DEFAULT_APP_NAME = "Splunk Connect for Kafka";
     private static final Logger log = LoggerFactory.getLogger(VersionUtils.class);
 
     /**
      * Returns the version string that is set in the version.properties
-     * resource file
+     * resource file and default application name for this application
      *
      * @return version string
     */
@@ -40,6 +41,15 @@ public final class VersionUtils {
         List<String> properties = readVersionProperties();
 
         return getVersionFromProperties(properties);
+    }
+
+    /**
+     * Returns the application name as a string
+     *
+     * @return app name string
+     */
+    public static String getAppName() {
+        return DEFAULT_APP_NAME;
     }
 
     /**
