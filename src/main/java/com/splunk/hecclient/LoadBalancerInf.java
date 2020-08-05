@@ -15,9 +15,13 @@
  */
 package com.splunk.hecclient;
 
+import org.apache.http.impl.client.CloseableHttpClient;
+
 public interface LoadBalancerInf {
-    void add(HecChannel channel);
+    void add(String indexerUrl, HecChannel channel);
     void remove(HecChannel channel);
     void send(final EventBatch batch);
     int size();
+    void setHttpClient(CloseableHttpClient httpClient);
+    void close();
 }

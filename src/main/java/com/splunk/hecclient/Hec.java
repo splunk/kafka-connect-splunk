@@ -90,7 +90,7 @@ public class Hec implements HecInf {
     * @see               CloseableHttpClient
     */
     public static Hec newHecWithAck(HecConfig config, CloseableHttpClient httpClient, PollerCallback callback) {
-        return new Hec(config, httpClient, createPoller(config, callback), new LoadBalancer());
+        return new Hec(config, httpClient, createPoller(config, callback), new LoadBalancer(config, httpClient));
     }
 
    /**
@@ -140,7 +140,7 @@ public class Hec implements HecInf {
     * @see               CloseableHttpClient
     */
     public static Hec newHecWithoutAck(HecConfig config, CloseableHttpClient httpClient, PollerCallback callback) {
-        return new Hec(config, httpClient, new ResponsePoller(callback), new LoadBalancer());
+        return new Hec(config, httpClient, new ResponsePoller(callback), new LoadBalancer(config, httpClient));
     }
 
    /**
@@ -199,7 +199,7 @@ public class Hec implements HecInf {
                 Indexer indexer = new Indexer(uri, config.getToken(), httpClient, poller);
                 indexer.setKeepAlive(config.getHttpKeepAlive());
                 indexer.setBackPressureThreshold(config.getBackoffThresholdSeconds());
-                loadBalancer.add(indexer.getChannel().setTracking(config.getEnableChannelTracking()));
+                loadBalancer.add(uri, indexer.getChannel().setTracking(config.getEnableChannelTracking()));
                 i++;
             }
         }
@@ -247,6 +247,7 @@ public class Hec implements HecInf {
                 throw new HecException("failed to close http client", ex);
             }
         }
+        loadBalancer.close();
     }
 
    /**
@@ -347,5 +348,9 @@ public class Hec implements HecInf {
         } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException ex) {
             throw new HecException("error loading KeyStoreManager", ex);
         }
+    }
+
+    public CloseableHttpClient getHttpClient() {
+        return httpClient;
     }
 }

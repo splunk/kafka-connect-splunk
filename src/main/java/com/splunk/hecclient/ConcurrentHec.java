@@ -33,7 +33,7 @@ public class ConcurrentHec implements HecInf {
     private volatile boolean stopped;
 
     public ConcurrentHec(int numberOfThreads, boolean useAck, HecConfig config, PollerCallback cb) {
-        this(numberOfThreads, useAck, config, cb, new LoadBalancer());
+        this(numberOfThreads, useAck, config, cb, new LoadBalancer(config, null));
     }
 
     public ConcurrentHec(int numberOfThreads, boolean useAck, HecConfig config, PollerCallback cb, LoadBalancerInf loadBalancer) {
@@ -41,6 +41,7 @@ public class ConcurrentHec implements HecInf {
         ThreadFactory e = (Runnable r) -> new Thread(r, "Concurrent-HEC-worker");
         executorService = Executors.newFixedThreadPool(numberOfThreads, e);
         initHec(numberOfThreads, useAck, config, cb, loadBalancer);
+        loadBalancer.setHttpClient(hecs.get(0).getHttpClient());
         pollerCallback = cb;
         stopped = false;
 

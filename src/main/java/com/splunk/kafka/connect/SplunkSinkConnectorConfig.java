@@ -72,6 +72,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String HEADER_SOURCE_CONF = "splunk.header.source";
     static final String HEADER_SOURCETYPE_CONF = "splunk.header.sourcetype";
     static final String HEADER_HOST_CONF = "splunk.header.host";
+    // Load Balancer
+    static final String LB_POLL_INTERVAL_CONF = "splunk.hec.lb.poll.interval";
 
     // Kafka configuration description strings
     // Required Parameters
@@ -166,6 +168,10 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String HEADER_SOURCETYPE_DOC = "Header to use for Splunk Header Sourcetype";
     static final String HEADER_HOST_DOC = "Header to use for Splunk Header Host";
 
+    // Load Balancer
+    static final String LB_POLL_INTERVAL_DOC = "This setting controls the load balancer polling interval. By default, "
+            + "this setting is 120 seconds.";
+
     final String splunkToken;
     final String splunkURI;
     final Map<String, Map<String, String>> topicMetas;
@@ -182,6 +188,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final int numberOfThreads;
     final int socketTimeout;
     final boolean validateCertificates;
+    final int lbPollInterval;
 
     final boolean ack;
     final int ackPollInterval;
@@ -229,6 +236,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         ackPollInterval = getInt(ACK_POLL_INTERVAL_CONF);
         ackPollThreads = getInt(ACK_POLL_THREADS_CONF);
         maxHttpConnPerChannel = getInt(MAX_HTTP_CONNECTION_PER_CHANNEL_CONF);
+        lbPollInterval = getInt(LB_POLL_INTERVAL_CONF);
         flushWindow = getInt(FLUSH_WINDOW_CONF);
         totalHecChannels = getInt(TOTAL_HEC_CHANNEL_CONF);
         socketTimeout = getInt(SOCKET_TIMEOUT_CONF);
@@ -286,7 +294,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(HEADER_INDEX_CONF, ConfigDef.Type.STRING, "splunk.header.index", ConfigDef.Importance.MEDIUM, HEADER_INDEX_DOC)
                 .define(HEADER_SOURCE_CONF, ConfigDef.Type.STRING, "splunk.header.source", ConfigDef.Importance.MEDIUM, HEADER_SOURCE_DOC)
                 .define(HEADER_SOURCETYPE_CONF, ConfigDef.Type.STRING, "splunk.header.sourcetype", ConfigDef.Importance.MEDIUM, HEADER_SOURCETYPE_DOC)
-                .define(HEADER_HOST_CONF, ConfigDef.Type.STRING, "splunk.header.host", ConfigDef.Importance.MEDIUM, HEADER_HOST_DOC);
+                .define(HEADER_HOST_CONF, ConfigDef.Type.STRING, "splunk.header.host", ConfigDef.Importance.MEDIUM, HEADER_HOST_DOC)
+                .define(LB_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 120, ConfigDef.Importance.LOW, LB_POLL_INTERVAL_DOC);
     }
     /**
      Configuration Method to setup all settings related to Splunk HEC Client
@@ -300,6 +309,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
               .setEventBatchTimeout(eventBatchTimeout)
               .setHttpKeepAlive(httpKeepAlive)
               .setAckPollInterval(ackPollInterval)
+              .setlbPollInterval(lbPollInterval)
               .setAckPollThreads(ackPollThreads)
               .setEnableChannelTracking(trackData)
               .setBackoffThresholdSeconds(backoffThresholdSeconds)
@@ -348,7 +358,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 + "headerIndex:" + headerIndex + ", "
                 + "headerSource:" + headerSource + ", "
                 + "headerSourcetype:" + headerSourcetype + ", "
-                + "headerHost:" + headerHost;
+                + "headerHost:" + headerHost + ", "
+                + "lbPollInterval:" + lbPollInterval;
     }
 
     private static String[] split(String data, String sep) {

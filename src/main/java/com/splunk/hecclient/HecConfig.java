@@ -35,6 +35,7 @@ public final class HecConfig {
     private boolean hasCustomTrustStore = false;
     private String trustStorePath;
     private String trustStorePassword;
+    private int lbPollInterval = 120; // in seconds
 
     public HecConfig(List<String> uris, String token) {
         this.uris = uris;
@@ -75,6 +76,10 @@ public final class HecConfig {
 
     public int getAckPollInterval() {
         return ackPollInterval;
+    }
+
+    public int getlbPollInterval() {
+        return lbPollInterval;
     }
 
     public int getAckPollThreads() {
@@ -131,6 +136,11 @@ public final class HecConfig {
 
     public HecConfig setAckPollInterval(int interval /*seconds*/) {
         ackPollInterval = interval;
+        return this;
+    }
+
+    public HecConfig setlbPollInterval(int interval /*seconds*/) {
+        lbPollInterval = interval * 1000;
         return this;
     }
 
