@@ -15,6 +15,8 @@
  */
 package com.splunk.hecclient;
 
+import org.apache.http.impl.client.CloseableHttpClient;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +24,8 @@ public class LoadBalancerMock implements LoadBalancerInf {
     private List<EventBatch> batches = new ArrayList<>();
     private boolean throwOnSend = false;
 
-    public void add(HecChannel channel) {
+    @Override
+    public void add(String indexerUrl, HecChannel channel) {
     }
 
     public void remove(HecChannel channel) {
@@ -42,6 +45,14 @@ public class LoadBalancerMock implements LoadBalancerInf {
 
     public int size() {
         return 0;
+    }
+
+    @Override
+    public void setHttpClient(CloseableHttpClient httpClient) {
+    }
+
+    @Override
+    public void close() {
     }
 
     public List<EventBatch> getBatches() {

@@ -65,7 +65,7 @@ public final class HecPerf {
         List<Hec> hecs = new ArrayList<>();
         for (int i = 0; i < config.getConcurrency(); i++) {
             final int id = i;
-            final Hec hec = new Hec(config.getHecClientConfig(), httpClients.get(id % httpClients.size()), poller, new LoadBalancer());
+            final Hec hec = new Hec(config.getHecClientConfig(), httpClients.get(id % httpClients.size()), poller, new LoadBalancer(config.getHecClientConfig(), httpClients.get(0)));
             hecs.add(hec);
 
             Runnable r = () -> {

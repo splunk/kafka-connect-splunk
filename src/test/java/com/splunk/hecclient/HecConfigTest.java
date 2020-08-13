@@ -46,7 +46,8 @@ public class HecConfigTest {
               .setTrustStorePath("test")
               .setTrustStorePassword("pass")
               .setHasCustomTrustStore(true)
-              .setBackoffThresholdSeconds(10);
+              .setBackoffThresholdSeconds(10)
+              .setlbPollInterval(120);
 
         Assert.assertTrue(config.getDisableSSLCertVerification());
         Assert.assertTrue(config.getEnableChannelTracking());
@@ -61,6 +62,7 @@ public class HecConfigTest {
         Assert.assertEquals("test", config.getTrustStorePath());
         Assert.assertEquals("pass", config.getTrustStorePassword());
         Assert.assertEquals(10000, config.getBackoffThresholdSeconds());
+        Assert.assertEquals(120000, config.getlbPollInterval());
         Assert.assertTrue(config.getHasCustomTrustStore());
     }
 }

@@ -15,26 +15,76 @@
  */
 package com.splunk.hecclient;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import org.apache.http.Header;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.HttpContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.*;
 
 public final class LoadBalancer implements LoadBalancerInf {
+    private static final Logger log = LoggerFactory.getLogger(LoadBalancer.class);
+
     private List<HecChannel> channels;
     private int index;
+    private ConcurrentHashMap<String, List<HecChannel>> indexerInfo; // Map of indexer URI to Channels for that indexer
+    private Set<String> discardedIndexers;
+    // Used for health check
+    private CloseableHttpClient httpClient;
+    private HttpContext context;
+    private HecConfig hecConfig;
+    private boolean keepAlive;
+    private Header[] headers;
+    private String healthCheckEndpoint = "/services/collector/health";
+    private ScheduledExecutorService scheduledExecutorService;
+    private volatile boolean stopped;
 
-    public LoadBalancer() {
+    public LoadBalancer(HecConfig hecConfig, CloseableHttpClient client) {
+        stopped = false;
         channels = new ArrayList<>();
+        indexerInfo = new ConcurrentHashMap<>();
+        discardedIndexers = new HashSet<>();
         index = 0;
+        this.httpClient = client;
+        this.hecConfig = hecConfig;
+        this.context = HttpClientContext.create();
+        // Init headers
+        headers = new Header[1];
+        headers[0] = new BasicHeader("Authorization", String.format("Splunk %s", hecConfig.getToken()));
+        keepAlive = false;
+        scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+        Runnable r = () -> {
+            run();
+        };
+        scheduledExecutorService.scheduleWithFixedDelay(r, 0, this.hecConfig.getlbPollInterval(), TimeUnit.MILLISECONDS);
+    }
+
+    public void setHttpClient(CloseableHttpClient httpClient) {
+        this.httpClient = httpClient;
     }
 
     @Override
-    public void add(HecChannel channel) {
+    public synchronized void add(String indexerUrl, HecChannel channel) {
+        log.debug("Adding indexer {} and channel {} to loadbalancer", indexerUrl, channel);
+        if(indexerInfo.containsKey(indexerUrl)) {
+            indexerInfo.get(indexerUrl).add(channel);
+        } else {
+            indexerInfo.put(indexerUrl, new ArrayList<>());
+            indexerInfo.get(indexerUrl).add(channel);
+        }
         channels.add(channel);
     }
 
     @Override
-    public void remove(HecChannel channel) {
+    public synchronized void remove(HecChannel channel) {
+        log.debug("Removing channel {} from loadbalancer", channel);
         for (Iterator<HecChannel> iter = channels.listIterator(); iter.hasNext();) {
             HecChannel ch = iter.next();
             if (ch.equals(channel)) {
@@ -44,7 +94,7 @@ public final class LoadBalancer implements LoadBalancerInf {
     }
 
     @Override
-    public void send(final EventBatch batch) {
+    public synchronized void send(final EventBatch batch) {
         if (channels.isEmpty()) {
             throw new HecException("No channels are available / registered with LoadBalancer");
         }
@@ -65,5 +115,81 @@ public final class LoadBalancer implements LoadBalancerInf {
     @Override
     public int size() {
         return channels.size();
+    }
+
+    private void run() {
+        log.debug("Running healthcheck at an interval of {} seconds", this.hecConfig.getlbPollInterval()/1000.0);
+            Enumeration<String> iter = indexerInfo.keys();
+            for (; iter.hasMoreElements();) {
+                String indexerToCheck = iter.nextElement();
+                try {
+                    indexerCheckResult(sendHealthCheckRequest(indexerToCheck), indexerToCheck);
+                } catch (Exception e) {
+                    indexerCheckResult(false, indexerToCheck);
+                    log.error("encountered exception when checking health of indexer {}, " +
+                            "this means indexer and its channels are removed from the loadbalancer", e.getMessage());
+                }
+            }
+
+    }
+
+    private synchronized void indexerCheckResult(boolean success, String indexer) {
+        log.debug("indexerInfo map has {} ", indexerInfo);
+        log.debug("discardedIndexers map has {} ", discardedIndexers);
+        log.debug("Channels List is : {}", channels);
+
+        if(success) {
+            if(discardedIndexers.contains(indexer)) {
+                log.info("healthcheck passed for {} indexer, adding this indexer and its channels to the loadbalancer, " +
+                        "this indexer was previously removed from loadbalancer", indexer);
+                // Add channels for this indexer as healthcheck passed
+                List<HecChannel> channelsToAdd = indexerInfo.get(indexer);
+                channelsToAdd.forEach((channel) -> channels.add(channel));
+                discardedIndexers.remove(indexer);
+                index = 0;
+            }
+        } else {
+            if(!discardedIndexers.contains(indexer)) {
+                log.info("healthcheck failed for {} indexer, removing this indexer and its channels from the loadbalancer", indexer);
+                // Remove channels for this indexer as healthcheck failed
+                List<HecChannel> channelsToRemove = indexerInfo.get(indexer);
+                channelsToRemove.forEach((channel) -> remove(channel));
+                discardedIndexers.add(indexer);
+                index = 0;
+            }
+        }
+    }
+
+    public boolean sendHealthCheckRequest(String indexerUrl) throws IOException {
+        boolean retVal = false;
+        String url = indexerUrl + healthCheckEndpoint;
+        final HttpGet httpGet = new HttpGet(url);
+        httpGet.setHeaders(headers);
+        int status = -1;
+        CloseableHttpResponse resp = httpClient.execute(httpGet, context);
+        try {
+            status = resp.getStatusLine().getStatusCode();
+        } finally {
+            resp.close();
+            if(status == 200) {
+                retVal = true;
+            } else if (status == 400) {
+                log.info("Invalid HEC token for indexer {}", url);
+            } else if (status == 503) {
+                log.info("HEC is unhealthy, queues are full for indexer {}", url);
+            }
+        }
+
+        return retVal;
+    }
+
+    public final void close() {
+        if (stopped) {
+            return;
+        }
+
+        stopped = true;
+        scheduledExecutorService.shutdown();
+        log.info("LoadBalancer stopped");
     }
 }

@@ -15,23 +15,28 @@
  */
 package com.splunk.hecclient;
 
-import com.splunk.hecclient.examples.HecExample;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class LoadBalancerTest {
     @Test
     public void add() {
-        LoadBalancer lb = new LoadBalancer();
+        String uri = "https://dummy:8088";
+        String token = "mytoken";
+        HecConfig config = new HecConfig(Arrays.asList(uri), token);
+        CloseableHttpClientMock client = new CloseableHttpClientMock();
+        client.setResponse(CloseableHttpClientMock.success);
+        LoadBalancer lb = new LoadBalancer(config, client);
 
         int numberOfChannels = 3;
         for (int i = 0; i < numberOfChannels; i++) {
             IndexerMock indexer = new IndexerMock();
             HecChannel ch = new HecChannel(indexer);
-            lb.add(ch);
+            lb.add(uri, ch);
         }
 
         Assert.assertEquals(numberOfChannels, lb.size());
@@ -39,15 +44,19 @@ public class LoadBalancerTest {
 
     @Test
     public void send() {
-        LoadBalancer lb = new LoadBalancer();
-        List<IndexerMock> indexers = new ArrayList<>();
+        String uri = "https://dummy:8088";
+        String token = "mytoken";
+        HecConfig config = new HecConfig(Arrays.asList(uri), token);
+        CloseableHttpClientMock client = new CloseableHttpClientMock();
+        client.setResponse(CloseableHttpClientMock.success);
+        LoadBalancer lb = new LoadBalancer(config, client);        List<IndexerMock> indexers = new ArrayList<>();
 
         int numberOfChannels = 3;
         for (int i = 0; i < numberOfChannels; i++) {
             IndexerMock indexer = new IndexerMock();
             indexers.add(indexer);
             HecChannel ch = new HecChannel(indexer);
-            lb.add(ch);
+            lb.add(uri, ch);
         }
 
         int numberOfBatches = 12;
@@ -63,7 +72,12 @@ public class LoadBalancerTest {
 
     @Test(expected = HecException.class)
     public void sendWithAllBackPressure() {
-        LoadBalancer lb = new LoadBalancer();
+        String uri = "https://dummy:8088";
+        String token = "mytoken";
+        HecConfig config = new HecConfig(Arrays.asList(uri), token);
+        CloseableHttpClientMock client = new CloseableHttpClientMock();
+        client.setResponse(CloseableHttpClientMock.success);
+        LoadBalancer lb = new LoadBalancer(config, client);
         List<IndexerMock> indexers = new ArrayList<>();
 
         int numberOfChannels = 3;
@@ -72,7 +86,7 @@ public class LoadBalancerTest {
             indexers.add(indexer);
             indexer.setBackPressure(true);
             HecChannel ch = new HecChannel(indexer);
-            lb.add(ch);
+            lb.add(uri, ch);
         }
 
         lb.send(UnitUtil.createBatch());
@@ -80,7 +94,12 @@ public class LoadBalancerTest {
 
     @Test
     public void sendWithOneBackPressure() {
-        LoadBalancer lb = new LoadBalancer();
+        String uri = "https://dummy:8088";
+        String token = "mytoken";
+        HecConfig config = new HecConfig(Arrays.asList(uri), token);
+        CloseableHttpClientMock client = new CloseableHttpClientMock();
+        client.setResponse(CloseableHttpClientMock.success);
+        LoadBalancer lb = new LoadBalancer(config, client);
         List<IndexerMock> indexers = new ArrayList<>();
 
         int numberOfChannels = 3;
@@ -88,7 +107,7 @@ public class LoadBalancerTest {
             IndexerMock indexer = new IndexerMock();
             indexers.add(indexer);
             HecChannel ch = new HecChannel(indexer);
-            lb.add(ch);
+            lb.add(uri, ch);
         }
         indexers.get(0).setBackPressure(true);
 
@@ -104,7 +123,12 @@ public class LoadBalancerTest {
 
     @Test
     public void sendWithOneNotAvailable() {
-        LoadBalancer lb = new LoadBalancer();
+        String uri = "https://dummy:8088";
+        String token = "mytoken";
+        HecConfig config = new HecConfig(Arrays.asList(uri), token);
+        CloseableHttpClientMock client = new CloseableHttpClientMock();
+        client.setResponse(CloseableHttpClientMock.success);
+        LoadBalancer lb = new LoadBalancer(config, client);
         List<IndexerMock> indexers = new ArrayList<>();
 
         int numberOfChannels = 3;
@@ -115,7 +139,7 @@ public class LoadBalancerTest {
             if(i == 0) {
                 ch.setAvailable(false);
             }
-            lb.add(ch);
+            lb.add(uri, ch);
         }
 
         int numberOfBatches = 12;
@@ -130,13 +154,23 @@ public class LoadBalancerTest {
 
     @Test(expected = HecException.class)
     public void sendWithoutChannels() {
-        LoadBalancer lb = new LoadBalancer();
+        String uri = "https://dummy:8088";
+        String token = "mytoken";
+        HecConfig config = new HecConfig(Arrays.asList(uri), token);
+        CloseableHttpClientMock client = new CloseableHttpClientMock();
+        client.setResponse(CloseableHttpClientMock.success);
+        LoadBalancer lb = new LoadBalancer(config, client);
         lb.send(UnitUtil.createBatch());
     }
 
     @Test
     public void remove() {
-        LoadBalancer lb = new LoadBalancer();
+        String uri = "https://dummy:8088";
+        String token = "mytoken";
+        HecConfig config = new HecConfig(Arrays.asList(uri), token);
+        CloseableHttpClientMock client = new CloseableHttpClientMock();
+        client.setResponse(CloseableHttpClientMock.success);
+        LoadBalancer lb = new LoadBalancer(config, client);
         List<HecChannel> channels = new ArrayList<>();
 
         int numberOfChannels = 3;
@@ -144,7 +178,7 @@ public class LoadBalancerTest {
             IndexerMock indexer = new IndexerMock();
             HecChannel ch = new HecChannel(indexer);
             channels.add(ch);
-            lb.add(ch);
+            lb.add(uri, ch);
         }
 
         for (HecChannel ch: channels) {
@@ -156,7 +190,12 @@ public class LoadBalancerTest {
 
     @Test
     public void size() {
-        LoadBalancer lb = new LoadBalancer();
+        String uri = "https://dummy:8088";
+        String token = "mytoken";
+        HecConfig config = new HecConfig(Arrays.asList(uri), token);
+        CloseableHttpClientMock client = new CloseableHttpClientMock();
+        client.setResponse(CloseableHttpClientMock.success);
+        LoadBalancer lb = new LoadBalancer(config, client);
         Assert.assertEquals(0, lb.size());
     }
 }

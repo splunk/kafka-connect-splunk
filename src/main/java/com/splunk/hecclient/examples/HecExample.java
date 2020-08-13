@@ -37,14 +37,14 @@ public final class HecExample {
                 .setHttpKeepAlive(true)
                 .setMaxHttpConnectionPerChannel(4);
 
-        CloseableHttpClient httpCilent = Hec.createHttpClient(config);
+        CloseableHttpClient httpClient = Hec.createHttpClient(config);
         Poller poller = Hec.createPoller(config, new PrintIt());
 
         // Json
         int n = 100000;
         int m = 100;
 
-        Hec hec = new Hec(config, httpCilent, poller, new LoadBalancer());
+        Hec hec = new Hec(config, httpClient, poller, new LoadBalancer(config, httpClient));
         Thread jsonThr = new Thread(new Runnable() {
             public void run() {
                 for (int j = 0; j < n; j++) {
@@ -62,7 +62,7 @@ public final class HecExample {
         jsonThr.start();
 
         // raw
-        Hec rawHec = new Hec(config, httpCilent, poller, new LoadBalancer());
+        Hec rawHec = new Hec(config, httpClient, poller, new LoadBalancer(config, httpClient));
         Thread rawThr = new Thread(new Runnable() {
             public void run() {
                 for (int j = 0; j < n; j++) {
