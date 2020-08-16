@@ -1,4 +1,3 @@
-from csmslib.client import Service
 import argparse
 import time
 import os
@@ -14,12 +13,12 @@ _env_var = os.environ
 
 
 def create_cloud_stack():
-    cmd = "{}/python -m splunk_orca --cloud cloudworks --printer json create".format(_env_var['PYTHON_PATH'])
-
+    cmd = "python3 -m splunk_orca --cloud cloudworks --printer json create"
     try:
         proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT)
         output, error = proc.communicate()
+        logger.info(output)
         data = json.loads(output)
         stack_id = jsonpath.jsonpath(data, '$..stack_id')[0]
         if error:
@@ -31,8 +30,7 @@ def create_cloud_stack():
 
 
 def get_status(stack_id):
-    cmd = "{0}/python -m splunk_orca --cloud cloudworks --printer json show containers --deployment-id {1}".\
-        format(_env_var['PYTHON_PATH'], stack_id)
+    cmd = "python3 -m splunk_orca --cloud cloudworks --printer json show containers --deployment-id {}".format(stack_id)
 
     try:
         proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
@@ -53,7 +51,8 @@ def wait_until_stack_ready(stack_id):
         status = get_status(stack_id)
         if status == 'READY':
             logger.info('The stack [{0}] is Ready to use.'.format(stack_id))
-            return True
+            return
+    logger.error("Time out when creating Splunk cloud stack: {}".format(stack_id))
 
 
 if __name__ == '__main__':

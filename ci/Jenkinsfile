@@ -9,6 +9,7 @@ def dockerReq = new DockerRequest(steps,
                                   currentBuild,
                                   env,
                                   [userId: "10777",
+                                   imageName: "repo.splunk.com/splunk/gdi/splunk-ubuntu-python3:latest",
                                    repoName: "git@github.com:splunk/kafka-connect-splunk.git",
                                    runner: "yarn",
                                    remotePath: "/build"])
@@ -18,8 +19,8 @@ withSplunkWrapNode("master") {
     def imageName = "repo.splunk.com/splunk/gdi/kafka-connect-splunk:build-${env.BUILD_NUMBER}"
 
     try {
-        stage("setup orca") {
-            println "=============setup orca=============="
+        stage("Build splunk cloud stack") {
+            println "=============build splunk cloud stack=============="
             withCredentials([file(credentialsId: 'gdi_connectors_orca', variable: 'ORCA_CREDENTIALS')]) {
                 sh "tar -ovxf $ORCA_CREDENTIALS";
                 splunkPrepareAndCheckOut request: dockerReq,
@@ -28,24 +29,7 @@ withSplunkWrapNode("master") {
             splunkRunScript request:dockerReq,
                             script:
                                 """
-                                pip install virtualenv
-                                virtualenv venv
-                                source venv/bin/activate
-                                venv/bin/pip install splunk_orca==1.1.0 -i https://repo.splunk.com/artifactory/api/pypi/pypi/simple
-                                venv/bin/splunk_orca --version
-                                """;
-        }
-        stage("run ci") {
-            println "=============run ci build=============="
-            withCredentials([file(credentialsId: 'gdi_connectors_orca', variable: 'ORCA_CREDENTIALS')]) {
-                sh "tar -ovxf $ORCA_CREDENTIALS";
-                splunkPrepareAndCheckOut request: dockerReq,
-                                         files: "${WORKSPACE}/.orca, ${WORKSPACE}/.ssh";
-            }
-            splunkRunScript request:dockerReq,
-                            script:
-                                """
-                                chmod +x ci/cloud_ci_kafka.sh && sh ci/cloud_ci_kafka.sh
+                                chmod +x ci/splunk_cloud_ci.sh && sh ci/splunk_cloud_ci.sh
                                 """;
         }
         stage('Build image') {
@@ -59,7 +43,7 @@ withSplunkWrapNode("master") {
                                    imageName: imageName,
                                    dockerfilePath: "Dockerfile.kafka-connect-splunk"
         }
-        stage('Run image') {
+        stage('Run integration tests') {
             println "=============run kafka and integration tests=============="
             splunkDockerStart imageName: imageName,
                               mountBindings: '/var/run/docker.sock:/var/run/docker.sock:ro',
