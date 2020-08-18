@@ -30,6 +30,7 @@ public class CloseableHttpClientMock extends CloseableHttpClient {
     public static final String success = "{\"text\":\"Success\",\"code\":0,\"ackId\":2}";
     public static final String serverBusy = "{\"text\":\"Server busy\",\"code\":1}";
     public static final String noDataError = "{\"text\":\"No data\",\"code\":5}";
+    public static final String invalidDataFormat = "{\"text\":\"Invalid data format\",\"code\":6}";
     public static final String exception = "excpetion";
 
     private String resp = "";

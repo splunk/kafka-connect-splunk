@@ -68,6 +68,9 @@ public final class ResponsePoller implements Poller {
                 fail(channel, batch, new HecException(response.getText()));
                 return;
             }
+            if (response.getText() == "Invalid data format") {
+                log.warn("Invalid Splunk HEC data format. Ignoring events. channel={} index={} events={}", channel, channel.getIndexer(), batch.toString());
+            }
         } catch (Exception ex) {
             log.error("failed to parse response", resp, ex);
             fail(channel, batch, ex);
