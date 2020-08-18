@@ -1,6 +1,6 @@
 #! /bin/bash
 
-echo "=============install splunk=============="
+echo "=============setup splunk HEC=============="
 
 CI_SPLUNK_HOST=$1
 
@@ -20,6 +20,8 @@ echo "Enable HEC new-token ..."
 curl -k -X POST -u ${CI_SPLUNK_USERNAME}:${CI_SPLUNK_PASSWORD} https://$CI_SPLUNK_HOST:${CI_SPLUNK_PORT}/servicesNS/admin/splunk_httpinput/data/inputs/http/splunk_hec_token_ack/enable
 
 echo "Setup Indexes ..."
-curl -k -u ${CI_SPLUNK_USERNAME}:${CI_SPLUNK_PASSWORD} https://$CI_SPLUNK_HOST:${CI_SPLUNK_PORT}/servicesNS/admin/splunk_httpinput/data/inputs/http/splunk_hec_token -d index=${CI_INDEX_EVENTS} -d indexes=${CI_INDEX_EVENTS}
+curl -X POST -u ${CI_SPLUNK_USERNAME}:${CI_SPLUNK_PASSWORD} -k -d "name=${CI_INDEX_EVENTS}&datatype=event" https://$CI_SPLUNK_HOST:${CI_SPLUNK_PORT}/servicesNS/-/search/data/indexes
+curl -X POST -u ${CI_SPLUNK_USERNAME}:${CI_SPLUNK_PASSWORD} -k -d "name=${CI_KAFKA_HEADER_INDEX}&datatype=event" https://$CI_SPLUNK_HOST:${CI_SPLUNK_PORT}/servicesNS/-/search/data/indexes
+
 
 curl -k -X POST -u ${CI_SPLUNK_USERNAME}:${CI_SPLUNK_PASSWORD} https://$CI_SPLUNK_HOST:${CI_SPLUNK_PORT}/services/server/control/restart
