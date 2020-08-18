@@ -26,6 +26,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +37,7 @@ import java.io.IOException;
 
 final class Indexer implements IndexerInf {
     private static final Logger log = LoggerFactory.getLogger(Indexer.class);
+    private static final ObjectMapper jsonMapper = new ObjectMapper();
 
     private CloseableHttpClient httpClient;
     private HttpContext context;
@@ -165,8 +170,8 @@ final class Indexer implements IndexerInf {
                 throw new HecException("failed to close http response", ex);
             }
         }
-
-//      log.info("event posting, channel={}, cookies={}, cookies.length={}", channel, resp.getHeaders("Set-Cookie"), resp.getHeaders("Set-Cookie").length);
+        
+        //log.info("event posting, channel={}, cookies={}, cookies.length={}", channel, resp.getHeaders("Set-Cookie"), resp.getHeaders("Set-Cookie").length);
 
         if((resp.getHeaders("Set-Cookie") != null) && (resp.getHeaders("Set-Cookie").length > 0)) {
             log.info("Sticky session expiry detected, will cleanup old channel and its associated batches");
@@ -181,7 +186,25 @@ final class Indexer implements IndexerInf {
             }
 
             log.error("failed to post events resp={}, status={}", respPayload, status);
-            throw new HecException(String.format("failed to post events resp=%s, status=%d", respPayload, status));
+            JsonNode jsonNode;
+            try {
+                jsonNode = jsonMapper.readTree(respPayload);
+            } catch (Exception ex) {
+                log.error("failed to parse response payload", ex);
+                throw new HecException("failed to parse response payload", ex);
+            }
+            
+            String respText = (jsonNode.has("text")) ? jsonNode.get("text").asText() : null;
+
+            if (respText == "Invalid data format") {
+                ObjectNode objNode = jsonMapper.createObjectNode();
+                objNode.put("text", "Invalid data format");
+                objNode.put("code", 0); // Mark it as success
+                objNode.put("ackId", -1);
+                respPayload = objNode.toString();
+            } else {
+                throw new HecException(String.format("failed to post events resp=%s, status=%d", respPayload, status));
+            }
         }
 
         clearBackPressure();

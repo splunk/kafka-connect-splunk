@@ -130,13 +130,22 @@ public final class HecAckPoller implements Poller {
             fail(channel, batch, ex);
             return;
         }
+        
+        if (resp.getText() == "Invalid data format") {
+            log.warn("Invalid Splunk HEC data format. Ignoring events. channel={} index={} events={}", channel, channel.getIndexer(), batch.toString());
+            batch.commit();
+            List<EventBatch> committedBatches = new ArrayList<>();
+            committedBatches.add(batch);
+            pollerCallback.onEventCommitted(committedBatches);
+            return;
+        }
 
         ConcurrentHashMap<Long, EventBatch> channelEvents = outstandingEventBatches.get(channel);
         if (channelEvents == null) {
             outstandingEventBatches.putIfAbsent(channel, new ConcurrentHashMap<>());
             channelEvents = outstandingEventBatches.get(channel);
         }
-
+        
         if (channelEvents.get(resp.getAckId()) != null) {
             log.warn("ackId={} already exists for channel={} index={} data may be duplicated in Splunk", resp.getAckId(), channel, channel.getIndexer());
             return;

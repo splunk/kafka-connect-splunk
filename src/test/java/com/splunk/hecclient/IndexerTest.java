@@ -113,6 +113,24 @@ public class IndexerTest {
     }
 
     @Test
+    public void sendWithInvalidData() {
+        CloseableHttpClientMock client = new CloseableHttpClientMock();
+        client.setResponse(CloseableHttpClientMock.invalidDataFormat);
+        PollerMock poller = new PollerMock();
+
+        Indexer indexer = new Indexer(baseUrl, token, client, poller);
+        EventBatch batch = UnitUtil.createBatch();
+        boolean result = indexer.send(batch);
+        Assert.assertTrue(result);
+        Assert.assertNotNull(poller.getBatch());
+        Assert.assertNull(poller.getFailedBatch());
+        Assert.assertNull(poller.getException());
+        Assert.assertEquals(indexer.getChannel(), poller.getChannel());
+        Assert.assertEquals(CloseableHttpClientMock.success, poller.getResponse());
+    }
+
+
+    @Test
     public void sendWithServerBusy() {
         CloseableHttpClientMock client = new CloseableHttpClientMock();
         client.setResponse(CloseableHttpClientMock.serverBusy);
