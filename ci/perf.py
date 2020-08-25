@@ -256,7 +256,7 @@ def _new_data_exporter():
     config = export_data.ExportParams(
         src_splunk_uri='https://sh1:8089',
         src_splunk_user='admin',
-        src_splunk_password='changed',
+        src_splunk_password='Chang3d!',
         dest_splunk_hec_uri='{}'.format(os.environ['CONNECT_PERF_METRIC_DEST_HEC']),
         dest_splunk_hec_token='{}'.format(os.environ['CONNECT_PERF_METRIC_TOKEN']),
         src_index='',
@@ -314,7 +314,7 @@ def _do_post(uri, data, auth):
 def splunk_request(uri_data_gen):
     auth = requests.auth.HTTPBasicAuth(
         os.environ.get('SPLUNK_USER', 'admin'),
-        os.environ.get('SPLUNK_PASS', 'changed'))
+        os.environ.get('SPLUNK_PASS', 'Chang3d!'))
 
     indxer_cluster_size = int(os.environ['INDEX_CLUSTER_SIZE'])
     for i in xrange(1, indxer_cluster_size + 1):
