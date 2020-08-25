@@ -227,7 +227,7 @@ def _get_events(job_id, url="", user="", password=""):
     @param: job_id
     returns events
     '''
-    event_url = '{0}/services/search/jobs/{1}/events?output_mode=json'.format(
+    event_url = '{0}/services/search/jobs/{1}/events?output_mode=json&count=3000'.format(
         url, str(job_id))
     logger.debug('requesting: %s', event_url)
 
