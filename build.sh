@@ -48,7 +48,7 @@ cp LICENSE ${builddir}
 
 # Download kafka
 echo "Downloading kafka_2.13-${kafkaversion} ..."
-wget -q wget http://www.gtlib.gatech.edu/pub/apache/kafka/${kafkaversion}/kafka_2.13-${kafkaversion}.tgz -P ${builddir}
+wget -q http://www.gtlib.gatech.edu/pub/apache/kafka/${kafkaversion}/kafka_2.13-${kafkaversion}.tgz -P ${builddir}
 #wget -q https://archive.apache.org/dist/kafka/${kafkaversion}/kafka_2.11-${kafkaversion}.tgz -P ${builddir}
 cd ${builddir} && tar xzf kafka_2.13-${kafkaversion}.tgz
 
