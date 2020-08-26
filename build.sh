@@ -1,12 +1,13 @@
 #!/bin/bash
 
 # variables
-kafkaversion=2.0.0
+kafkaversion=2.6.0
 builddir=/tmp/splunk-kafka-connect-build/splunk-kafka-connect
 
 githash=`git rev-parse --short HEAD 2>/dev/null | sed "s/\(.*\)/@\1/"` # get current git hash
 gitbranch=`git rev-parse --abbrev-ref HEAD` # get current git branch
-gitversion=`git describe --abbrev=0 --tags 2>/dev/null` # returns the latest tag from current commit
+#gitversion=`git describe --abbrev=0 --tags 2>/dev/null` # returns the latest tag from current commit
+gitversion=2.0.0 #using latest tobe release tag
 jarversion=${gitversion}
 
 # if no version found from git tag, it is a dev build
@@ -34,7 +35,7 @@ mkdir -p ${builddir}/config
 mkdir -p ${builddir}/libs
 
 # Build the package
-echo "Building the connector package ..."
+echo "Building the connector package ${jarversion} ..."
 mvn versions:set -DnewVersion=${jarversion}
 mvn package > /dev/null
 
@@ -46,21 +47,22 @@ cp README.md ${builddir}
 cp LICENSE ${builddir}
 
 # Download kafka
-echo "Downloading kafka_2.11-${kafkaversion} ..."
-wget -q https://archive.apache.org/dist/kafka/${kafkaversion}/kafka_2.11-${kafkaversion}.tgz -P ${builddir}
-cd ${builddir} && tar xzf kafka_2.11-${kafkaversion}.tgz
+echo "Downloading kafka_2.13-${kafkaversion} ..."
+wget -q wget http://www.gtlib.gatech.edu/pub/apache/kafka/${kafkaversion}/kafka_2.13-${kafkaversion}.tgz -P ${builddir}
+#wget -q https://archive.apache.org/dist/kafka/${kafkaversion}/kafka_2.11-${kafkaversion}.tgz -P ${builddir}
+cd ${builddir} && tar xzf kafka_2.13-${kafkaversion}.tgz
 
 # Copy over kafka connect runtime
 echo "Copy over kafka connect runtime ..."
-cp kafka_2.11-${kafkaversion}/bin/connect-distributed.sh ${builddir}/bin
-cp kafka_2.11-${kafkaversion}/bin/kafka-run-class.sh ${builddir}/bin
-cp kafka_2.11-${kafkaversion}/config/connect-log4j.properties ${builddir}/config
-cp kafka_2.11-${kafkaversion}/libs/*.jar ${builddir}/libs
+cp kafka_2.13-${kafkaversion}/bin/connect-distributed.sh ${builddir}/bin
+cp kafka_2.13-${kafkaversion}/bin/kafka-run-class.sh ${builddir}/bin
+cp kafka_2.13-${kafkaversion}/config/connect-log4j.properties ${builddir}/config
+cp kafka_2.13-${kafkaversion}/libs/*.jar ${builddir}/libs
 
 # Clean up
 echo "Clean up ..."
-/bin/rm -rf kafka_2.11-${kafkaversion}
-/bin/rm -f kafka_2.11-${kafkaversion}.tgz
+/bin/rm -rf kafka_2.13-${kafkaversion}
+/bin/rm -f kafka_2.13-${kafkaversion}.tgz
 
 # Package up
 echo "Package ${packagename} ..."
@@ -76,8 +78,8 @@ echo
 
 cat << EOP
 To run the splunk-kafka-connect, do the following steps:
-1. untar the package: tar xzf splunk-kafka-connect.tar.gz
-2. config config/connect-distributed.properties according to your env
-3. run: bash bin/connect-distributed.sh config/connect-distributed.properties
+1. Untar the package: tar xzf splunk-kafka-connect.tar.gz
+2. Update config/connect-distributed.properties according to your env
+3. Run: bash bin/connect-distributed.sh config/connect-distributed.properties
 4. Use Kafka Connect REST api to create data collection tasks
 EOP
