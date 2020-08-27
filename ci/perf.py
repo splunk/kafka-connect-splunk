@@ -161,7 +161,8 @@ def _get_connector_config(hec_uris, hec_raw, hec_ack, test_case):
             'splunk.hec.ssl.validate.certs': 'false',
             'splunk.hec.raw.line.breaker': LINE_BREAKER,
             'name': connector_name,
-            'splunk.hec.max.outstanding.events': 1000000,
+            'splunk.hec.max.outstanding.events': 10000000,
+
         }
     }
     return connector_config
