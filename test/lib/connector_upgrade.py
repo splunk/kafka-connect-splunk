@@ -56,6 +56,20 @@ def generate_kafka_events(num):
         }
     }
     create_kafka_connector(config, connector_content)
+    connector_content_ack = {
+        "name": "kafka_connect_ack",
+        "config": {
+            "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+            "tasks.max": "1",
+            "splunk.indexes": config["splunk_index"],
+            "topics": "kafka_data_gen",
+            "splunk.hec.ack.enabled": "true",
+            "splunk.hec.uri": config["splunk_hec_url"],
+            "splunk.hec.ssl.validate.certs": "false",
+            "splunk.hec.token": config["splunk_token_ack"]
+        }
+    }
+    create_kafka_connector(config, connector_content_ack)
     create_kafka_topics(config, topics)
     producer = KafkaProducer(bootstrap_servers=config["kafka_broker_url"],
                              value_serializer=lambda v: json.dumps(v).encode('utf-8'))
@@ -107,4 +121,4 @@ if __name__ == '__main__':
                                       query=["search {}".format(search_query)],
                                       password=config["splunk_password"])
     logger.info("Splunk received %s events in the last 15m", len(events))
-    assert len(events) == 2000
+    assert len(events) == 4000
