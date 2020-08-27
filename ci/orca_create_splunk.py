@@ -13,7 +13,8 @@ _env_var = os.environ
 
 
 def create_cloud_stack():
-    cmd = "python3 -m splunk_orca --cloud cloudworks --printer json create"
+    cmd = "python3 -m splunk_orca --cloud cloudworks --printer json create --splunk-version {}"\
+        .format(_env_var["SPLUNK_VERSION"])
     try:
         proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT)
