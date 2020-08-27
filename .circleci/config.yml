@@ -19,6 +19,7 @@ jobs:
       CI_DATAGEN_IMAGE: rock1017/log-generator:latest
       CI_KAFKA_VERSION: 2.4.0
       CI_KAFKA_FILENAME: kafka_2.13-2.4.0.tgz
+      CI_OLD_CONNECTOR_VERSION: v1.2.0
     working_directory: ~/repo
     steps:
       - attach_workspace:
@@ -120,22 +121,34 @@ jobs:
             sudo systemctl start zookeeper
             sudo systemctl start kafka
       - run:
-          name: Start kafka connect
+          name: Setup kafka connect
           command: |
             sudo mkdir -p /usr/local/share/kafka/plugins/
-            sudo cp /home/circleci/repo/target/splunk-kafka-connect*.jar /usr/local/share/kafka/plugins/
+            wget https://github.com/splunk/kafka-connect-splunk/releases/download/$CI_OLD_CONNECTOR_VERSION/splunk-kafka-connect-$CI_OLD_CONNECTOR_VERSION.jar
+            sudo cp splunk-kafka-connect-$CI_OLD_CONNECTOR_VERSION.jar /usr/local/share/kafka/plugins/
             sed -i 's/plugin\.path\=connectors\//plugin\.path\=\/usr\/local\/share\/kafka\/plugins\//' /home/circleci/repo/config/connect-distributed-quickstart.properties
             sed -i 's/key\.converter\=org\.apache\.kafka\.connect\.storage\.StringConverter/key\.converter\=org\.apache\.kafka\.connect\.json\.JsonConverter/' /home/circleci/repo/config/connect-distributed-quickstart.properties
             sed -i 's/value\.converter\=org\.apache\.kafka\.connect\.storage\.StringConverter/value\.converter\=org\.apache\.kafka\.connect\.json\.JsonConverter/' /home/circleci/repo/config/connect-distributed-quickstart.properties
-            sudo /usr/local/kafka/bin/connect-distributed.sh /home/circleci/repo/config/connect-distributed-quickstart.properties
-          background: true
       - run:
-          name: Run Functional tests
+          name: Test kafka connect upgrade
           command: |
             pyenv global 3.6.5
             pip install --upgrade pip
             pip install -r test/requirements.txt
             export PYTHONWARNINGS="ignore:Unverified HTTPS request"
+            echo "Test kafka connect upgrade ..."
+            python test/lib/connector_upgrade.py
+      - run:
+          name: Start kafka connect
+          command: |
+            sudo /usr/local/kafka/bin/connect-distributed.sh /home/circleci/repo/config/connect-distributed-quickstart.properties
+          background: true
+      - run:
+          name: Run Functional tests
+          command: |
+            sleep 5
+            sudo apt-get install jq
+            curl localhost:8083/connector-plugins | jq
             echo "Running functional tests....."
             python -m pytest -p no:warnings -s
 
