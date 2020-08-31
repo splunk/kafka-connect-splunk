@@ -22,6 +22,9 @@ with open(_config_path, 'r') as yaml_file:
     config = yaml.load(yaml_file)
 now = datetime.now()
 _time_stamp = str(datetime.timestamp(now))
+_topic = 'kafka_connect_upgrade'
+_connector = 'kafka_connect'
+_connector_ack = 'kafka_connect_ack'
 
 
 def start_old_connector():
@@ -41,47 +44,53 @@ def start_old_connector():
 
 def generate_kafka_events(num):
     # Generate message data
-    topics = ["kafka_data_gen"]
+    topics = [_topic]
     connector_content = {
-        "name": "kafka_connect",
+        "name": _connector,
         "config": {
             "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
             "tasks.max": "1",
             "splunk.indexes": config["splunk_index"],
-            "topics": "kafka_data_gen",
+            "topics": _topic,
             "splunk.hec.ack.enabled": "false",
             "splunk.hec.uri": config["splunk_hec_url"],
             "splunk.hec.ssl.validate.certs": "false",
-            "splunk.hec.token": config["splunk_token"]
+            "splunk.hec.token": config["splunk_token"],
+            "splunk.sources": _connector
         }
     }
     create_kafka_connector(config, connector_content)
     connector_content_ack = {
-        "name": "kafka_connect_ack",
+        "name": _connector_ack,
         "config": {
             "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
             "tasks.max": "1",
             "splunk.indexes": config["splunk_index"],
-            "topics": "kafka_data_gen",
+            "topics": _topic,
             "splunk.hec.ack.enabled": "true",
             "splunk.hec.uri": config["splunk_hec_url"],
             "splunk.hec.ssl.validate.certs": "false",
-            "splunk.hec.token": config["splunk_token_ack"]
+            "splunk.hec.token": config["splunk_token_ack"],
+            "splunk.sources": _connector_ack
         }
     }
     create_kafka_connector(config, connector_content_ack)
-    create_kafka_topics(config, topics)
+    client = KafkaAdminClient(bootstrap_servers=config["kafka_broker_url"], client_id='test')
+    broker_topics = client.list_topics()
+    logger.info(broker_topics)
+    if _topic not in broker_topics:
+        create_kafka_topics(config, topics)
     producer = KafkaProducer(bootstrap_servers=config["kafka_broker_url"],
                              value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 
     for _ in range(num):
         msg = {"timestamp": _time_stamp}
-        producer.send("kafka_data_gen", msg)
+        producer.send(_topic, msg)
         time.sleep(0.05)
         producer.flush()
 
 
-def upgrade_connector():
+def upgrade_connector_plugin():
     cmds = ["sudo kill $(sudo lsof -t -i:8083) && sleep 2",
             "sudo rm {}/{} && sleep 2".format(config["connector_path"], config["old_connector_name"]),
             "sudo cp {0}/splunk-kafka-connect*.jar {1} && sleep 2".format(config["connector_build_target"],
@@ -96,8 +105,48 @@ def upgrade_connector():
                                 stderr=subprocess.STDOUT)
         output, error = proc.communicate()
         logger.info(output)
+        time.sleep(2)
+        update_kafka_connectors()
     except OSError as e:
         logger.error(e)
+
+
+def update_kafka_connectors():
+    logger.info("Update kafka connectors ...")
+    connector_content = {
+        "name": _connector,
+        "config": {
+            "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+            "tasks.max": "1",
+            "splunk.indexes": config["splunk_index"],
+            "topics": _topic,
+            "splunk.hec.ack.enabled": "false",
+            "splunk.hec.uri": config["splunk_hec_url"],
+            "splunk.hec.ssl.validate.certs": "false",
+            "splunk.hec.token": config["splunk_token"],
+            "splunk.sources": _connector,
+            "splunk.hec.json.event.formatted": "true",
+            "splunk.hec.raw": True
+        }
+    }
+    create_kafka_connector(config, connector_content)
+    connector_content_ack = {
+        "name": _connector_ack,
+        "config": {
+            "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
+            "tasks.max": "1",
+            "splunk.indexes": config["splunk_index"],
+            "topics": _topic,
+            "splunk.hec.ack.enabled": "true",
+            "splunk.hec.uri": config["splunk_hec_url"],
+            "splunk.hec.ssl.validate.certs": "false",
+            "splunk.hec.token": config["splunk_token_ack"],
+            "splunk.sources": _connector_ack,
+            "splunk.hec.json.event.formatted": "true",
+            "splunk.hec.raw": True
+        }
+    }
+    create_kafka_connector(config, connector_content_ack)
 
 
 if __name__ == '__main__':
@@ -110,15 +159,26 @@ if __name__ == '__main__':
     thread_gen.start()
     time.sleep(50)
     logger.info("Upgrade Kafka connector ...")
-    thread_upgrade = threading.Thread(target=upgrade_connector, daemon=True)
+    thread_upgrade = threading.Thread(target=upgrade_connector_plugin, daemon=True)
     thread_upgrade.start()
     time.sleep(100)
-    search_query = "index={0} | search timestamp=\"{1}\"".format(config['splunk_index'], _time_stamp)
-    logger.info(search_query)
-    events = check_events_from_splunk(start_time="-15m@m",
+    search_query_1 = "index={0} | search timestamp=\"{1}\" source::{2}".format(config['splunk_index'], _time_stamp,
+                                                                               _connector)
+    logger.info(search_query_1)
+    events_1 = check_events_from_splunk(start_time="-15m@m",
                                       url=config["splunkd_url"],
                                       user=config["splunk_user"],
-                                      query=["search {}".format(search_query)],
+                                      query=["search {}".format(search_query_1)],
                                       password=config["splunk_password"])
-    logger.info("Splunk received %s events in the last 15m", len(events))
-    assert len(events) == 4000
+    logger.info("Splunk received %s events in the last 15m", len(events_1))
+    assert len(events_1) == 2000
+    search_query_2 = "index={0} | search timestamp=\"{1}\" source::{2}".format(config['splunk_index'], _time_stamp,
+                                                                               _connector_ack)
+    logger.info(search_query_2)
+    events_2 = check_events_from_splunk(start_time="-15m@m",
+                                        url=config["splunkd_url"],
+                                        user=config["splunk_user"],
+                                        query=["search {}".format(search_query_2)],
+                                        password=config["splunk_password"])
+    logger.info("Splunk received %s events in the last 15m", len(events_2))
+    assert len(events_2) == 2000
