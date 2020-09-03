@@ -141,9 +141,9 @@ class TestConfigurations:
     def test_header_support_true_event_data(self, setup, test_scenario, test_input, expected):
         logger.info("testing {0} input={1} expected={2} event(s)".format(test_scenario, test_input, expected))
 
-        search_query = "index={0} | search timestamp=\"{1}\" {2}".format(setup['kafka_header_index'],
-                                                                         setup["timestamp"],
-                                                                         test_input)
+        search_query = "index={0} | search \"{1}\" {2}".format(setup['kafka_header_index'],
+                                                               setup["timestamp"],
+                                                               test_input)
         logger.info(search_query)
         events = check_events_from_splunk(start_time="-15m@m",
                                           url=setup["splunkd_url"],
