@@ -27,7 +27,7 @@ Splunk Connect for Kafka is a Kafka Connect Sink for Splunk with the following f
 1. [Start](https://kafka.apache.org/quickstart) your Kafka Cluster and confirm it is running.
 2. If this is a new install, create a test topic (eg: `perf`). Inject events into the topic. This can be done using [Kafka data-gen-app](https://github.com/dtregonning/kafka-data-gen) or the Kafka-bundled [kafka-console-producer](https://kafka.apache.org/quickstart#quickstart_send).
 3. Within your Kafka Connect deployment adjust the values for `bootstrap.servers` and `plugin.path` inside the `$KAFKA_HOME/config/connect-distributed.properties` file. `bootstrap.servers` should be configured to point to your Kafka Brokers. `plugin.path` should be configured to point to the install directory of your Kafka Connect Sink and Source Connectors. For more information on installing Kafka Connect plugins please refer to the [Confluent Documentation.](https://docs.confluent.io/current/connect/userguide.html#id3)
-4. Place the jar file created by `mvn package` (`splunk-kafka-connect-[VERSION].jar`) in or under the location specified in `plugin.path` 
+4. Place the jar file created by `mvn package` (`splunk-kafka-connect-[VERSION].jar`) in or under the location specified in `plugin.path`
 5. Run `.$KAFKA_HOME/bin/connect-distributed.sh $KAFKA_HOME/config/connect-distributed.properties` to start Kafka Connect.
 6. Run the following command to create connector tasks. Adjust `topics` to configure the Kafka topic to be ingested, `splunk.indexes` to set the destination Splunk indexes, `splunk.hec.token` to set your Http Event Collector (HEC) token and `splunk.hec.uri` to the URI for your destination Splunk HEC endpoint. For more information on Splunk HEC configuration refer to [Splunk Documentation.](http://docs.splunk.com/Documentation/SplunkCloud/latest/Data/UsetheHTTPEventCollector)
 
@@ -42,7 +42,7 @@ Splunk Connect for Kafka is a Kafka Connect Sink for Splunk with the following f
       "splunk.hec.uri": "<SPLUNK_HEC_URI:SPLUNK_HEC_PORT>",
       "splunk.hec.token": "<YOUR_TOKEN>"
     }
-  }'    
+  }'
 ```
 
 7. Verify that data is flowing into your Splunk platform instance by searching using the index specified in the configuration.
@@ -111,7 +111,7 @@ Use the below schema to configure Splunk Connect for Kafka
    "splunk.hec.socket.timeout": "<timeout in seconds>",
    "splunk.hec.track.data": "<true|false, tracking data loss and latency, for debugging lagging and data loss>"
    "splunk.header.support": "<true|false>",
-   "splunk.header.custom": "<list-of-custom-headers-to-be-used-from-kafka-headers-separated-by-comma>", 
+   "splunk.header.custom": "<list-of-custom-headers-to-be-used-from-kafka-headers-separated-by-comma>",
    "splunk.header.index": "<header-value-to-be-used-as-splunk-index>",
    "splunk.header.source": "<header-value-to-be-used-as-splunk-source>",
    "splunk.header.sourcetype": "<header-value-to-be-used-as-splunk-sourcetype>",
@@ -154,6 +154,7 @@ Use the below schema to configure Splunk Connect for Kafka
 | `splunk.hec.max.outstanding.events` | Maximum amount of un-acknowledged events kept in memory by connector. Will trigger back-pressure event to slow down collection if reached. | `1000000` |
 | `splunk.hec.max.retries` | Amount of times a failed batch will attempt to resend before dropping events completely. Warning: This will result in data loss, default is `-1` which will retry indefinitely  | `-1` |
 | `splunk.hec.backoff.threshhold.seconds` | The amount of time Splunk Connect for Kafka waits to attempt resending after errors from a HEC endpoint." | `60` |
+| `splunk.hec.lb.poll.interval`  |  Specify this parameter(in seconds) to control the polling interval(increase to do less polling, decrease to do more frequent polling) |  `120` |
 ### Acknowledgement Parameters
 #### Use Ack
 | Name              | Description                | Default Value  |
@@ -193,7 +194,7 @@ See [Splunk Docs](https://docs.splunk.com/Documentation/KafkaConnect/latest/User
 
 ## Benchmark Results
 
-See [Splunk Docs](https://docs.splunk.com/Documentation/KafkaConnect/latest/User/Planyourdeployment) for benchmarking results. 
+See [Splunk Docs](https://docs.splunk.com/Documentation/KafkaConnect/latest/User/Planyourdeployment) for benchmarking results.
 
 ## Scale out your environment
 
