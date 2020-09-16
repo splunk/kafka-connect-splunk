@@ -64,6 +64,23 @@ withSplunkWrapNode("master") {
         echo "Stack Trace: ${e.printStackTrace()}";
     }
     finally {
+        println "=============delete splunk cloud stack=============="
+        splunkCopyFromDocker files: "ci/stack_id",
+                             imageName: imageName,
+                             remotePath: "/build/kafka-connect-splunk";
+                             archiveArtifacts allowEmptyArchive: true, artifacts: "target/stack_id";
+        withCredentials([file(credentialsId: 'gdi_connectors_orca', variable: 'ORCA_CREDENTIALS')]) {
+            sh '''#!/bin/bash
+                    tar -ovxf $ORCA_CREDENTIALS
+                    mkdir -p ~/.orca
+                    cp -r .orca/* ~/.orca
+                    chmod 600 ~/.orca/*id_rsa
+                    chown -R 10777 ~/.orca
+                    pip install splunk_orca==1.1.0 -i https://repo.splunk.com/artifactory/api/pypi/pypi/simple --upgrade
+                    stack_id=`cat target/stack_id`
+                    python -m splunk_orca --cloud cloudworks destroy $stack_id
+                '''
+        }
         steps.cleanWs();
     }
 }

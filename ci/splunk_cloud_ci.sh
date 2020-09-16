@@ -13,3 +13,4 @@ sed -i "s/splunk_hec_url: https:\/\/127.0.0.1:8088/splunk_hec_url: https:\/\/$CI
 sed -i "s/splunk_password: helloworld/splunk_password: ${CI_SPLUNK_PASSWORD}/g" /build/kafka-connect-splunk/test/config.yaml
 
 cp /build/kafka-connect-splunk/test/config.yaml /build/kafka-connect-splunk/ci/config.yaml
+echo "${STACK_ID}" > /build/kafka-connect-splunk/ci/stack_id
