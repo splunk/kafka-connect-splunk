@@ -118,15 +118,18 @@ def get_running_kafka_connector_task_status(setup, params):
     '''
     Get running kafka connect connector tasks status using kafka connect REST API
     '''
-    response = requests.get(url=setup["kafka_connect_url"] + "/connectors/" + params["name"] + "/status",
-                            headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
-    content = response.json()
-
-    if content.get('connector'):
-        if content['connector']['state'] == 'RUNNING':
-            task_status = jsonpath.jsonpath(content, '$.tasks.*.state')
-            return task_status
-
+    t_end = time.time() + 60
+    url = setup["kafka_connect_url"] + "/connectors/" + params["name"] + "/status"
+    header = {'Accept': 'application/json', 'Content-Type': 'application/json'}
+    while time.time() < t_end:
+        content = requests.get(url=url, headers=header).json()
+        if content.get('connector'):
+            if content['connector']['state'] == 'RUNNING' and len(content['tasks']) > 0:
+                time.sleep(2)
+                content = requests.get(url=url, headers=header).json()
+                logger.info(content)
+                task_status = jsonpath.jsonpath(content, '$.tasks.*.state')
+                return task_status
 
 
 

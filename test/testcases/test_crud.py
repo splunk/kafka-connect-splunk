@@ -128,5 +128,4 @@ class TestCrud:
         setup['connectors'].append(test_case)
 
         assert create_kafka_connector(setup, connector_definition_invalid_tasks) is True
-        time.sleep(2)
         assert get_running_kafka_connector_task_status(setup, connector_definition_invalid_tasks) == expected
