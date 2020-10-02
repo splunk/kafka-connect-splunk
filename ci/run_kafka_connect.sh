@@ -6,7 +6,7 @@ CI_KAFKA_TOPIC=test-datagen
 curdir=`pwd`
 git clone https://github.com/splunk/kafka-connect-splunk.git
 
-branch=${KAFKA_CONNECT_BRANCH:-develop}
+branch=${BRANCH_NAME:-develop}
 # build the package
 cd kafka-connect-splunk && git checkout ${branch} && bash build.sh
 cd /kafka-connect
