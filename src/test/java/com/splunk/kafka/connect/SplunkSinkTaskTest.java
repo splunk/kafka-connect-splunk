@@ -78,16 +78,21 @@ public class SplunkSinkTaskTest {
 
         SplunkSinkTask task = new SplunkSinkTask();
         HecMock hec = new HecMock(task);
+        TopicPartition tp = new TopicPartition(uu.configProfile.getTopics(), 1);
+        List<TopicPartition> partitions = new ArrayList<>();
+        partitions.add(tp);
         // success
         hec.setSendReturnResult(HecMock.success);
         task.setHec(hec);
         task.start(config);
+        task.open(partitions);
         task.put(createSinkRecords(120));
         Assert.assertEquals(2, hec.getBatches().size());
         Map<TopicPartition, OffsetAndMetadata> offsets = new HashMap<>();
         offsets.put(new TopicPartition(uu.configProfile.getTopics(), 1), new OffsetAndMetadata(120));
         Assert.assertEquals(offsets, task.preCommit(new HashMap<>()));
         Assert.assertTrue(task.getTracker().getAndRemoveFailedRecords().isEmpty());
+        task.close(partitions);
         task.stop();
     }
 
@@ -105,6 +110,7 @@ public class SplunkSinkTaskTest {
         hec.setSendReturnResult(HecMock.failure);
         task.setHec(hec);
         task.start(config);
+        task.open(createTopicPartitionList());
         task.put(createSinkRecords(1000));
         Assert.assertEquals(10, hec.getBatches().size());
         Assert.assertTrue(task.getTracker().computeOffsets().isEmpty());
@@ -266,10 +272,14 @@ public class SplunkSinkTaskTest {
 
         SplunkSinkTask task = new SplunkSinkTask();
         HecMock hec = new HecMock(task);
+        TopicPartition tp = new TopicPartition(uu.configProfile.getTopics(), 1);
+        List<TopicPartition> partitions = new ArrayList<>();
+        partitions.add(tp);
         // success
         hec.setSendReturnResult(HecMock.success);
         task.setHec(hec);
         task.start(config);
+        task.open(partitions);
         task.put(createSinkRecords(total));
         Assert.assertEquals(10, hec.getBatches().size());
         if (raw && withMeta) {
@@ -303,6 +313,7 @@ public class SplunkSinkTaskTest {
         offsets.put(new TopicPartition(uu.configProfile.getTopics(), 1), new OffsetAndMetadata(1000));
         Assert.assertEquals(offsets, task.preCommit(new HashMap<>()));
         Assert.assertTrue(task.getTracker().getAndRemoveFailedRecords().isEmpty());
+        task.close(partitions);
         task.stop();
     }
 
@@ -328,5 +339,11 @@ public class SplunkSinkTaskTest {
         SinkRecord rec = null;
         records.add(rec);
         return records;
+    }
+
+    private List<TopicPartition> createTopicPartitionList() {
+        ArrayList<TopicPartition> tps = new ArrayList<>();
+        tps.add(new TopicPartition("mytopic", 1));
+        return tps;
     }
 }

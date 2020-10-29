@@ -326,6 +326,21 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     }
 
     @Override
+    public void open(Collection<TopicPartition> partitions) {
+        tracker.open(partitions);
+    }
+
+    @Override
+    public void close(Collection<TopicPartition> partitions) {
+        /* Purge buffered events tied to closed partitions because this task
+         * won't be able to commit their offsets. */
+        bufferedRecords.removeIf(r -> partitions.contains(
+            new TopicPartition(r.topic(), r.kafkaPartition())));
+        /* Tell tracker about now closed partitions so to clean up. */
+        tracker.close(partitions);
+    }
+
+    @Override
     public Map<TopicPartition, OffsetAndMetadata> preCommit(Map<TopicPartition, OffsetAndMetadata> meta) {
         // tell Kafka Connect framework what are offsets we can safely commit to Kafka now
         Map<TopicPartition, OffsetAndMetadata> offsets = tracker.computeOffsets();
