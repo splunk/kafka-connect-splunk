@@ -24,6 +24,9 @@ import org.apache.kafka.connect.sink.SinkRecord;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
@@ -31,7 +34,7 @@ import org.slf4j.LoggerFactory;
 
 final class KafkaRecordTracker {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class);
-    private ConcurrentHashMap<TopicPartition, TreeMap<Long, EventBatch>> all; // TopicPartition + Long offset represents the SinkRecord
+    private ConcurrentMap<TopicPartition, ConcurrentNavigableMap<Long, EventBatch>> all; // TopicPartition + Long offset represents the SinkRecord
     private AtomicLong total;
     private ConcurrentLinkedQueue<EventBatch> failed;
     private volatile Map<TopicPartition, OffsetAndMetadata> offsets;
@@ -57,7 +60,7 @@ final class KafkaRecordTracker {
             final SinkRecord record = (SinkRecord) event.getTied();
             TopicPartition tp = new TopicPartition(record.topic(), record.kafkaPartition());
             //log.debug("Processing topic {} partition {}", record.topic(), record.kafkaPartition());
-            TreeMap<Long, EventBatch> tpRecords = all.get(tp);
+            ConcurrentNavigableMap<Long, EventBatch> tpRecords = all.get(tp);
             if (tpRecords == null) {
                 log.error("KafkaRecordTracker removing a batch in an unknown partition {} {} {}", record.topic(), record.kafkaPartition(), record.kafkaOffset());
                 return;
@@ -76,11 +79,7 @@ final class KafkaRecordTracker {
                 }
             }
             if (offset >= 0) {
-                if (offsets.containsKey(tp)) {
-                    offsets.replace(tp, new OffsetAndMetadata(offset + 1));
-                } else {
-                    offsets.put(tp, new OffsetAndMetadata(offset + 1));
-                }
+                offsets.put(tp, new OffsetAndMetadata(offset + 1));
             }
         }
     }
@@ -98,16 +97,8 @@ final class KafkaRecordTracker {
             if (event.getTied() instanceof SinkRecord) {
                 final SinkRecord record = (SinkRecord) event.getTied();
                 TopicPartition tp = new TopicPartition(record.topic(), record.kafkaPartition());
-                TreeMap<Long, EventBatch> tpRecords = all.get(tp);
-                if (tpRecords == null) {
-                    tpRecords = new TreeMap<>();
-                    all.put(tp, tpRecords);
-                }
-
-                if (!tpRecords.containsKey(record.kafkaOffset())) {
-                    tpRecords.put(record.kafkaOffset(), batch);
-                    total.incrementAndGet();
-                }
+                ConcurrentNavigableMap<Long, EventBatch> tpRecords = all.computeIfAbsent(tp, k -> new ConcurrentSkipListMap<>());
+                tpRecords.computeIfAbsent(record.kafkaOffset(), k -> { total.incrementAndGet(); return batch; });
             }
         }
     }
