@@ -33,8 +33,9 @@ public class KafkaRecordTrackerTest {
     public void addFailedEventBatch() {
         EventBatch batch = UnitUtil.createBatch();
         batch.fail();
-
+        batch.getEvents().get(0).setTied(createSinkRecord(1));
         KafkaRecordTracker tracker = new KafkaRecordTracker();
+        tracker.open(createTopicPartitionList());
         tracker.addFailedEventBatch(batch);
         Collection<EventBatch> failed = tracker.getAndRemoveFailedRecords();
         Assert.assertEquals(1, failed.size());
@@ -55,6 +56,7 @@ public class KafkaRecordTrackerTest {
             EventBatch batch = UnitUtil.createBatch();
             batch.getEvents().get(0).setTied(createSinkRecord(i));
             batches.add(batch);
+            tracker.open(createTopicPartitionList());
             tracker.addEventBatch(batch);
         }
         Map<TopicPartition, OffsetAndMetadata> offsets = tracker.computeOffsets();
@@ -95,5 +97,11 @@ public class KafkaRecordTrackerTest {
 
     private SinkRecord createSinkRecord(long offset) {
         return new SinkRecord("t", 1, null, null, null, "ni, hao", offset);
+    }
+
+    private List<TopicPartition> createTopicPartitionList() {
+        ArrayList<TopicPartition> tps = new ArrayList<>();
+        tps.add(new TopicPartition("t", 1));
+        return tps;
     }
 }
