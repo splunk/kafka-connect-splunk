@@ -15,11 +15,24 @@
  */
 package com.splunk.hecclient;
 
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
+import org.apache.http.auth.AuthSchemeProvider;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
+import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.Lookup;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
+import org.apache.http.impl.auth.SPNegoSchemeFactory;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
@@ -85,6 +98,35 @@ public final class HttpClientBuilder {
                 .setDefaultSocketConfig(config)
                 .setDefaultRequestConfig(requestConfig)
                 .build();
+    }
+
+    public CloseableHttpClient buildKerberosClient() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+        org.apache.http.impl.client.HttpClientBuilder builder =
+            org.apache.http.impl.client.HttpClientBuilder.create();
+        Lookup<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create().
+            register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(true)).build();
+        builder.setDefaultAuthSchemeRegistry(authSchemeRegistry);
+        BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(new AuthScope(null, -1, null), new Credentials() {
+            @Override
+            public Principal getUserPrincipal() {
+                return null;
+            }
+            @Override
+            public String getPassword() {
+                return null;
+            }
+        });
+        builder.setDefaultCredentialsProvider(credentialsProvider);
+        SSLContextBuilder sslContextBuilderbuilder = new SSLContextBuilder();
+        sslContextBuilderbuilder.loadTrustMaterial(null, (chain, authType) -> true);
+        SSLConnectionSocketFactory sslsf = new
+            SSLConnectionSocketFactory(
+            sslContextBuilderbuilder.build(), NoopHostnameVerifier.INSTANCE);
+
+        builder.setSSLSocketFactory(sslsf);
+        CloseableHttpClient httpClient = builder.build();
+        return httpClient;
     }
 
     private SSLConnectionSocketFactory getSSLConnectionFactory() {
