@@ -251,6 +251,13 @@ final class Indexer implements IndexerInf {
             poller.setStickySessionToTrue();
         }
 
+//      log.info("event posting, channel={}, cookies={}, cookies.length={}", channel, resp.getHeaders("Set-Cookie"), resp.getHeaders("Set-Cookie").length);
+
+        if((resp.getHeaders("Set-Cookie") != null) && (resp.getHeaders("Set-Cookie").length > 0)) {
+            log.info("Sticky session expiry detected, will cleanup old channel and its associated batches");
+            poller.setStickySessionToTrue();
+        }
+
         int status = resp.getStatusLine().getStatusCode();
         // FIXME 503 server is busy backpressure
         if (status != 200 && status != 201) {
