@@ -16,15 +16,15 @@
 package com.splunk.kafka.connect;
 
 import com.splunk.hecclient.HecConfig;
-import io.confluent.connect.utils.Strings;
-import io.confluent.connect.utils.validators.all.ConfigValidationResult;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.sink.SinkConnector;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.*;
 
 public final class SplunkSinkConnectorConfig extends AbstractConfig {
     // General
@@ -310,8 +310,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(HEADER_SOURCETYPE_CONF, ConfigDef.Type.STRING, "splunk.header.sourcetype", ConfigDef.Importance.MEDIUM, HEADER_SOURCETYPE_DOC)
                 .define(HEADER_HOST_CONF, ConfigDef.Type.STRING, "splunk.header.host", ConfigDef.Importance.MEDIUM, HEADER_HOST_DOC)
                 .define(LB_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 120, ConfigDef.Importance.LOW, LB_POLL_INTERVAL_DOC)
-                .define(KERBEROS_USER_PRINCIPAL_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM,
-                    KERBEROS_USER_PRINCIPAL_DOC)
+                .define(KERBEROS_USER_PRINCIPAL_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, KERBEROS_USER_PRINCIPAL_DOC)
                 .define(KERBEROS_KEYTAB_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, KERBEROS_KEYTAB_LOCATION_DOC);
     }
     /**
@@ -450,37 +449,14 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         return metaMap;
     }
 
-    protected static void validateKerberosConfigs(Map<String, Object> configs, ConfigValidationResult result) {
-        String kerberosKeytabLocation = (String) configs.get(KERBEROS_KEYTAB_PATH_CONF);
-        String kerberosPrincipal = (String) configs.get(KERBEROS_USER_PRINCIPAL_CONF);
-
-        if (Strings.isNotEmpty(kerberosKeytabLocation) && Strings.isNotEmpty(kerberosPrincipal)) {
-            return;
-        }
-
-        if (kerberosKeytabLocation.isEmpty() && kerberosPrincipal.isEmpty()) {
-            return;
-        }
-
-        result.recordErrors(
-            String.format(
-                "Either both or neither '%s' and '%s' must be configured for Kerberos authentication. ",
-                KERBEROS_USER_PRINCIPAL_CONF,
-                KERBEROS_KEYTAB_PATH_CONF
-            ),
-            KERBEROS_USER_PRINCIPAL_CONF,
-            KERBEROS_KEYTAB_PATH_CONF
-        );
-    }
-
     private void validateHttpsConfig(String uriConf) {
         List<String> uris = Arrays.asList(uriConf.split(","));
         for (String uri: uris) {
             if (uri.startsWith("https://") && this.validateCertificates && !this.hasTrustStorePath) {
                 throw new ConfigException("Invalid Secure HTTP (HTTPS) configuration: "
-                        + SplunkSinkConnectorConfig.URI_CONF + "='" + uriConf + "',"
-                        + SplunkSinkConnectorConfig.SSL_VALIDATE_CERTIFICATES_CONF + "='" + this.validateCertificates + "',"
-                        + SplunkSinkConnectorConfig.SSL_TRUSTSTORE_PATH_CONF + "='" + this.trustStorePath + "'");
+                    + SplunkSinkConnectorConfig.URI_CONF + "='" + uriConf + "',"
+                    + SplunkSinkConnectorConfig.SSL_VALIDATE_CERTIFICATES_CONF + "='" + this.validateCertificates + "',"
+                    + SplunkSinkConnectorConfig.SSL_TRUSTSTORE_PATH_CONF + "='" + this.trustStorePath + "'");
             }
         }
     }
