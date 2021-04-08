@@ -20,6 +20,7 @@ import com.splunk.hecclient.HecConfig;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.sink.SinkConnector;
 
+import org.apache.kafka.connect.sink.SinkTask;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -250,6 +251,41 @@ public class SplunkSinkConnectorConfigTest {
         Assert.assertNotNull(s);
         Assert.assertFalse(s.contains(uu.configProfile.getTrustStorePassword()));
         Assert.assertFalse(s.contains(uu.configProfile.getToken()));
+    }
+
+    /**
+     * wrong configuration - both topics and topics regex are available
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void wrongConf() {
+        UnitUtil uu = new UnitUtil(2);
+
+        Map<String, String> taskConfig = uu.createTaskConfig();
+        taskConfig.put(SinkTask.TOPICS_REGEX_CONFIG, "^[A-Za-z0-9.]{0,5}project-splunk-xyz");
+        new SplunkSinkConnectorConfig(taskConfig);
+    }
+
+    @Test
+    public void getTopicMetadata_regex() {
+        UnitUtil uu = new UnitUtil(2);
+
+        Map<String, String> taskConfig = uu.createTaskConfig();
+        taskConfig.remove(SinkConnector.TOPICS_CONFIG);
+        taskConfig.put(SinkTask.TOPICS_REGEX_CONFIG, "^[A-Za-z0-9.]{0,5}project-splunk-qwe");
+        SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
+        Map<String, String> topicMetadata = connectorConfig.getTopicMetadata("esh.project-splunk-qwe");
+        Assert.assertNotNull(topicMetadata);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void getTopicMetadata_wrongregex() {
+        UnitUtil uu = new UnitUtil(2);
+
+        Map<String, String> taskConfig = uu.createTaskConfig();
+        taskConfig.remove(SinkConnector.TOPICS_CONFIG);
+        taskConfig.put(SinkTask.TOPICS_REGEX_CONFIG, "^[A-Za-z0-9.]{0,5}project-splunk-xyz");
+        SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
+        connectorConfig.getTopicMetadata("esh.project-splunk-qwe");
     }
 
     private void assertMeta(final SplunkSinkConnectorConfig connectorConfig) {

@@ -206,7 +206,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         Header sourceHeader = headers.lastWithName(connectorConfig.headerSource);
         Header sourcetypeHeader = headers.lastWithName(connectorConfig.headerSourcetype);
 
-        Map<String, String> metas = connectorConfig.topicMetas.get(sinkRecord.topic());
+        Map<String, String> metas = connectorConfig.getTopicMetadata(sinkRecord.topic());
 
 
         StringBuilder headerString = new StringBuilder();
@@ -313,7 +313,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             return RawEventBatch.factory().build();
         }
 
-        Map<String, String> metas = connectorConfig.topicMetas.get(tp.topic());
+        Map<String, String> metas = connectorConfig.getTopicMetadata(tp.topic());
         if (metas == null || metas.isEmpty()) {
             return RawEventBatch.factory().build();
         }
@@ -463,7 +463,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             event.setTime(record.timestamp() / 1000.0); // record timestamp is in milliseconds
         }
 
-        Map<String, String> metas = connectorConfig.topicMetas.get(record.topic());
+        Map<String, String> metas = connectorConfig.getTopicMetadata(record.topic());
         if (metas != null) {
             event.setIndex(metas.get(SplunkSinkConnectorConfig.INDEX));
             event.setSourcetype(metas.get(SplunkSinkConnectorConfig.SOURCETYPE));
