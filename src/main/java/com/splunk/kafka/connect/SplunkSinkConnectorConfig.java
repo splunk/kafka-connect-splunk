@@ -84,7 +84,6 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String HEADER_HOST_CONF = "splunk.header.host";
     // Load Balancer
     static final String LB_POLL_INTERVAL_CONF = "splunk.hec.lb.poll.interval";
-
     // Kafka configuration description strings
     // Required Parameters
     static final String URI_DOC = "Splunk HEC URIs. Either a list of FQDNs or IPs of all Splunk indexers, separated "
@@ -138,7 +137,6 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             + "is set to 1000000.";
     static final String MAX_RETRIES_DOC = "Number of retries for failed batches before giving up. By default this is set to "
             + "-1 which will retry indefinitely.";
-
     static final String HEC_BACKOFF_PRESSURE_THRESHOLD_DOC = "The amount of time Splunk Connect for Kafka waits on errors "
             +   "sending events to Splunk to attempt resending it";
     // Endpoint Parameters
@@ -169,7 +167,6 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     // TBD
     static final String SSL_TRUSTSTORE_PATH_DOC = "Path on the local disk to the certificate trust store.";
     static final String SSL_TRUSTSTORE_PASSWORD_DOC = "Password for the trust store.";
-
     static final String HEADER_SUPPORT_DOC = "Setting will enable Kafka Record headers to be used for meta data override";
     static final String HEADER_CUSTOM_DOC = "Setting will enable look for Record headers with these values and add them"
             + "to each event if present. Custom headers are configured separated by comma for multiple headers. ex,  (\"custom_header_1,custom_header_2,custom_header_3\").";
@@ -177,7 +174,6 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String HEADER_SOURCE_DOC = "Header to use for Splunk Header Source";
     static final String HEADER_SOURCETYPE_DOC = "Header to use for Splunk Header Sourcetype";
     static final String HEADER_HOST_DOC = "Header to use for Splunk Header Host";
-
     // Load Balancer
     static final String LB_POLL_INTERVAL_DOC = "This setting controls the load balancer polling interval. By default, "
             + "this setting is 120 seconds.";
@@ -191,7 +187,6 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final String indexes;
     final String sourcetypes;
     final String sources;
-
     final int flushWindow;
     final int totalHecChannels;
     final int maxHttpConnPerChannel;
@@ -201,7 +196,6 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final int socketTimeout;
     final boolean validateCertificates;
     final int lbPollInterval;
-
     final boolean ack;
     final int ackPollInterval;
     final int ackPollThreads;
@@ -209,26 +203,21 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final int maxOutstandingEvents;
     final int maxRetries;
     final int backoffThresholdSeconds;
-
     final boolean raw;
     final boolean hecEventFormatted;
-
     final String lineBreaker;
     final boolean useRecordTimestamp;
     final Map<String, String> enrichments;
     final boolean trackData;
-
     final boolean hasTrustStorePath;
     final String trustStorePath;
     final String trustStorePassword;
-
     final boolean headerSupport;
     final String headerCustom;
     final String headerIndex;
     final String headerSource;
     final String headerSourcetype;
     final String headerHost;
-
     SplunkSinkConnectorConfig(Map<String, String> taskConfig) {
         super(conf(), taskConfig);
         splunkToken = getPassword(TOKEN_CONF).value();
@@ -272,7 +261,6 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         headerSourcetype = getString(HEADER_SOURCETYPE_CONF);
         headerHost = getString(HEADER_HOST_CONF);
     }
-
     public static ConfigDef conf() {
         return new ConfigDef()
                 .define(TOKEN_CONF, ConfigDef.Type.PASSWORD, ConfigDef.Importance.HIGH, TOKEN_DOC)
@@ -332,7 +320,6 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .setHasCustomTrustStore(hasTrustStorePath);
         return config;
     }
-
     public boolean hasMetaDataConfigured() {
         return (indexes != null && !indexes.isEmpty()
                 || (sources != null && !sources.isEmpty())
@@ -412,13 +399,11 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         }
         return null;
     }
-
     private static Map<String, String> parseEnrichments(String enrichment) {
         String[] kvs = split(enrichment, ",");
         if (kvs == null) {
             return null;
         }
-
         Map<String, String> enrichmentKvs = new HashMap<>();
         for (final String kv: kvs) {
             String[] kvPairs = split(kv, "=");
@@ -429,12 +414,10 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         }
         return enrichmentKvs;
     }
-
     private String getMetaForTopic(String[] metas, int expectedLength, int curIdx, String confKey) {
         if (metas == null) {
             return null;
         }
-
         if (metas.length == 1) {
             return metas[0];
         } else if (metas.length == expectedLength) {
@@ -443,7 +426,6 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             throw new ConfigException("Invalid " + confKey + " configuration=" + metas);
         }
     }
-
     private Map<String, Map<String, String>> initMetaMap(Map<String, String> taskConfig) {
         String[] topics = split(taskConfig.get(SinkConnector.TOPICS_CONFIG), ",");
         String[] topicIndexes = split(indexes, ",");
@@ -461,17 +443,14 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             if (meta != null) {
                 topicMeta.put(INDEX, meta);
             }
-
             meta = getMetaForTopic(topicSourcetypes, topics.length, idx, SOURCETYPE_CONF);
             if (meta != null) {
                 topicMeta.put(SOURCETYPE, meta);
             }
-
             meta = getMetaForTopic(topicSources, topics.length, idx, SOURCE_CONF);
             if (meta != null) {
                 topicMeta.put(SOURCE, meta);
             }
-
             metaMap.put(topic, topicMeta);
             idx += 1;
         }

@@ -176,7 +176,7 @@ public class RawEventTest {
         try {
             e.writeTo(stream);
         } catch (IOException ex) {
-            Assert.assertTrue("failed to write to stream", false);
+            Assert.fail("failed to write to stream");
             throw new HecException("failed to write to stream", ex);
         }
 
@@ -191,7 +191,7 @@ public class RawEventTest {
     @Test
     public void getterSetter() {
         Event event = new RawEvent("ni", null);
-        Map<String, String> m = new HashMap<String, String>();
+        Map<String, String> m = new HashMap<>();
         m.put("hello", "world");
         event.setFields(m);
         Assert.assertNull(event.getFields()); // we ignore extra fields for raw event

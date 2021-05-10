@@ -18,7 +18,7 @@ package com.splunk.hecclient;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class HecConfigTest {
@@ -26,7 +26,7 @@ public class HecConfigTest {
     public void getterSetter() {
         String uri = "https://dummy:8088";
         String token = "mytoken";
-        HecConfig config = new HecConfig(Arrays.asList(uri), token);
+        HecConfig config = new HecConfig(Collections.singletonList(uri), token);
 
         List<String> uris = config.getUris();
         Assert.assertEquals(1, uris.size());

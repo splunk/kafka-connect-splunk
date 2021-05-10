@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class IndexerMock implements IndexerInf {
-    private List<EventBatch> batches = new ArrayList<>();
-    private List<HttpUriRequest> requests = new ArrayList<>();
+    private final List<EventBatch> batches = new ArrayList<>();
+    private final List<HttpUriRequest> requests = new ArrayList<>();
     private String response;
     private boolean backPressure = false;
 
@@ -54,9 +54,8 @@ public final class IndexerMock implements IndexerInf {
         return backPressure;
     }
 
-    public IndexerMock setBackPressure(boolean backPressure) {
+    public void setBackPressure(boolean backPressure) {
         this.backPressure = backPressure;
-        return this;
     }
 
     public List<EventBatch> getBatches() {
@@ -67,8 +66,7 @@ public final class IndexerMock implements IndexerInf {
         return requests;
     }
 
-    public IndexerMock setResponse(String response) {
+    public void setResponse(String response) {
         this.response = response;
-        return this;
     }
 }

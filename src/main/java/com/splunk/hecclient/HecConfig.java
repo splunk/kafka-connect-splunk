@@ -19,8 +19,8 @@ import java.util.List;
 
 public final class HecConfig {
 
-    private List<String> uris;
-    private String token;
+    private final List<String> uris;
+    private final String token;
     private boolean disableSSLCertVerification = false;
     private boolean httpKeepAlive = true;
     private int maxHttpConnectionPerChannel = 2;

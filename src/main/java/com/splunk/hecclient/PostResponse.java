@@ -39,18 +39,15 @@ final class PostResponse {
         return ackId;
     }
 
-    public PostResponse setCode(int c) {
+    public void setCode(int c) {
         code = c;
-        return this;
     }
 
-    public PostResponse setText(String t) {
+    public void setText(String t) {
         text = t;
-        return this;
     }
 
-    public PostResponse setAckId(long id) {
+    public void setAckId(long id) {
         ackId = id;
-        return this;
     }
 }

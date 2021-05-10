@@ -35,16 +35,16 @@ public final class HecAckPoller implements Poller {
 
     private static final String ackEndpoint = "/services/collector/ack";
 
-    private ConcurrentHashMap<HecChannel, ConcurrentHashMap<Long, EventBatch>> outstandingEventBatches;
-    private AtomicLong totalOutstandingEventBatches;
+    private final ConcurrentHashMap<HecChannel, ConcurrentHashMap<Long, EventBatch>> outstandingEventBatches;
+    private final AtomicLong totalOutstandingEventBatches;
     private int eventBatchTimeout; // in seconds
     private int ackPollInterval; // in seconds
     private int pollThreads;
-    private PollerCallback pollerCallback;
+    private final PollerCallback pollerCallback;
     private ScheduledThreadPoolExecutor scheduler;
     private ExecutorService executorService;
-    private AtomicBoolean started;
-    private AtomicBoolean stickySessionStarted;
+    private final AtomicBoolean started;
+    private final AtomicBoolean stickySessionStarted;
 
     public HecAckPoller(PollerCallback cb) {
         outstandingEventBatches = new ConcurrentHashMap<>();
@@ -122,7 +122,7 @@ public final class HecAckPoller implements Poller {
 
     @Override
     public void add(HecChannel channel, EventBatch batch, String response) {
-        PostResponse resp = null;
+        PostResponse resp;
         try {
             resp = jsonMapper.readValue(response, PostResponse.class);
         } catch (Exception ex) {
@@ -131,7 +131,7 @@ public final class HecAckPoller implements Poller {
             return;
         }
         
-        if (resp.getText() == "Invalid data format") {
+        if (resp.getText().equals("Invalid data format")) {
             log.warn("Invalid Splunk HEC data format. Ignoring events. channel={} index={} events={}", channel, channel.getIndexer(), batch.toString());
             batch.commit();
             List<EventBatch> committedBatches = new ArrayList<>();
@@ -161,7 +161,7 @@ public final class HecAckPoller implements Poller {
     public void fail(HecChannel channel, EventBatch batch, Exception ex) {
         batch.fail();
         if (pollerCallback != null) {
-            pollerCallback.onEventFailure(Arrays.asList(batch), ex);
+            pollerCallback.onEventFailure(Collections.singletonList(batch), ex);
         }
     }
 
@@ -283,8 +283,8 @@ public final class HecAckPoller implements Poller {
     }
 
     private final class RunAckQuery implements Runnable {
-        private HecChannel channel;
-        private HttpUriRequest request;
+        private final HecChannel channel;
+        private final HttpUriRequest request;
 
         RunAckQuery(HttpUriRequest req, HecChannel ch) {
             channel = ch;
@@ -372,7 +372,7 @@ public final class HecAckPoller implements Poller {
 
         log.debug("acks={} channel={} indexer={}", ackIds, ch, ch.getIndexer());
 
-        StringEntity entity = null;
+        StringEntity entity;
         try {
             entity = new StringEntity(ackIds);
         } catch (UnsupportedEncodingException ex) {

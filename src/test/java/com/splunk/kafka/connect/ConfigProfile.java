@@ -28,7 +28,6 @@ public class ConfigProfile {
     private boolean trackData;
     private int maxBatchSize;
     private int numOfThreads;
-    private boolean headerSupport;
     private boolean hecFormatted;
     private String headerCustom;
     private String headerIndex;
@@ -42,8 +41,6 @@ public class ConfigProfile {
 
     public ConfigProfile(int profile) {
         switch (profile) {
-            case 0:  buildProfileDefault();
-                     break;
             case 1:  buildProfileOne();
                      break;
             case 2:  buildProfileTwo();
@@ -60,7 +57,7 @@ public class ConfigProfile {
         - With Ack
         - With Truststore
     */
-    public ConfigProfile buildProfileDefault() {
+    public void buildProfileDefault() {
         this.topics = "mytopic";
         this.token = "mytoken";
         this.uri = "https://dummy:8088";
@@ -85,7 +82,6 @@ public class ConfigProfile {
         this.trackData = true;
         this.maxBatchSize = 1;
         this.numOfThreads = 1;
-        return this;
     }
 
     /*  Profile One:
@@ -93,7 +89,7 @@ public class ConfigProfile {
         - No Ack
         - With Trust Store
     */
-    public ConfigProfile buildProfileOne() {
+    public void buildProfileOne() {
         this.topics = "kafka-data";
         this.token = "mytoken";
         this.uri = "https://dummy:8088";
@@ -118,7 +114,6 @@ public class ConfigProfile {
         this.trackData = false;
         this.maxBatchSize = 1;
         this.numOfThreads = 1;
-        return this;
     }
 
     /*
@@ -127,7 +122,7 @@ public class ConfigProfile {
         - No Ack
         - No Trust Store
     */
-    public ConfigProfile buildProfileTwo() {
+    public void buildProfileTwo() {
         this.topics = "kafka-data";
         this.token = "mytoken";
         this.uri = "https://dummy:8088";
@@ -149,10 +144,9 @@ public class ConfigProfile {
         this.trackData = false;
         this.maxBatchSize = 1;
         this.numOfThreads = 1;
-        return this;
     }
 
-    public ConfigProfile buildProfileThree() {
+    public void buildProfileThree() {
         this.topics = "kafka-data";
         this.token = "mytoken";
         this.uri = "https://dummy:8088";
@@ -174,13 +168,12 @@ public class ConfigProfile {
         this.trackData = false;
         this.maxBatchSize = 1;
         this.numOfThreads = 1;
-        this.headerSupport = true;
+        boolean headerSupport = true;
         this.headerIndex = "splunk.header.index";
         this.headerSource = "splunk.header.source";
         this.headerSourcetype = "splunk.header.sourcetype";
         this.headerHost = "splunk.header.host";
 
-        return this;
     }
 
     public String getTopics() {

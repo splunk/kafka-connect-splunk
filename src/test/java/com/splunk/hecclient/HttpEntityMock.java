@@ -15,7 +15,6 @@
  */
 package com.splunk.hecclient;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.entity.AbstractHttpEntity;
 import java.io.*;
 
@@ -23,14 +22,12 @@ public class HttpEntityMock extends AbstractHttpEntity {
     private String content = "";
     private boolean throwOnGet = false;
 
-    public HttpEntityMock setContent(final String content) {
+    public void setContent(final String content) {
         this.content = content;
-        return this;
     }
 
-    public HttpEntityMock setThrowOnGetContent(boolean th) {
+    public void setThrowOnGetContent(boolean th) {
         throwOnGet = th;
-        return this;
     }
 
     @Override

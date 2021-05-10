@@ -216,7 +216,7 @@ public class SplunkSinkTaskTest {
         hec.setSendReturnResult(HecMock.success);
         task.setHec(hec);
         task.start(config);
-        task.put(createSinkRecords(10, ""));
+        task.put(createSinkRecords());
         Assert.assertEquals(0, hec.getBatches().size());
 
         task.stop();
@@ -318,16 +318,16 @@ public class SplunkSinkTaskTest {
     }
 
     private Collection<SinkRecord> createSinkRecords(int numOfRecords) {
-        return createSinkRecords(numOfRecords, 0,"ni, hao");
+        return createSinkRecords(numOfRecords, "ni, hao");
+    }
+
+    private Collection<SinkRecord> createSinkRecords() {
+        return createSinkRecords(10, "");
     }
 
     private Collection<SinkRecord> createSinkRecords(int numOfRecords, String value) {
-        return createSinkRecords(numOfRecords, 0, value);
-    }
-
-    private Collection<SinkRecord> createSinkRecords(int numOfRecords, int start, String value) {
         List<SinkRecord> records = new ArrayList<>();
-        for (int i = start; i < start + numOfRecords; i++) {
+        for (int i = 0; i < numOfRecords; i++) {
             SinkRecord rec = new SinkRecord(new UnitUtil(0).configProfile.getTopics(), 1, null, null, null, value, i, 0L, TimestampType.NO_TIMESTAMP_TYPE);
             records.add(rec);
         }
@@ -337,7 +337,7 @@ public class SplunkSinkTaskTest {
     private Collection<SinkRecord> createNullSinkRecord() {
         List<SinkRecord> records = new ArrayList<>();
         SinkRecord rec = null;
-        records.add(rec);
+        records.add(null);
         return records;
     }
 

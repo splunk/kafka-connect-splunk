@@ -104,29 +104,25 @@ public abstract class Event {
      * representation of the Event is cleared as the Event representation has changed.
      *
      * @param  data  Object representation of the event itself without all the extras. Event Data Only
-     * @return       Current representation of Event.
      * @see          Event
      * @since        1.0.0
      */
 
-    public final Event setEvent(final Object data) {
+    public final void setEvent(final Object data) {
         checkEventData(data);
         event = data;
         invalidate();
-        return this;
     }
 
     /**
      * Tied is the full Record Object with associated meta-data.
      *
      * @param tied   Object representation of the event with associated meta-data.
-     * @return       Current representation of Event.
      * @see          Event
      * @since        1.0.0
      */
-    public final Event setTied(final Object tied) {
+    public final void setTied(final Object tied) {
         this.tied = tied;
-        return this;
     }
 
     /**
@@ -134,14 +130,12 @@ public abstract class Event {
      * an indexed Splunk Event.
      *
      * @param etime Double representation of the record event in time.seconds.milliseconds
-     * @return      Current representation of Event.
      * @see         Event
      * @since       1.0.0
      */
-    public final Event setTime(final double etime /* seconds.milliseconds */) {
+    public final void setTime(final double etime /* seconds.milliseconds */) {
         this.time = etime;
         invalidate();
-        return this;
     }
 
     /**
@@ -149,14 +143,12 @@ public abstract class Event {
      * or other input from which the event originates
      *
      * @param source String representation of the record event source.
-     * @return       Current representation of Event.
      * @see          Event
      * @since        1.0.0
      */
-    public final Event setSource(final String source) {
+    public final void setSource(final String source) {
         this.source = source;
         invalidate();
-        return this;
     }
 
     /**
@@ -164,14 +156,12 @@ public abstract class Event {
      * of the data input from which it originates.The source type determines how your data is to be formatted.
      *
      * @param sourcetype String representation of the record event sourcetype.
-     * @return           Current representation of Event.
      * @see              Event
      * @since            1.0.0
      */
-    public final Event setSourcetype(final String sourcetype) {
+    public final void setSourcetype(final String sourcetype) {
         this.sourcetype = sourcetype;
         invalidate();
-        return this;
     }
 
     /**
@@ -180,28 +170,24 @@ public abstract class Event {
      * lets you locate data originating from a specific device.
      *
      * @param host String representation of the host machine which generated the event.
-     * @return     Current representation of Event.
      * @see        Event
      * @since      1.0.0
      */
-    public final Event setHost(final String host) {
+    public final void setHost(final String host) {
         this.host = host;
         invalidate();
-        return this;
     }
 
     /**
      * Index is a required field used to send an event to particular <a href=http://docs.splunk.com/Documentation/Splunk/7.0.0/Indexer/Aboutindexesandindexers>Splunk Index</>.
      *
      * @param index String representation of the Splunk index
-     * @return      Current representation of Event.
      * @see         Event
      * @since       1.0.0
      */
-    public final Event setIndex(final String index) {
+    public final void setIndex(final String index) {
         this.index = index;
         invalidate();
-        return this;
     }
 
     public final Double getTime() {
@@ -236,12 +222,10 @@ public abstract class Event {
         return tied;
     }
 
-    public Event addFields(final Map<String, String> fields) {
-        return this;
+    public void addFields(final Map<String, String> fields) {
     }
 
-    public Event setFields(final Map<String, String> fields) {
-        return this;
+    public void setFields(final Map<String, String> fields) {
     }
 
     public Map<String, String> getFields() {

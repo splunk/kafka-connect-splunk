@@ -16,7 +16,6 @@
 package com.splunk.kafka.connect;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.kafka.connect.header.Header;
 import org.apache.kafka.connect.header.Headers;
 import org.apache.kafka.connect.sink.SinkRecord;
@@ -120,15 +119,13 @@ public class SplunkSinkRecord {
 
     public String id() {
     String separator = "$$$";
-    return new StringBuilder()
-            .append(splunkHeaderIndex)
-            .append(separator)
-            .append(splunkHeaderHost)
-            .append(separator)
-            .append(splunkHeaderSource)
-            .append(separator)
-            .append(splunkHeaderSourcetype)
-            .toString();
+    return splunkHeaderIndex +
+            separator +
+            splunkHeaderHost +
+            separator +
+            splunkHeaderSource +
+            separator +
+            splunkHeaderSourcetype;
     }
 
     @Override

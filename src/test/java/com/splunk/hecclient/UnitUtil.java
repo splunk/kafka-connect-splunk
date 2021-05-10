@@ -19,12 +19,12 @@ import org.junit.Assert;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 public class UnitUtil {
     public static HecConfig createHecConfig() {
-        return new HecConfig(Arrays.asList("https://dummyhost:8088"), "token");
+        return new HecConfig(Collections.singletonList("https://dummyhost:8088"), "token");
     }
 
     public static EventBatch createBatch() {
@@ -37,7 +37,7 @@ public class UnitUtil {
     public static void milliSleep(long milliseconds) {
         try {
             TimeUnit.MILLISECONDS.sleep(milliseconds);
-        } catch (InterruptedException ex) {
+        } catch (InterruptedException ignored) {
         }
     }
 
@@ -51,7 +51,7 @@ public class UnitUtil {
                 }
                 siz += read;
             } catch (IOException ex) {
-                Assert.assertTrue("failed to read from stream", false);
+                Assert.fail("failed to read from stream");
                 throw new HecException("failed to read from stream", ex);
             }
         }

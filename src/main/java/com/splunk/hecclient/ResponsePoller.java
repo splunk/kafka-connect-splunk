@@ -19,13 +19,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
+import java.util.Collections;
 
+@SuppressWarnings("PlaceholderCountMatchesArgumentCount")
 public final class ResponsePoller implements Poller {
     private static final Logger log = LoggerFactory.getLogger(ResponsePoller.class);
     private static final ObjectMapper jsonMapper = new ObjectMapper();
 
-    private PollerCallback callback;
+    private final PollerCallback callback;
 
     public ResponsePoller(PollerCallback callback) {
         this.callback = callback;
@@ -46,7 +47,7 @@ public final class ResponsePoller implements Poller {
     public void fail(HecChannel channel, EventBatch batch, Exception ex) {
         batch.fail();
         if (callback != null) {
-            callback.onEventFailure(Arrays.asList(batch), ex);
+            callback.onEventFailure(Collections.singletonList(batch), ex);
         }
     }
 
@@ -60,6 +61,7 @@ public final class ResponsePoller implements Poller {
         return null;
     }
 
+    @SuppressWarnings("PlaceholderCountMatchesArgumentCount")
     @Override
     public void add(HecChannel channel, EventBatch batch, String resp) {
         try {
@@ -68,10 +70,11 @@ public final class ResponsePoller implements Poller {
                 fail(channel, batch, new HecException(response.getText()));
                 return;
             }
-            if (response.getText() == "Invalid data format") {
+            if (response.getText().equals("Invalid data format")) {
                 log.warn("Invalid Splunk HEC data format. Ignoring events. channel={} index={} events={}", channel, channel.getIndexer(), batch.toString());
             }
         } catch (Exception ex) {
+            //noinspection PlaceholderCountMatchesArgumentCount
             log.error("failed to parse response", resp, ex);
             fail(channel, batch, ex);
             return;
@@ -79,7 +82,7 @@ public final class ResponsePoller implements Poller {
 
         batch.commit();
         if (callback != null) {
-            callback.onEventCommitted(Arrays.asList(batch));
+            callback.onEventCommitted(Collections.singletonList(batch));
         }
     }
 

@@ -39,14 +39,14 @@ final class Indexer implements IndexerInf {
     private static final Logger log = LoggerFactory.getLogger(Indexer.class);
     private static final ObjectMapper jsonMapper = new ObjectMapper();
 
-    private CloseableHttpClient httpClient;
-    private HttpContext context;
-    private String baseUrl;
-    private String hecToken;
+    private final CloseableHttpClient httpClient;
+    private final HttpContext context;
+    private final String baseUrl;
+    private final String hecToken;
     private boolean keepAlive;
-    private HecChannel channel;
-    private Header[] headers;
-    private Poller poller;
+    private final HecChannel channel;
+    private final Header[] headers;
+    private final Poller poller;
     private long backPressure;
     private long lastBackPressure;
     private long backPressureThreshold = 60 * 1000; // 1 min
@@ -73,14 +73,13 @@ final class Indexer implements IndexerInf {
         setKeepAlive(true);
     }
 
-    public Indexer setBackPressureThreshold(long threshold)  { //milliseconds
+    public void setBackPressureThreshold(long threshold)  { //milliseconds
         backPressureThreshold = threshold;
-        return this;
     }
 
-    public Indexer setKeepAlive(boolean keepAlive) {
+    public void setKeepAlive(boolean keepAlive) {
         if (this.keepAlive == keepAlive) {
-            return this;
+            return;
         }
 
         if (keepAlive) {
@@ -89,7 +88,6 @@ final class Indexer implements IndexerInf {
             headers[2] = new BasicHeader("Connection", "close");
         }
         this.keepAlive = keepAlive;
-        return this;
     }
 
     public boolean getKeepAlive() {
@@ -196,7 +194,8 @@ final class Indexer implements IndexerInf {
             
             String respText = (jsonNode.has("text")) ? jsonNode.get("text").asText() : null;
 
-            if (respText == "Invalid data format") {
+            assert respText != null;
+            if (respText.equals("Invalid data format")) {
                 ObjectNode objNode = jsonMapper.createObjectNode();
                 objNode.put("text", "Invalid data format");
                 objNode.put("code", 0); // Mark it as success

@@ -120,6 +120,6 @@ public class RawEventBatchTest {
                 .setHost("3host4")
                 .build();
 
-        Assert.assertFalse(batchOne.equals(batchTwo));
+        Assert.assertNotEquals(batchOne, batchTwo);
     }
 }

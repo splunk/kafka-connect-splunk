@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class UnitUtil {
-    ConfigProfile configProfile;
+    final ConfigProfile configProfile;
 
     UnitUtil(int profile) {
         this.configProfile = new ConfigProfile(profile);
@@ -62,7 +62,7 @@ public class UnitUtil {
     public static void milliSleep(long milliseconds) {
         try {
             TimeUnit.MILLISECONDS.sleep(milliseconds);
-        } catch (InterruptedException ex) {
+        } catch (InterruptedException ignored) {
         }
     }
 }

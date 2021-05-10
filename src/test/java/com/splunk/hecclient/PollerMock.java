@@ -15,11 +15,6 @@
  */
 package com.splunk.hecclient;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 public class PollerMock implements Poller {
     private boolean started;
     private HecChannel channel;

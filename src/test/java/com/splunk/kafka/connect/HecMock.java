@@ -20,7 +20,7 @@ import com.splunk.hecclient.HecException;
 import com.splunk.hecclient.HecInf;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class HecMock implements HecInf {
@@ -28,8 +28,8 @@ public class HecMock implements HecInf {
     static final String successAndThenFailure = "successAndThenFailure";
     static final String failure = "failure";
 
-    private List<EventBatch> batches;
-    private SplunkSinkTask task;
+    private final List<EventBatch> batches;
+    private final SplunkSinkTask task;
     private String sentResult = "success";
 
     public HecMock(SplunkSinkTask task) {
@@ -46,13 +46,13 @@ public class HecMock implements HecInf {
         batches.add(batch);
         if (sentResult.equals(success)) {
             batch.commit();
-            task.onEventCommitted(Arrays.asList(batch));
+            task.onEventCommitted(Collections.singletonList(batch));
         } else if (sentResult.equals(failure)) {
             batch.fail();
-            task.onEventFailure(Arrays.asList(batch), new HecException("mockup"));
+            task.onEventFailure(Collections.singletonList(batch), new HecException("mockup"));
         } else {
             batch.fail();
-            task.onEventFailure(Arrays.asList(batch), new HecException("mockup"));
+            task.onEventFailure(Collections.singletonList(batch), new HecException("mockup"));
         }
     }
 

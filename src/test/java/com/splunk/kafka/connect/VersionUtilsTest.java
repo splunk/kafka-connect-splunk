@@ -28,7 +28,7 @@ public final class VersionUtilsTest {
         String version = VersionUtils.getVersionFromProperties(null);
         Assert.assertEquals(version, "dev");
 
-        version = VersionUtils.getVersionFromProperties(new ArrayList<String>());
+        version = VersionUtils.getVersionFromProperties(new ArrayList<>());
         Assert.assertEquals(version, "dev");
 
         List<String> properties = VersionUtils.readResourceFile("/testversion.properties");

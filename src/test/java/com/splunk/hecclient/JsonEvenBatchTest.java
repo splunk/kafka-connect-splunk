@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class JsonEvenBatchTest {
     @Test
@@ -158,7 +157,7 @@ public class JsonEvenBatchTest {
         try {
             entity.writeTo(out);
         } catch (IOException ex) {
-            Assert.assertTrue("failed to write to stream", false);
+            Assert.fail("failed to write to stream");
             throw new HecException("failed to write to stream", ex);
         }
         String got = out.toString();
@@ -171,7 +170,7 @@ public class JsonEvenBatchTest {
         try {
             in = entity.getContent();
         } catch (IOException ex) {
-            Assert.assertTrue("failed to getContent", false);
+            Assert.fail("failed to getContent");
             throw new HecException("failed to getContent", ex);
         }
 

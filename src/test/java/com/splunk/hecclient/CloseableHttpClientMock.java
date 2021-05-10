@@ -39,18 +39,19 @@ public class CloseableHttpClientMock extends CloseableHttpClient {
 
     protected CloseableHttpResponse doExecute(HttpHost target, HttpRequest request,
             HttpContext context) throws IOException {
-        if (resp == exception) {
+        if (resp.equals(exception)) {
             throw new IOException("mocked up");
         }
 
-        if (resp.equals(success)) {
-            return createResponse(resp, 200);
-        } else if (resp.equals(serverBusy)) {
-            return createResponse(resp, 503);
-        } else if (resp.equals(noDataError)) {
-            return createResponse(resp, 400);
-        } else {
-            return createResponse(success, 201);
+        switch (resp) {
+            case success:
+                return createResponse(resp, 200);
+            case serverBusy:
+                return createResponse(resp, 503);
+            case noDataError:
+                return createResponse(resp, 400);
+            default:
+                return createResponse(success, 201);
         }
     }
 
@@ -68,19 +69,16 @@ public class CloseableHttpClientMock extends CloseableHttpClient {
         return resp;
     }
 
-    public CloseableHttpClientMock setResponse(final String resp) {
+    public void setResponse(final String resp) {
         this.resp = resp;
-        return this;
     }
 
-    public CloseableHttpClientMock setThrowOnClose(final boolean th) {
+    public void setThrowOnClose(final boolean th) {
         this.throwOnClose = th;
-        return this;
     }
 
-    public CloseableHttpClientMock setThrowOnGetContent(final boolean th) {
+    public void setThrowOnGetContent(final boolean th) {
         this.throwOnGetContent = th;
-        return this;
     }
 
 
@@ -97,6 +95,6 @@ public class CloseableHttpClientMock extends CloseableHttpClient {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
     }
 }

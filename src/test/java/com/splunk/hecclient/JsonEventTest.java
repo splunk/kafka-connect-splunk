@@ -36,7 +36,7 @@ public class JsonEventTest {
         // without tied object
         Event event = new JsonEvent(data, null);
         Assert.assertEquals(data, event.getEvent());
-        Assert.assertEquals(null, event.getTied());
+        Assert.assertNull(event.getTied());
 
         // with tied object
         String tied = "i love you";
@@ -74,7 +74,7 @@ public class JsonEventTest {
         event.addFields(fields);
         Map<String, String> fieldsGot = event.getFields();
         Assert.assertNotNull(fieldsGot);
-        Assert.assertEquals(false, fieldsGot.isEmpty());
+        Assert.assertFalse(fieldsGot.isEmpty());
         Assert.assertEquals(1, fieldsGot.size());
         Assert.assertEquals("hao", fieldsGot.get("ni"));
 
@@ -83,7 +83,7 @@ public class JsonEventTest {
         event.addFields(fields);
         fieldsGot = event.getFields();
         Assert.assertNotNull(fieldsGot);
-        Assert.assertEquals(false, fieldsGot.isEmpty());
+        Assert.assertFalse(fieldsGot.isEmpty());
         Assert.assertEquals(2, fieldsGot.size());
         Assert.assertEquals("hao", fieldsGot.get("ni"));
         Assert.assertEquals("world", fieldsGot.get("hello"));
@@ -91,42 +91,36 @@ public class JsonEventTest {
 
     @Test
     public void toStr() {
-        SerialAndDeserial sad = new SerialAndDeserial() {
-            @Override
-            public Event serializeAndDeserialize(Event event) {
-                String stringed = event.toString();
-                Assert.assertNotNull(stringed);
+        SerialAndDeserial sad = event -> {
+            String stringed = event.toString();
+            Assert.assertNotNull(stringed);
 
-                Event deserilized;
-                try {
-                    deserilized = jsonMapper.readValue(stringed, JsonEvent.class);
-                } catch (IOException ex) {
-                    Assert.assertFalse("expect no exception but got exception", true);
-                    throw new HecException("failed to parse JsonEvent", ex);
-                }
-                return deserilized;
+            Event deserilized;
+            try {
+                deserilized = jsonMapper.readValue(stringed, JsonEvent.class);
+            } catch (IOException ex) {
+                Assert.fail("expect no exception but got exception");
+                throw new HecException("failed to parse JsonEvent", ex);
             }
+            return deserilized;
         };
         serialize(sad);
     }
 
     @Test
     public void getBytes() {
-        SerialAndDeserial sad = new SerialAndDeserial() {
-            @Override
-            public Event serializeAndDeserialize(Event event) {
-                byte[] bytes = event.getBytes();
-                Assert.assertNotNull(bytes);
+        SerialAndDeserial sad = event -> {
+            byte[] bytes = event.getBytes();
+            Assert.assertNotNull(bytes);
 
-                Event deserilized;
-                try {
-                    deserilized = jsonMapper.readValue(bytes, JsonEvent.class);
-                } catch (IOException ex) {
-                    Assert.assertFalse("expect no exception but got exception", false);
-                    throw new HecException("failed to parse JsonEvent", ex);
-                }
-                return deserilized;
+            Event deserilized;
+            try {
+                deserilized = jsonMapper.readValue(bytes, JsonEvent.class);
+            } catch (IOException ex) {
+                Assert.assertFalse("expect no exception but got exception", false);
+                throw new HecException("failed to parse JsonEvent", ex);
             }
+            return deserilized;
         };
         serialize(sad);
     }
@@ -142,7 +136,7 @@ public class JsonEventTest {
         try {
             eventGot = jsonMapper.readValue(data, 0, siz, JsonEvent.class);
         } catch (IOException ex) {
-            Assert.assertTrue("failed to deserialize from bytes", false);
+            Assert.fail("failed to deserialize from bytes");
             throw new HecException("failed to deserialize from bytes", ex);
         }
         Assert.assertEquals("hello", eventGot.getEvent());

@@ -56,9 +56,9 @@ import javax.net.ssl.TrustManagerFactory;
  * @see         HecAckPoller
  */
 public class Hec implements HecInf {
-    private LoadBalancerInf loadBalancer;
-    private Poller poller;
-    private CloseableHttpClient httpClient;
+    private final LoadBalancerInf loadBalancer;
+    private final Poller poller;
+    private final CloseableHttpClient httpClient;
     private boolean ownHttpClient = false; //flag for when the HTTPClient is created as part of this Hec object being created
 
    /**
@@ -215,12 +215,10 @@ public class Hec implements HecInf {
     *
     * @param ownHttpClient  Flag for signally the CloseableHttpClient has been constructed as part of this object.
     * @since                1.0.0
-    * @return               Instance of Hec Object
     * @see                  CloseableHttpClient
     */
-    public Hec setOwnHttpClient(boolean ownHttpClient) {
+    public void setOwnHttpClient(boolean ownHttpClient) {
         this.ownHttpClient = ownHttpClient;
-        return this;
     }
 
    /**
@@ -280,18 +278,12 @@ public class Hec implements HecInf {
         // Code block for custom keystore client construction
         SSLContext context = loadCustomSSLContext(config.getTrustStorePath(), config.getTrustStorePassword());
 
-        if (context != null) {
-            return new HttpClientBuilder()
-                .setDisableSSLCertVerification(config.getDisableSSLCertVerification())
-                .setMaxConnectionPoolSizePerDestination(poolSizePerDest)
-                .setMaxConnectionPoolSize(poolSizePerDest * config.getUris().size())
-                .setSslContext(context)
-                .build();
-        }
-        else {
-             //failure configuring SSL Context created from trust store path and password values
-             throw new HecException("trust store path provided but failed to initialize ssl context");
-         }
+        return new HttpClientBuilder()
+            .setDisableSSLCertVerification(config.getDisableSSLCertVerification())
+            .setMaxConnectionPoolSizePerDestination(poolSizePerDest)
+            .setMaxConnectionPoolSize(poolSizePerDest * config.getUris().size())
+            .setSslContext(context)
+            .build();
     }
 
    /**

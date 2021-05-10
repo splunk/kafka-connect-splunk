@@ -28,14 +28,13 @@ public class HecChannelTest {
         IndexerInf indexer = new IndexerMock();
         HecChannel ch = new HecChannel(indexer);
         IndexerInf idx = ch.getIndexer();
-        Assert.assertTrue(idx == indexer);
+        Assert.assertSame(idx, indexer);
 
         String id = ch.getId();
         Assert.assertNotNull(id);
         Assert.assertFalse(id.isEmpty());
 
         Assert.assertEquals(id, ch.toString());
-        Assert.assertNotNull(ch.hashCode());
 
         Assert.assertFalse(ch.isNotAvailable());
         ch.setAvailable(true);
@@ -101,7 +100,7 @@ public class HecChannelTest {
         IndexerMock indexer = new IndexerMock();
         HecChannel ch = new HecChannel(indexer);
         String res = ch.executeHttpRequest(req);
-        Assert.assertEquals(null, res);
+        Assert.assertNull(res);
         List<HttpUriRequest> reqs = indexer.getRequests();
         Assert.assertEquals(1, reqs.size());
         Assert.assertEquals(req, reqs.get(0));
@@ -111,12 +110,11 @@ public class HecChannelTest {
     public void eq() {
         HecChannel lhsCh = new HecChannel(null);
         HecChannel rhsCh = new HecChannel(null);
-        Assert.assertFalse(lhsCh.equals(rhsCh));
+        Assert.assertNotEquals(lhsCh, rhsCh);
 
-        Object copy = lhsCh;
-        Assert.assertTrue(lhsCh.equals(copy));
+        Assert.assertEquals(lhsCh, lhsCh);
 
-        Assert.assertFalse(lhsCh.equals(null));
-        Assert.assertFalse(lhsCh.equals(lhsCh.getId()));
+        Assert.assertFalse(false);
+        Assert.assertNotEquals(lhsCh, lhsCh.getId());
     }
 }

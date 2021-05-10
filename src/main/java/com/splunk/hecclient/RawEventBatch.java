@@ -23,11 +23,11 @@ public final class RawEventBatch extends EventBatch {
     public static final String endpoint = "/services/collector/raw";
     public static final String contentType = "text/plain; profile=urn:splunk:event:1.0; charset=utf-8";
 
-    private String index;
-    private String source;
-    private String sourcetype;
-    private String host;
-    private long time = -1;
+    private final String index;
+    private final String source;
+    private final String sourcetype;
+    private final String host;
+    private final long time;
 
     // index, source etc metadata is for the whole raw batch
     public RawEventBatch(String index, String source, String sourcetype, String host, long time) {

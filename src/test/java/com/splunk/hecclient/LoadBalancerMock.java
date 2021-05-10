@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LoadBalancerMock implements LoadBalancerInf {
-    private List<EventBatch> batches = new ArrayList<>();
+    private final List<EventBatch> batches = new ArrayList<>();
     private boolean throwOnSend = false;
 
     @Override
@@ -38,9 +38,8 @@ public class LoadBalancerMock implements LoadBalancerInf {
         batches.add(batch);
     }
 
-    public LoadBalancerMock setThrowOnSend(boolean throwOnSend) {
+    public void setThrowOnSend(boolean throwOnSend) {
         this.throwOnSend = throwOnSend;
-        return this;
     }
 
     public int size() {

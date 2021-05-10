@@ -19,7 +19,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class LoadBalancerTest {
@@ -27,7 +27,7 @@ public class LoadBalancerTest {
     public void add() {
         String uri = "https://dummy:8088";
         String token = "mytoken";
-        HecConfig config = new HecConfig(Arrays.asList(uri), token);
+        HecConfig config = new HecConfig(Collections.singletonList(uri), token);
         CloseableHttpClientMock client = new CloseableHttpClientMock();
         client.setResponse(CloseableHttpClientMock.success);
         LoadBalancer lb = new LoadBalancer(config, client);
@@ -46,7 +46,7 @@ public class LoadBalancerTest {
     public void send() {
         String uri = "https://dummy:8088";
         String token = "mytoken";
-        HecConfig config = new HecConfig(Arrays.asList(uri), token);
+        HecConfig config = new HecConfig(Collections.singletonList(uri), token);
         CloseableHttpClientMock client = new CloseableHttpClientMock();
         client.setResponse(CloseableHttpClientMock.success);
         LoadBalancer lb = new LoadBalancer(config, client);        List<IndexerMock> indexers = new ArrayList<>();
@@ -74,7 +74,7 @@ public class LoadBalancerTest {
     public void sendWithAllBackPressure() {
         String uri = "https://dummy:8088";
         String token = "mytoken";
-        HecConfig config = new HecConfig(Arrays.asList(uri), token);
+        HecConfig config = new HecConfig(Collections.singletonList(uri), token);
         CloseableHttpClientMock client = new CloseableHttpClientMock();
         client.setResponse(CloseableHttpClientMock.success);
         LoadBalancer lb = new LoadBalancer(config, client);
@@ -96,7 +96,7 @@ public class LoadBalancerTest {
     public void sendWithOneBackPressure() {
         String uri = "https://dummy:8088";
         String token = "mytoken";
-        HecConfig config = new HecConfig(Arrays.asList(uri), token);
+        HecConfig config = new HecConfig(Collections.singletonList(uri), token);
         CloseableHttpClientMock client = new CloseableHttpClientMock();
         client.setResponse(CloseableHttpClientMock.success);
         LoadBalancer lb = new LoadBalancer(config, client);
@@ -125,7 +125,7 @@ public class LoadBalancerTest {
     public void sendWithOneNotAvailable() {
         String uri = "https://dummy:8088";
         String token = "mytoken";
-        HecConfig config = new HecConfig(Arrays.asList(uri), token);
+        HecConfig config = new HecConfig(Collections.singletonList(uri), token);
         CloseableHttpClientMock client = new CloseableHttpClientMock();
         client.setResponse(CloseableHttpClientMock.success);
         LoadBalancer lb = new LoadBalancer(config, client);
@@ -156,7 +156,7 @@ public class LoadBalancerTest {
     public void sendWithoutChannels() {
         String uri = "https://dummy:8088";
         String token = "mytoken";
-        HecConfig config = new HecConfig(Arrays.asList(uri), token);
+        HecConfig config = new HecConfig(Collections.singletonList(uri), token);
         CloseableHttpClientMock client = new CloseableHttpClientMock();
         client.setResponse(CloseableHttpClientMock.success);
         LoadBalancer lb = new LoadBalancer(config, client);
@@ -167,7 +167,7 @@ public class LoadBalancerTest {
     public void remove() {
         String uri = "https://dummy:8088";
         String token = "mytoken";
-        HecConfig config = new HecConfig(Arrays.asList(uri), token);
+        HecConfig config = new HecConfig(Collections.singletonList(uri), token);
         CloseableHttpClientMock client = new CloseableHttpClientMock();
         client.setResponse(CloseableHttpClientMock.success);
         LoadBalancer lb = new LoadBalancer(config, client);
@@ -192,7 +192,7 @@ public class LoadBalancerTest {
     public void size() {
         String uri = "https://dummy:8088";
         String token = "mytoken";
-        HecConfig config = new HecConfig(Arrays.asList(uri), token);
+        HecConfig config = new HecConfig(Collections.singletonList(uri), token);
         CloseableHttpClientMock client = new CloseableHttpClientMock();
         client.setResponse(CloseableHttpClientMock.success);
         LoadBalancer lb = new LoadBalancer(config, client);

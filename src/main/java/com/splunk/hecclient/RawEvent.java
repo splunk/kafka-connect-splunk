@@ -15,7 +15,6 @@
  */
 package com.splunk.hecclient;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -78,15 +77,12 @@ public final class RawEvent extends Event {
      * LINE_BREAKER to <a href="http://docs.splunk.com/Documentation/Splunk/7.0.1/Data/Configureeventlinebreaking">
      * break events</a>.
      *
-     * @return Current representation of RawEvent.
-     *
      * @since   1.0
      */
-    public final Event setLineBreaker(final String breaker) {
+    public final void setLineBreaker(final String breaker) {
         if (breaker != null) {
             this.lineBreaker = breaker;
         }
-        return this;
     }
 
     /**

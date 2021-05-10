@@ -17,8 +17,6 @@ package com.splunk.hecclient;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ConcurrentHecTest {
     @Test

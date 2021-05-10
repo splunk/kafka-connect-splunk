@@ -23,7 +23,7 @@ import java.util.Map;
 final class HecChannel {
     private String id;
     private Map<String, String> chField;
-    private IndexerInf indexer;
+    private final IndexerInf indexer;
     private boolean isAvailable;
 
     public HecChannel(IndexerInf idx) {
@@ -68,7 +68,7 @@ final class HecChannel {
 
     public boolean hasBackPressure() { return indexer.hasBackPressure(); }
 
-    public boolean isNotAvailable() { return isAvailable == false; }
+    public boolean isNotAvailable() { return !isAvailable; }
 
     @Override
     public boolean equals(Object obj) {
@@ -93,17 +93,15 @@ final class HecChannel {
         return id;
     }
 
-    private HecChannel enableTracking() {
+    private void enableTracking() {
         if (chField == null) {
             chField = new HashMap<>();
             chField.put("hec-channel", id);
         }
-        return this;
     }
 
-    private HecChannel disableTracking() {
+    private void disableTracking() {
         chField = null;
-        return this;
     }
 
     private static String newChannelId() {

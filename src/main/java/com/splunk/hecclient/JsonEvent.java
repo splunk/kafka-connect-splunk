@@ -62,14 +62,13 @@ public final class JsonEvent extends Event {
      * This differs from the setFields method as it will append any extra fields to the the
      *
      * @param extraFields  Object representation of the event with associated meta-data.
-     * @return             Current representation of JsonEvent.
      * @see                JsonEvent
      * @since              1.0
      */
     @Override
-    public JsonEvent addFields(final Map<String, String> extraFields) {
+    public void addFields(final Map<String, String> extraFields) {
         if (extraFields == null || extraFields.isEmpty()) {
-            return this;
+            return;
         }
 
         if (fields == null) {
@@ -79,7 +78,6 @@ public final class JsonEvent extends Event {
         fields.putAll(extraFields);
         invalidate();
 
-        return this;
     }
 
     /**
@@ -88,15 +86,13 @@ public final class JsonEvent extends Event {
      * This differs from the addFields method as it will replace any fields that are currently associated to this object.
      *
      * @param extraFields  Object representation of the event with associated meta-data.
-     * @return             Current representation of JsonEvent.
      * @see                JsonEvent
      * @since              1.0
      */
     @Override
-    public JsonEvent setFields(final Map<String, String> extraFields) {
+    public void setFields(final Map<String, String> extraFields) {
         fields = extraFields;
         invalidate();
-        return this;
     }
 
     /**

@@ -18,7 +18,7 @@ package com.splunk.kafka.connect;
 import org.apache.kafka.connect.header.Headers;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.sink.SinkRecord;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -44,10 +44,10 @@ public class SplunkSinkRecordTest {
 
         SplunkSinkRecord splunkSinkRecord = new SplunkSinkRecord(record, connectorConfig);
 
-        Assert.assertEquals("splunk.header.index", (splunkSinkRecord.getSplunkHeaderIndex()));
-        Assert.assertEquals("splunk.header.host", (splunkSinkRecord.getSplunkHeaderHost()));
-        Assert.assertEquals("splunk.header.source", (splunkSinkRecord.getSplunkHeaderSource()));
-        Assert.assertEquals("splunk.header.sourcetype", (splunkSinkRecord.getSplunkHeaderSourcetype()));
+        Assertions.assertEquals("splunk.header.index", (splunkSinkRecord.getSplunkHeaderIndex()));
+        Assertions.assertEquals("splunk.header.host", (splunkSinkRecord.getSplunkHeaderHost()));
+        Assertions.assertEquals("splunk.header.source", (splunkSinkRecord.getSplunkHeaderSource()));
+        Assertions.assertEquals("splunk.header.sourcetype", (splunkSinkRecord.getSplunkHeaderSourcetype()));
     }
 
     @Test
@@ -75,7 +75,7 @@ public class SplunkSinkRecordTest {
         headers_2.addString("splunk.header.source", "headersource");
         headers_2.addString("splunk.header.sourcetype", "test message");
 
-        Assert.assertTrue(splunkSinkRecord.compareRecordHeaders(record_2));
+        Assertions.assertTrue(splunkSinkRecord.compareRecordHeaders(record_2));
 
         SinkRecord record_3 = setupRecord();
 
@@ -85,7 +85,7 @@ public class SplunkSinkRecordTest {
         headers_3.addString("splunk.header.source", "headersource");
         headers_3.addString("splunk.header.sourcetype", "test message");
 
-        Assert.assertFalse(splunkSinkRecord.compareRecordHeaders(record_3));
+        Assertions.assertFalse(splunkSinkRecord.compareRecordHeaders(record_3));
     }
 
     public SinkRecord setupRecord() {
@@ -97,8 +97,7 @@ public class SplunkSinkRecordTest {
         Object value = "value";
         long timestamp = System.currentTimeMillis();
 
-        SinkRecord record = createMockSinkRecord(topic, partition, keySchema, key, valueSchema, value, timestamp);
-        return record;
+        return createMockSinkRecord(topic, partition, null, key, null, value, timestamp);
     }
 
     public SinkRecord createMockSinkRecord(String topic, int partition, Schema keySchema, Object key, Schema valueSchema, Object value, long timestamp) {

@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -28,7 +29,7 @@ public final class HecExample {
     public static void main(String[] args) {
         Logger log = LoggerFactory.getLogger(HecExample.class);
 
-        List<String> uris = Arrays.asList("https://localhost:8088");
+        List<String> uris = Collections.singletonList("https://localhost:8088");
         String tokenWithAck = "936AF219-CF36-4C8C-AA0C-FD9793A0F4D4";
         HecConfig config = new HecConfig(uris, tokenWithAck);
         config.setAckPollInterval(10)
@@ -45,43 +46,39 @@ public final class HecExample {
         int m = 100;
 
         Hec hec = new Hec(config, httpClient, poller, new LoadBalancer(config, httpClient));
-        Thread jsonThr = new Thread(new Runnable() {
-            public void run() {
-                for (int j = 0; j < n; j++) {
-                    EventBatch batch = new JsonEventBatch();
-                    for (int i = 0; i < m; i++) {
-                        Event evt = new JsonEvent("my message: " +  (m * j + i), null);
-                        evt.setSourcetype("test-json-event");
-                        batch.add(evt);
-                    }
-                    log.info("json batch: " + j);
-                    hec.send(batch);
+        Thread jsonThr = new Thread(() -> {
+            for (int j = 0; j < n; j++) {
+                EventBatch batch = new JsonEventBatch();
+                for (int i = 0; i < m; i++) {
+                    Event evt = new JsonEvent("my message: " +  (m * j + i), null);
+                    evt.setSourcetype("test-json-event");
+                    batch.add(evt);
                 }
+                log.info("json batch: " + j);
+                hec.send(batch);
             }
         });
         jsonThr.start();
 
         // raw
         Hec rawHec = new Hec(config, httpClient, poller, new LoadBalancer(config, httpClient));
-        Thread rawThr = new Thread(new Runnable() {
-            public void run() {
-                for (int j = 0; j < n; j++) {
-                    EventBatch batch = new RawEventBatch("main", null,"test-raw-event", null, -1);
-                    for (int i = 0; i < m; i++) {
-                        Event evt = new RawEvent("my raw message: " +  (m * j + i) + "\n", null);
-                        evt.setSourcetype("test-raw-event");
-                        batch.add(evt);
-                    }
-                    log.info("raw batch: " + j);
-                    rawHec.send(batch);
+        Thread rawThr = new Thread(() -> {
+            for (int j = 0; j < n; j++) {
+                EventBatch batch = new RawEventBatch("main", null,"test-raw-event", null, -1);
+                for (int i = 0; i < m; i++) {
+                    Event evt = new RawEvent("my raw message: " +  (m * j + i) + "\n", null);
+                    evt.setSourcetype("test-raw-event");
+                    batch.add(evt);
                 }
+                log.info("raw batch: " + j);
+                rawHec.send(batch);
             }
         });
         rawThr.start();
 
         try {
             TimeUnit.SECONDS.sleep(6000);
-        } catch (InterruptedException ex) {
+        } catch (InterruptedException ignored) {
         }
 
         hec.close();

@@ -19,6 +19,7 @@ import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.Task;
 import org.apache.kafka.connect.sink.SinkConnector;
 import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 
@@ -34,9 +35,9 @@ class SplunkSinkConnecterTest {
 
         connector.start(taskConfig);
         List<Map<String, String>> tasks = connector.taskConfigs(10);
-        Assert.assertEquals(10, tasks.size());
+        Assertions.assertEquals(10, tasks.size());
         for (Map<String, String> task: tasks) {
-            Assert.assertEquals(taskConfig, task);
+            Assertions.assertEquals(taskConfig, task);
         }
 
         connector.stop();
@@ -46,13 +47,13 @@ class SplunkSinkConnecterTest {
     public void taskClass() {
         SinkConnector connector = new SplunkSinkConnector();
         Class<? extends Task> taskClass = connector.taskClass();
-        Assert.assertEquals(SplunkSinkTask.class, taskClass);
+        Assertions.assertEquals(SplunkSinkTask.class, taskClass);
     }
 
     @Test
     public void config() {
         SinkConnector connector = new SplunkSinkConnector();
         ConfigDef config = connector.config();
-        Assert.assertNotNull(config);
+        Assertions.assertNotNull(config);
     }
 }

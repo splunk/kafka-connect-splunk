@@ -19,7 +19,7 @@ import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
 
 public class StatusLineMock implements StatusLine {
-    private int status;
+    private final int status;
 
     public StatusLineMock(int status) {
         this.status = status;

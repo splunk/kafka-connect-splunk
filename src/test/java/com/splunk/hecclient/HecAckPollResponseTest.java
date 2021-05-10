@@ -32,7 +32,7 @@ public class HecAckPollResponseTest {
         Collection<Long> succeed = resp.getSuccessIds();
         Assert.assertEquals(3, succeed.size());
         for (int i = 1; i < 4; i++) {
-            Assert.assertTrue(succeed.contains(new Long(i)));
+            Assert.assertTrue(succeed.contains((long) i));
         }
     }
 
@@ -55,7 +55,7 @@ public class HecAckPollResponseTest {
         try {
             return jsonMapper.readValue(acks, HecAckPollResponse.class);
         } catch (IOException ex) {
-            Assert.assertTrue("failed to deserialize from acks", false);
+            Assert.fail("failed to deserialize from acks");
             throw new HecException("failed to deserialize from acks", ex);
         }
     }

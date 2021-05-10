@@ -18,8 +18,6 @@ package com.splunk.hecclient;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.List;
-
 public class HecAckPollerTest {
     @Test
     public void getterSetter() {

@@ -19,17 +19,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.*;
 
 public class ConcurrentHec implements HecInf {
     private static final Logger log = LoggerFactory.getLogger(ConcurrentHec.class);
 
-    private LinkedBlockingQueue<EventBatch> batches;
-    private ExecutorService executorService;
+    private final LinkedBlockingQueue<EventBatch> batches;
+    private final ExecutorService executorService;
     private List<Hec> hecs;
-    private PollerCallback pollerCallback;
+    private final PollerCallback pollerCallback;
     private volatile boolean stopped;
 
     public ConcurrentHec(int numberOfThreads, boolean useAck, HecConfig config, PollerCallback cb) {
@@ -47,9 +47,7 @@ public class ConcurrentHec implements HecInf {
 
         for (int i = 0; i < numberOfThreads; i++) {
             final int id = i;
-            Runnable r = () -> {
-                run(id);
-            };
+            Runnable r = () -> run(id);
             executorService.submit(r);
         }
     }
@@ -97,7 +95,7 @@ public class ConcurrentHec implements HecInf {
             hec.send(batch);
         } catch (Exception ex) {
             batch.fail();
-            pollerCallback.onEventFailure(Arrays.asList(batch), ex);
+            pollerCallback.onEventFailure(Collections.singletonList(batch), ex);
             log.error("sending batch to splunk encountered error", ex);
         }
     }

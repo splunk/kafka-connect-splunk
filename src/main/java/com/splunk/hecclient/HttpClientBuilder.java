@@ -96,19 +96,9 @@ public final class HttpClientBuilder {
     }
 
     private SSLConnectionSocketFactory getUnsecureSSLConnectionSocketFactory() {
-        TrustStrategy trustStrategy = new TrustStrategy() {
-            @Override
-            public boolean isTrusted(X509Certificate[] chain, String authType) {
-                return true;
-            }
-        };
+        TrustStrategy trustStrategy = (chain, authType) -> true;
 
-        HostnameVerifier hostnameVerifier = new HostnameVerifier() {
-            @Override
-            public boolean verify(String hostname, SSLSession session) {
-                return true;
-            }
-        };
+        HostnameVerifier hostnameVerifier = (hostname, session) -> true;
 
         try {
             this.sslContext = new SSLContextBuilder().loadTrustMaterial(trustStrategy).build();

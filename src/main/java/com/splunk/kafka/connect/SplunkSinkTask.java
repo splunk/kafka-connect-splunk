@@ -42,14 +42,14 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     private SplunkSinkConnectorConfig connectorConfig;
     private List<SinkRecord> bufferedRecords;
     private long lastFlushed = System.currentTimeMillis();
-    private long threadId = Thread.currentThread().getId();
+    private final long threadId = Thread.currentThread().getId();
 
     private static final String HOSTNAME;
     static {
         String h = null;
         try {
             h = InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
+        } catch (UnknownHostException ignored) {
         }
         HOSTNAME = h;
     }
@@ -63,7 +63,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         tracker = new KafkaRecordTracker();
         bufferedRecords = new ArrayList<>();
         if(connectorConfig.flushWindow > 0) {
-            flushWindow = connectorConfig.flushWindow * 1000; // Flush window set to user configured value (Multiply by 1000 as all the calculations are done in milliseconds)
+            flushWindow = connectorConfig.flushWindow * 1000L; // Flush window set to user configured value (Multiply by 1000 as all the calculations are done in milliseconds)
         }
 
         log.info("kafka-connect-splunk task starts with config={}", connectorConfig);
@@ -113,9 +113,8 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     }
 
     // for testing hook
-    SplunkSinkTask setHec(final HecInf hec) {
+    void setHec(final HecInf hec) {
         this.hec = hec;
-        return this;
     }
 
     KafkaRecordTracker getTracker() {
@@ -179,16 +178,14 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         for (SinkRecord record : records) {
             String key = headerId(record);
             if (!recordsWithSameHeaders.containsKey(key)) {
-                ArrayList<SinkRecord> recordList = new ArrayList<SinkRecord>();
+                ArrayList<SinkRecord> recordList = new ArrayList<>();
                 recordsWithSameHeaders.put(key, recordList);
             }
             ArrayList<SinkRecord> recordList = recordsWithSameHeaders.get(key);
             recordList.add(record);
         }
 
-        Iterator<Map.Entry<String, ArrayList<SinkRecord>>> itr = recordsWithSameHeaders.entrySet().iterator();
-        while(itr.hasNext()) {
-            Map.Entry<String, ArrayList<SinkRecord>> set = itr.next();
+        for (Map.Entry<String, ArrayList<SinkRecord>> set : recordsWithSameHeaders.entrySet()) {
             String splunkSinkRecordKey = set.getKey();
             ArrayList<SinkRecord> recordArrayList = set.getValue();
 
@@ -291,7 +288,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             hec.send(batch);
         } catch (Exception ex) {
             batch.fail();
-            onEventFailure(Arrays.asList(batch), ex);
+            onEventFailure(Collections.singletonList(batch), ex);
             log.error("failed to send batch {}" ,batch.getUUID(), ex);
         }
     }
@@ -377,7 +374,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             RawEvent event = new RawEvent(record.value(), record);
             event.setLineBreaker(connectorConfig.lineBreaker);
             if(connectorConfig.headerSupport) {
-                event = (RawEvent)addHeaders(event, record);
+                addHeaders(event, record);
             }
             return event;
         }
@@ -417,10 +414,10 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         return event;
     }
 
-    private Event addHeaders(Event event, SinkRecord record) {
+    private void addHeaders(Event event, SinkRecord record) {
         Headers headers = record.headers();
         if(headers.isEmpty() &&  connectorConfig.headerCustom.isEmpty()) {
-            return event;
+            return;
         }
 
         Header headerIndex = headers.lastWithName(connectorConfig.headerIndex);
@@ -454,7 +451,6 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             }
             event.addFields(headerMap);
         }
-        return event;
     }
 
     private JsonEvent createHECEventNonFormatted(final SinkRecord record) {
@@ -499,11 +495,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
         for (SinkRecord record: records) {
             TopicPartition key = new TopicPartition(record.topic(), record.kafkaPartition());
-            Collection<SinkRecord> partitioned = partitionedRecords.get(key);
-            if (partitioned == null) {
-                partitioned = new ArrayList<>();
-                partitionedRecords.put(key, partitioned);
-            }
+            Collection<SinkRecord> partitioned = partitionedRecords.computeIfAbsent(key, k -> new ArrayList<>());
             partitioned.add(record);
         }
         return partitionedRecords;

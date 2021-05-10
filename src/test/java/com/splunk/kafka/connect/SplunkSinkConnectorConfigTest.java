@@ -59,9 +59,9 @@ public class SplunkSinkConnectorConfigTest {
             SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
             HecConfig config = connectorConfig.getHecConfig();
             if (i == 0) {
-                Assert.assertEquals(false, config.getDisableSSLCertVerification());
+                Assert.assertFalse(config.getDisableSSLCertVerification());
             } else {
-                Assert.assertEquals(true, config.getDisableSSLCertVerification());
+                Assert.assertTrue(config.getDisableSSLCertVerification());
             }
             Assert.assertEquals(uu.configProfile.getMaxHttpConnPerChannel(), config.getMaxHttpConnectionPerChannel());
             Assert.assertEquals(uu.configProfile.getTotalHecChannels(), config.getTotalChannels());
@@ -80,19 +80,19 @@ public class SplunkSinkConnectorConfigTest {
         Map<String, String> taskConfig = uu.createTaskConfig();
         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
         HecConfig config = connectorConfig.getHecConfig();
-        Assert.assertEquals(true, config.getHasCustomTrustStore());
+        Assert.assertTrue(config.getHasCustomTrustStore());
         Assert.assertEquals(uu.configProfile.getTrustStorePath(), config.getTrustStorePath());
         Assert.assertEquals(uu.configProfile.getTrustStorePassword(), config.getTrustStorePassword());
     }
 
     @Test
-    public void testCustomKeystore() throws KeyStoreException {
+    public void testCustomKeystore() {
         UnitUtil uu = new UnitUtil(1);
 
         Map<String, String> taskConfig = uu.createTaskConfig();
         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
         HecConfig config = connectorConfig.getHecConfig();
-        Assert.assertEquals(true, config.getHasCustomTrustStore());
+        Assert.assertTrue(config.getHasCustomTrustStore());
         Assert.assertEquals(uu.configProfile.getTrustStorePath(), config.getTrustStorePath());
         Assert.assertEquals(uu.configProfile.getTrustStorePassword(), config.getTrustStorePassword());
 
@@ -102,14 +102,14 @@ public class SplunkSinkConnectorConfigTest {
     }
 
     @Test
-    public void testNoCustomKeystore() throws KeyStoreException {
+    public void testNoCustomKeystore() {
         UnitUtil uu = new UnitUtil(2);
 
         Map<String, String> taskConfig = uu.createTaskConfig();
         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
         HecConfig config = connectorConfig.getHecConfig();
 
-        Assert.assertEquals(false, config.getHasCustomTrustStore());
+        Assert.assertFalse(config.getHasCustomTrustStore());
     }
 
 

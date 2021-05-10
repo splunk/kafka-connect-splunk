@@ -26,18 +26,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public final class HecPerf {
-    private static Logger log = LoggerFactory.getLogger(HecPerf.class);
-    private static String uriArg = "uris";
-    private static String tokenArg = "token";
-    private static String concurrencyArg = "concurrency";
-    private static String pollIntervalArg = "ack-poll-interval";
-    private static String eventTimoutArg = "event-batch-timeout";
-    private static String iterationArg = "iterations";
-    private static String connectionArg = "http-connection-per-channel";
-    private static String clientPoolArg = "http-client-pool-size";
-    private static String channelNumberArg = "total-channels";
-    private static String verificationArg = "disable-cert-verification";
-    private static String keepAliveArg = "keep-alive";
+    private static final Logger log = LoggerFactory.getLogger(HecPerf.class);
 
     public static void main(String[] args) throws Exception {
         HecPerfConfig config;
@@ -64,15 +53,14 @@ public final class HecPerf {
         CountDownLatch countdown = new CountDownLatch(config.getConcurrency());
         List<Hec> hecs = new ArrayList<>();
         for (int i = 0; i < config.getConcurrency(); i++) {
-            final int id = i;
-            final Hec hec = new Hec(config.getHecClientConfig(), httpClients.get(id % httpClients.size()), poller, new LoadBalancer(config.getHecClientConfig(), httpClients.get(0)));
+            final Hec hec = new Hec(config.getHecClientConfig(), httpClients.get(i % httpClients.size()), poller, new LoadBalancer(config.getHecClientConfig(), httpClients.get(0)));
             hecs.add(hec);
 
             Runnable r = () -> {
                 perf(hec, poller, iterationsPerThread);
                 countdown.countDown();
             };
-            Thread thr = new Thread(r, "perf-thread-" + id);
+            Thread thr = new Thread(r, "perf-thread-" + i);
             thr.start();
             threads.add(thr);
         }
@@ -124,6 +112,7 @@ public final class HecPerf {
     }
 
     private static HecPerfConfig createConfigFrom(String[] args) throws Exception {
+        String uriArg = "uris";
         Option uriOption = Option.builder()
                 .argName(uriArg)
                 .longOpt(uriArg)
@@ -131,6 +120,7 @@ public final class HecPerf {
                 .hasArg(true)
                 .desc("hec uris, separated by comma. For example: https://127.0.0.1:8088")
                 .build();
+        String tokenArg = "token";
         Option tokenOption = Option.builder()
                 .argName(tokenArg)
                 .longOpt(tokenArg)
@@ -138,6 +128,7 @@ public final class HecPerf {
                 .hasArg(true)
                 .desc("hec token")
                 .build();
+        String concurrencyArg = "concurrency";
         Option concurrency = Option.builder()
                 .argName(concurrencyArg)
                 .longOpt(concurrencyArg)
@@ -145,6 +136,7 @@ public final class HecPerf {
                 .hasArg(true)
                 .desc("Number of concurrent HEC posters")
                 .build();
+        String channelNumberArg = "total-channels";
         Option totalChannelNumber = Option.builder()
                 .argName(channelNumberArg)
                 .longOpt(channelNumberArg)
@@ -152,6 +144,7 @@ public final class HecPerf {
                 .hasArg(true)
                 .desc("Number of channels")
                 .build();
+        String pollIntervalArg = "ack-poll-interval";
         Option ackPollInterval = Option.builder()
                 .argName(pollIntervalArg)
                 .longOpt(pollIntervalArg)
@@ -159,6 +152,7 @@ public final class HecPerf {
                 .hasArg(true)
                 .desc("ACK poll interval in seconds")
                 .build();
+        String eventTimoutArg = "event-batch-timeout";
         Option eventBatchTimeout = Option.builder()
                 .argName(eventTimoutArg)
                 .longOpt(eventTimoutArg)
@@ -166,6 +160,7 @@ public final class HecPerf {
                 .hasArg(true)
                 .desc("Event batch timeout in seconds")
                 .build();
+        String iterationArg = "iterations";
         Option totalIterations = Option.builder()
                 .argName(iterationArg)
                 .longOpt(iterationArg)
@@ -173,6 +168,7 @@ public final class HecPerf {
                 .hasArg(true)
                 .desc("Number of iterations to execute")
                 .build();
+        String clientPoolArg = "http-client-pool-size";
         Option clientPool = Option.builder()
                 .argName(clientPoolArg)
                 .longOpt(clientPoolArg)
@@ -180,6 +176,7 @@ public final class HecPerf {
                 .hasArg(true)
                 .desc("Number of clients to share among http post")
                 .build();
+        String connectionArg = "http-connection-per-channel";
         Option connectionPerChannel = Option.builder()
                 .argName(connectionArg)
                 .longOpt(connectionArg)
@@ -187,11 +184,13 @@ public final class HecPerf {
                 .hasArg(true)
                 .desc("Max HTTP connection per channel")
                 .build();
+        String verificationArg = "disable-cert-verification";
         Option disableCertVerification = Option.builder()
                 .argName(verificationArg)
                 .longOpt(verificationArg)
                 .desc("Disable SSL cert verification")
                 .build();
+        String keepAliveArg = "keep-alive";
         Option keepAlive = Option.builder()
                 .argName(keepAliveArg)
                 .longOpt(keepAliveArg)
@@ -266,17 +265,9 @@ public final class HecPerf {
             clientPoolSize = (int) (long) cmd.getParsedOptionValue(clientPoolArg);
         }
 
-        if (cmd.hasOption(verificationArg)) {
-            config.setDisableSSLCertVerification(true);
-        } else {
-            config.setDisableSSLCertVerification(false);
-        }
+        config.setDisableSSLCertVerification(cmd.hasOption(verificationArg));
 
-        if (cmd.hasOption(keepAliveArg)) {
-            config.setHttpKeepAlive(true);
-        } else {
-            config.setHttpKeepAlive(false);
-        }
+        config.setHttpKeepAlive(cmd.hasOption(keepAliveArg));
 
         return new HecPerfConfig(config, concurrent, clientPoolSize, iterations);
     }

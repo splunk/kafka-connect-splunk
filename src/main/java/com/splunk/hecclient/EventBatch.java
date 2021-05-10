@@ -32,9 +32,9 @@ import java.util.Map;
 import java.util.UUID;
 
 public abstract class EventBatch {
-    private static Logger log = LoggerFactory.getLogger(EventBatch.class);
+    private static final Logger log = LoggerFactory.getLogger(EventBatch.class);
 
-    private UUID batchUUID = UUID.randomUUID();
+    private final UUID batchUUID = UUID.randomUUID();
 
     private static final int INIT = 0;
     private static final int COMMITTED = 1;
@@ -44,7 +44,7 @@ public abstract class EventBatch {
     private int failureCount = 0;
     private long sendTimestamp = System.currentTimeMillis() / 1000; // in seconds
     protected int len;
-    protected List<Event> events = new ArrayList<>();
+    protected final List<Event> events = new ArrayList<>();
 
     public abstract String getRestEndpoint();
     public abstract String getContentType();
@@ -83,20 +83,17 @@ public abstract class EventBatch {
         return status == COMMITTED;
     }
 
-    public final EventBatch init() {
+    public final void init() {
         status = INIT;
-        return this;
     }
 
-    public final EventBatch fail() {
+    public final void fail() {
         status = FAILED;
         failureCount += 1;
-        return this;
     }
 
-    public final EventBatch commit() {
+    public final void commit() {
         status = COMMITTED;
-        return this;
     }
 
     public final int getFailureCount() {
@@ -158,7 +155,7 @@ public abstract class EventBatch {
         }
 
         @Override
-        public InputStream getContent() throws IOException, UnsupportedOperationException {
+        public InputStream getContent() throws UnsupportedOperationException {
             return new SequenceInputStream(new Enumeration<InputStream>() {
                 int idx = -1;
 

@@ -34,18 +34,18 @@ import org.slf4j.LoggerFactory;
 
 final class KafkaRecordTracker {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class);
-    private ConcurrentMap<TopicPartition, ConcurrentNavigableMap<Long, EventBatch>> all; // TopicPartition + Long offset represents the SinkRecord
-    private AtomicLong total;
-    private ConcurrentLinkedQueue<EventBatch> failed;
-    private volatile Map<TopicPartition, OffsetAndMetadata> offsets;
-    private Collection<TopicPartition> partitions;
+    private final ConcurrentMap<TopicPartition, ConcurrentNavigableMap<Long, EventBatch>> all; // TopicPartition + Long offset represents the SinkRecord
+    private final AtomicLong total;
+    private final ConcurrentLinkedQueue<EventBatch> failed;
+    private final Map<TopicPartition, OffsetAndMetadata> offsets;
+    private final Collection<TopicPartition> partitions;
 
     public KafkaRecordTracker() {
         all = new ConcurrentHashMap<>();
         failed = new ConcurrentLinkedQueue<>();
         total = new AtomicLong();
         offsets = new HashMap<>();
-        partitions = new ArrayList<TopicPartition>();
+        partitions = new ArrayList<>();
     }
 
     /**
@@ -70,7 +70,7 @@ final class KafkaRecordTracker {
             }
             long offset = -1;
             Iterator<Map.Entry<Long, EventBatch>> iter = tpRecords.entrySet().iterator();
-            for (; iter.hasNext();) {
+            while (iter.hasNext()) {
                 Map.Entry<Long, EventBatch> e = iter.next();
                 if (e.getValue().isCommitted()) {
                     log.debug("processing offset {}", e.getKey());
@@ -171,9 +171,9 @@ final class KafkaRecordTracker {
 
         /* Count and purge outstanding event topic/partition records. */
         long countOfEventsToRemove = partitions.stream()
-            .map(tp -> all.get(tp))  // get unassigned topic/partition records
+            .map(all::get)  // get unassigned topic/partition records
             .filter(Objects::nonNull)  // filter out null values
-            .map(tpr -> tpr.size())  // get number of tp records
+            .map(Map::size)  // get number of tp records
             .mapToInt(Integer::intValue)  // map to int
             .sum();
         if (countOfEventsToRemove > 0) {

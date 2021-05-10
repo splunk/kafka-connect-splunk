@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 public final class PrintIt implements PollerCallback {
-    private AtomicLong eventsFailed = new AtomicLong(0);
-    private AtomicLong events = new AtomicLong(0);
+    private final AtomicLong eventsFailed = new AtomicLong(0);
+    private final AtomicLong events = new AtomicLong(0);
 
     @Override
     public void onEventFailure(List<EventBatch> batches, Exception ex) {

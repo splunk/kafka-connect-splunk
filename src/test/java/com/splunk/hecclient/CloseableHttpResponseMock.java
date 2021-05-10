@@ -17,7 +17,6 @@ package com.splunk.hecclient;
 
 import org.apache.http.*;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.params.*;
 
 import java.io.IOException;
@@ -29,9 +28,8 @@ public class CloseableHttpResponseMock implements CloseableHttpResponse {
     private HttpEntity entity;
     private boolean throwOnClose = false;
 
-    public CloseableHttpResponseMock setThrowOnClose(boolean th) {
+    public void setThrowOnClose(boolean th) {
         throwOnClose = th;
-        return this;
     }
     @Override
     public void close() throws IOException {

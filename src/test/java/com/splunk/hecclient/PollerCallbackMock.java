@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class PollerCallbackMock implements PollerCallback {
-    private ConcurrentLinkedQueue<EventBatch> failed = new ConcurrentLinkedQueue<>();
-    private ConcurrentLinkedQueue<EventBatch> committed = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<EventBatch> failed = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<EventBatch> committed = new ConcurrentLinkedQueue<>();
 
     public void onEventFailure(final List<EventBatch> failure, Exception ex) {
         failed.addAll(failure);
@@ -32,14 +32,10 @@ public class PollerCallbackMock implements PollerCallback {
     }
 
     public List<EventBatch> getFailed() {
-        List<EventBatch> results = new ArrayList<>();
-        results.addAll(failed);
-        return results;
+        return new ArrayList<>(failed);
     }
 
     public List<EventBatch> getCommitted() {
-        List<EventBatch> results = new ArrayList<>();
-        results.addAll(committed);
-        return results;
+        return new ArrayList<>(committed);
     }
 }
