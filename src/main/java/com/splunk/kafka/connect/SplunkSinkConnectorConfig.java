@@ -35,6 +35,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());;
 
+
     // General
     static final String INDEX = "index";
     static final String SOURCE = "source";
@@ -325,6 +326,10 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 || (sources != null && !sources.isEmpty())
                 || (sourcetypes != null && !sourcetypes.isEmpty()));
     }
+    
+    public Map<String, String> getTopicMetadata(String topic) {
+        return topicRegexConfigured ? getTopicRegexMetadata(topic) : topicMetas.get(topic);
+    }
 
     public Map<String, String> getTopicMetadata(String topic) {
         return topicRegexConfigured ? getTopicRegexMetadata(topic) : topicMetas.get(topic);
@@ -365,6 +370,32 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 + "headerSourcetype:" + headerSourcetype + ", "
                 + "headerHost:" + headerHost + ", "
                 + "lbPollInterval:" + lbPollInterval;
+    }
+    
+        private Map<String, String> getTopicRegexMetadata(String topic) {
+        Map<String, String> topicMetadata = topicMetas.get(topic);
+        if (topicMetadata != null) {
+            return topicMetadata;
+        }
+        return initializeAndGetRegexMetadata(topic);
+    }
+
+    private synchronized Map<String, String> initializeAndGetRegexMetadata(String topic) {
+        // at first once again check whether another thread didn't already initialize the variable while waiting
+        Map<String, String> topicMetadata = topicMetas.get(topic);
+        if (topicMetadata != null) {
+            return topicMetadata;
+        }
+        Optional<Entry<String, Map<String, String>>> matchedRegexMetadata = topicRegexMetas.entrySet().stream()
+            .filter(e -> Pattern.matches(e.getKey(), topic))
+            .findFirst();
+        if (!matchedRegexMetadata.isPresent()) {
+            throw new IllegalStateException("Incoming topic: " + topic + " is not configured in \"" + SinkTask.TOPICS_REGEX_CONFIG + "\" config");
+        }
+        Entry<String, Map<String, String>> regexRecord = matchedRegexMetadata.get();
+        log.info("Matched regex: {} for incoming topic: {}", regexRecord.getKey(), topic);
+        topicMetas.put(topic, regexRecord.getValue());
+        return regexRecord.getValue();
     }
 
     private Map<String, String> getTopicRegexMetadata(String topic) {
@@ -434,9 +465,13 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
 
         Map<String, Map<String, String>> metaMap = new ConcurrentHashMap<>();
         int idx = 0;
+
         if (topics == null) {
             return metaMap;
         }
+         if (topics == null) {
+            return metaMap;
+         }
         for (String topic: topics) {
             HashMap<String, String> topicMeta = new HashMap<>();
             String meta = getMetaForTopic(topicIndexes, topics.length, idx, INDEX_CONF);
@@ -454,6 +489,50 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             metaMap.put(topic, topicMeta);
             idx += 1;
         }
+        return metaMap;
+    }
+    
+     private boolean shouldUseTopicRegex(Map<String, String> taskConfig) {
+        String[] topics = split(taskConfig.get(SinkConnector.TOPICS_CONFIG), ",");
+        String topicsRegex = StringUtils.trimToNull(taskConfig.get(SinkTask.TOPICS_REGEX_CONFIG));
+        if (ArrayUtils.isNotEmpty(topics) && topicsRegex != null) {
+            throw new IllegalArgumentException("Cannot use both \"topics\" and \"topics.regex\" in connector configuration");
+        }
+        if (ArrayUtils.isEmpty(topics) && topicsRegex == null) {
+            throw new IllegalArgumentException("Either use both \"topics\" and \"topics.regex\" in connector configuration");
+        }
+        return topicsRegex != null;
+    }
+
+    private Map<String, Map<String, String>> initMetaMapForRegex(Map<String, String> taskConfig) {
+        String topicRegex =  StringUtils.trimToNull(taskConfig.get(SinkTask.TOPICS_REGEX_CONFIG));
+        if (topicRegex == null) {
+            return new ConcurrentHashMap<>();
+        }
+        String[] topicIndexes = split(indexes, ",");
+        String[] topicSourcetypes = split(sourcetypes, ",");
+        String[] topicSources = split(sources, ",");
+        if ((topicIndexes != null && topicIndexes.length > 1) || (topicSourcetypes != null && topicSourcetypes.length > 1) || (topicSources != null && topicSources.length > 1)) {
+            throw new IllegalArgumentException("there has to be only single index/sourcetype/source when using topic pattern");
+        }
+
+        HashMap<String, String> topicMeta = new HashMap<>();
+        String meta = getMetaForTopic(topicIndexes, 1, 0, INDEX_CONF);
+        if (meta != null) {
+            topicMeta.put(INDEX, meta);
+        }
+        meta = getMetaForTopic(topicSourcetypes, 1, 0, SOURCETYPE_CONF);
+        if (meta != null) {
+            topicMeta.put(SOURCETYPE, meta);
+        }
+
+        meta = getMetaForTopic(topicSources, 1, 0, SOURCE_CONF);
+        if (meta != null) {
+            topicMeta.put(SOURCE, meta);
+        }
+
+        Map<String, Map<String, String>> metaMap = new ConcurrentHashMap<>();
+        metaMap.put(topicRegex, topicMeta);
         return metaMap;
     }
 
