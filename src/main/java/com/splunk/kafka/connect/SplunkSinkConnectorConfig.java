@@ -16,13 +16,15 @@
 package com.splunk.kafka.connect;
 
 import com.splunk.hecclient.HecConfig;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.sink.SinkConnector;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.*;
 
 public final class SplunkSinkConnectorConfig extends AbstractConfig {
     // General
@@ -74,6 +76,10 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String HEADER_HOST_CONF = "splunk.header.host";
     // Load Balancer
     static final String LB_POLL_INTERVAL_CONF = "splunk.hec.lb.poll.interval";
+
+    // Kerberos config
+    static final String KERBEROS_USER_PRINCIPAL_CONF = "kerberos.user.principal";
+    static final String KERBEROS_KEYTAB_PATH_CONF = "kerberos.keytab.path";
 
     // Kafka configuration description strings
     // Required Parameters
@@ -168,6 +174,9 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String HEADER_SOURCETYPE_DOC = "Header to use for Splunk Header Sourcetype";
     static final String HEADER_HOST_DOC = "Header to use for Splunk Header Host";
 
+    static final String KERBEROS_USER_PRINCIPAL_DOC = "Kerberos user principal";
+    static final String KERBEROS_KEYTAB_LOCATION_DOC = "Kerberos keytab path";
+
     // Load Balancer
     static final String LB_POLL_INTERVAL_DOC = "This setting controls the load balancer polling interval. By default, "
             + "this setting is 120 seconds.";
@@ -217,6 +226,9 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final String headerSourcetype;
     final String headerHost;
 
+    final String kerberosUserPrincipal;
+    final String kerberosKeytabPath;
+
     SplunkSinkConnectorConfig(Map<String, String> taskConfig) {
         super(conf(), taskConfig);
         splunkToken = getPassword(TOKEN_CONF).value();
@@ -257,6 +269,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         headerSource = getString(HEADER_SOURCE_CONF);
         headerSourcetype = getString(HEADER_SOURCETYPE_CONF);
         headerHost = getString(HEADER_HOST_CONF);
+        kerberosUserPrincipal = getString(KERBEROS_USER_PRINCIPAL_CONF);
+        kerberosKeytabPath = getString(KERBEROS_KEYTAB_PATH_CONF);
     }
 
     public static ConfigDef conf() {
@@ -295,7 +309,9 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(HEADER_SOURCE_CONF, ConfigDef.Type.STRING, "splunk.header.source", ConfigDef.Importance.MEDIUM, HEADER_SOURCE_DOC)
                 .define(HEADER_SOURCETYPE_CONF, ConfigDef.Type.STRING, "splunk.header.sourcetype", ConfigDef.Importance.MEDIUM, HEADER_SOURCETYPE_DOC)
                 .define(HEADER_HOST_CONF, ConfigDef.Type.STRING, "splunk.header.host", ConfigDef.Importance.MEDIUM, HEADER_HOST_DOC)
-                .define(LB_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 120, ConfigDef.Importance.LOW, LB_POLL_INTERVAL_DOC);
+                .define(LB_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 120, ConfigDef.Importance.LOW, LB_POLL_INTERVAL_DOC)
+                .define(KERBEROS_USER_PRINCIPAL_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, KERBEROS_USER_PRINCIPAL_DOC)
+                .define(KERBEROS_KEYTAB_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, KERBEROS_KEYTAB_LOCATION_DOC);
     }
     /**
      Configuration Method to setup all settings related to Splunk HEC Client
@@ -303,19 +319,21 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     public HecConfig getHecConfig() {
         HecConfig config = new HecConfig(Arrays.asList(splunkURI.split(",")), splunkToken);
         config.setDisableSSLCertVerification(!validateCertificates)
-              .setSocketTimeout(socketTimeout)
-              .setMaxHttpConnectionPerChannel(maxHttpConnPerChannel)
-              .setTotalChannels(totalHecChannels)
-              .setEventBatchTimeout(eventBatchTimeout)
-              .setHttpKeepAlive(httpKeepAlive)
-              .setAckPollInterval(ackPollInterval)
-              .setlbPollInterval(lbPollInterval)
-              .setAckPollThreads(ackPollThreads)
-              .setEnableChannelTracking(trackData)
-              .setBackoffThresholdSeconds(backoffThresholdSeconds)
-              .setTrustStorePath(trustStorePath)
-              .setTrustStorePassword(trustStorePassword)
-              .setHasCustomTrustStore(hasTrustStorePath);
+                .setSocketTimeout(socketTimeout)
+                .setMaxHttpConnectionPerChannel(maxHttpConnPerChannel)
+                .setTotalChannels(totalHecChannels)
+                .setEventBatchTimeout(eventBatchTimeout)
+                .setHttpKeepAlive(httpKeepAlive)
+                .setAckPollInterval(ackPollInterval)
+                .setlbPollInterval(lbPollInterval)
+                .setAckPollThreads(ackPollThreads)
+                .setEnableChannelTracking(trackData)
+                .setBackoffThresholdSeconds(backoffThresholdSeconds)
+                .setTrustStorePath(trustStorePath)
+                .setTrustStorePassword(trustStorePassword)
+                .setHasCustomTrustStore(hasTrustStorePath)
+                .setKerberosPrincipal(kerberosUserPrincipal)
+                .setKerberosKeytabPath(kerberosKeytabPath);
         return config;
     }
 
