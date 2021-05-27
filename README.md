@@ -8,12 +8,20 @@ Splunk Connect for Kafka is a Kafka Connect Sink for Splunk with the following f
 ## Requirements
 1. Kafka version 1.0.0 and above.
 2. Java 8 and above.
-3. A Splunk environment of version 6.5 and above, configured with valid HTTP Event Collector (HEC) tokens.
+3. A Splunk environment of version 7.1 and above, configured with valid HTTP Event Collector (HEC) tokens.
 
 	* HEC token settings should be the same on all Splunk Indexers and Heavy Forwarders in your environment.
 	* Task configuration parameters will vary depending on acknowledgement setting (See the [Configuration](#configuration) section for details).
 
 	Note: HEC Acknowledgement prevents potential data loss but may slow down event ingestion.
+	
+###Supported technologies
+
+Splunk Connect for Kafka lets you subscribe to a Kafka topic and stream the data to the Splunk HTTP event collector on the following technologies:
+
+	* Apache Kafka
+	* Amazon Managed Streaming for Apache Kafka (Amazon MSK)
+	* Confluent Platform
 
 ## Build
 
