@@ -401,13 +401,30 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     }
 
     private Map<String, Map<String, String>> initMetaMap(Map<String, String> taskConfig) {
-        String[] topics = split(taskConfig.get(SinkConnector.TOPICS_CONFIG), ",");
+        /* 
+        ** Modified 2021-08-28 by R. Vasaly to allow the use of 'topics.regex' instead
+        ** of the static list of topics. If topics.regex is specified in the config,
+        ** the Connector will subscribe to all matching topics. If topics.regex is used,
+        ** a single dummy entry is stored in the 'topics' string array so that existing
+        ** code does not fail with a null string. With the single dummy topic, mapping from
+        ** topic value to Splunk metadata will not work, so either the Headers must define
+        ** the Splunk metadata, or simply rely on the HEC token to set default index,
+        ** sourcetype, etc.
+        */
+        String[] topics = new String[1];
+        String[] topics_conf = split(taskConfig.get(SinkConnector.TOPICS_CONFIG), ",");
         String[] topicIndexes = split(indexes, ",");
         String[] topicSourcetypes = split(sourcetypes, ",");
         String[] topicSources = split(sources, ",");
 
         Map<String, Map<String, String>> metaMap = new HashMap<>();
         int idx = 0;
+        // If the config has no "topics" values, set the array to a dummy entry
+        if (topics_conf == null || topics_conf.length == 0 || topics_conf[0].length() == 0) {
+        	topics[0] = "none";
+        } else {
+        	topics = topics_conf.clone();
+        }	
         for (String topic: topics) {
             HashMap<String, String> topicMeta = new HashMap<>();
             String meta = getMetaForTopic(topicIndexes, topics.length, idx, INDEX_CONF);
