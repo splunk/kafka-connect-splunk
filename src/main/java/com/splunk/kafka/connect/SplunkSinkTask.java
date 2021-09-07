@@ -214,6 +214,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         if(indexHeader != null) {
             headerString.append(indexHeader.value().toString());
         } else {
+            if(metas!=null)
             headerString.append(metas.get("index"));
         }
 
@@ -222,6 +223,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         if(hostHeader != null) {
             headerString.append(hostHeader.value().toString());
         } else {
+            if(metas!=null)
             headerString.append("default-host");
         }
 
@@ -230,6 +232,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         if(sourceHeader != null) {
             headerString.append(sourceHeader.value().toString());
         } else {
+            if(metas!=null)
             headerString.append(metas.get("source"));
         }
 
@@ -238,6 +241,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         if(sourcetypeHeader != null) {
             headerString.append(sourcetypeHeader.value().toString());
         } else {
+            if(metas!=null)
             headerString.append(metas.get("sourcetype"));
         }
 

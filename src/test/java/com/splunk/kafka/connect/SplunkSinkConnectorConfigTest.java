@@ -239,6 +239,17 @@ public class SplunkSinkConnectorConfigTest {
     }
 
     @Test
+    public void createWithEmptyTopicMetaData() {
+        UnitUtil uu = new UnitUtil(0);
+
+        // when topics.regex value use in config then skip formation of topicMeta
+        Map<String, String> config = uu.createTaskConfig();
+        config.put(SinkConnector.TOPICS_CONFIG, "");
+        SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
+        Assert.assertEquals(0, connectorConfig.topicMetas.size());
+    }
+
+    @Test
     public void toStr() {
         UnitUtil uu = new UnitUtil(0);
 
