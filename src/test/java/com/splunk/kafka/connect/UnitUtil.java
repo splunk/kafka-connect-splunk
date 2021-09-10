@@ -16,6 +16,7 @@
 package com.splunk.kafka.connect;
 
 import org.apache.kafka.connect.sink.SinkConnector;
+import org.apache.kafka.connect.sink.SinkTask;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +32,7 @@ public class UnitUtil {
     public Map<String, String> createTaskConfig() {
         Map<String, String> config = new HashMap<>();
         config.put(SinkConnector.TOPICS_CONFIG, configProfile.getTopics());
+        config.put(SinkTask.TOPICS_REGEX_CONFIG, configProfile.getTopicsRegex());
         config.put(SplunkSinkConnectorConfig.TOKEN_CONF, configProfile.getToken());
         config.put(SplunkSinkConnectorConfig.URI_CONF, configProfile.getUri());
         config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(configProfile.isRaw()));

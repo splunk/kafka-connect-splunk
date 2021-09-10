@@ -5,6 +5,7 @@ import java.util.Map;
 
 public class ConfigProfile {
     private String topics;
+    private String topicsRegex;
     private String token;
     private String uri;
     private boolean raw;
@@ -49,6 +50,8 @@ public class ConfigProfile {
             case 2:  buildProfileTwo();
                      break;
             case 3:  buildProfileThree();
+                     break;
+            case 4:  buildProfileFour();
                      break;
             default: buildProfileDefault();
                      break;
@@ -183,12 +186,56 @@ public class ConfigProfile {
         return this;
     }
 
+    /*
+        Profile Four:
+        - Raw Endpoint
+        - with topics.regex
+    */
+    public ConfigProfile buildProfileFour() {
+        this.topicsRegex = "^kafka-data[0-9]$";
+        this.token = "mytoken";
+        this.uri = "https://dummy:8088";
+        this.raw = true;
+        this.ack = false;
+        this.indexes = "index-1";
+        this.sourcetypes = "kafka-data";
+        this.sources = "kafka-connect";
+        this.httpKeepAlive = true;
+        this.validateCertificates = false;
+        this.eventBatchTimeout = 1;
+        this.ackPollInterval = 1;
+        this.ackPollThreads = 1;
+        this.maxHttpConnPerChannel = 1;
+        this.totalHecChannels = 1;
+        this.socketTimeout = 1;
+        this.enrichements = "hello=world";
+        this.enrichementMap = new HashMap<>();
+        this.trackData = false;
+        this.maxBatchSize = 1;
+        this.numOfThreads = 1;
+        this.headerSupport = true;
+        this.headerIndex = "splunk.header.index";
+        this.headerSource = "splunk.header.source";
+        this.headerSourcetype = "splunk.header.sourcetype";
+        this.headerHost = "splunk.header.host";
+
+        return this;
+    }
+
     public String getTopics() {
         return topics;
     }
 
     public void setTopics(String topics) {
         this.topics = topics;
+    }
+
+    public String getTopicsRegex() {
+        return topicsRegex;
+    }
+
+    public void setTopicsRegex(String topicsRegex) {
+        this.topicsRegex = topicsRegex;
     }
 
     public String getToken() {
@@ -408,6 +455,6 @@ public class ConfigProfile {
     }
 
     @Override public String toString() {
-        return "ConfigProfile{" + "topics='" + topics + '\'' + ", token='" + token + '\'' + ", uri='" + uri + '\'' + ", raw=" + raw + ", ack=" + ack + ", indexes='" + indexes + '\'' + ", sourcetypes='" + sourcetypes + '\'' + ", sources='" + sources + '\'' + ", httpKeepAlive=" + httpKeepAlive + ", validateCertificates=" + validateCertificates + ", hasTrustStorePath=" + hasTrustStorePath + ", trustStorePath='" + trustStorePath + '\'' + ", trustStorePassword='" + trustStorePassword + '\'' + ", eventBatchTimeout=" + eventBatchTimeout + ", ackPollInterval=" + ackPollInterval + ", ackPollThreads=" + ackPollThreads + ", maxHttpConnPerChannel=" + maxHttpConnPerChannel + ", totalHecChannels=" + totalHecChannels + ", socketTimeout=" + socketTimeout + ", enrichements='" + enrichements + '\'' + ", enrichementMap=" + enrichementMap + ", trackData=" + trackData + ", maxBatchSize=" + maxBatchSize + ", numOfThreads=" + numOfThreads + '}';
+        return "ConfigProfile{" + "topics='" + topics + '\'' + ", topics.regex='" + topicsRegex +  '\'' + ", token='" + token + '\'' + ", uri='" + uri + '\'' + ", raw=" + raw + ", ack=" + ack + ", indexes='" + indexes + '\'' + ", sourcetypes='" + sourcetypes + '\'' + ", sources='" + sources + '\'' + ", httpKeepAlive=" + httpKeepAlive + ", validateCertificates=" + validateCertificates + ", hasTrustStorePath=" + hasTrustStorePath + ", trustStorePath='" + trustStorePath + '\'' + ", trustStorePassword='" + trustStorePassword + '\'' + ", eventBatchTimeout=" + eventBatchTimeout + ", ackPollInterval=" + ackPollInterval + ", ackPollThreads=" + ackPollThreads + ", maxHttpConnPerChannel=" + maxHttpConnPerChannel + ", totalHecChannels=" + totalHecChannels + ", socketTimeout=" + socketTimeout + ", enrichements='" + enrichements + '\'' + ", enrichementMap=" + enrichementMap + ", trackData=" + trackData + ", maxBatchSize=" + maxBatchSize + ", numOfThreads=" + numOfThreads + '}';
     }
 }

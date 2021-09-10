@@ -214,8 +214,9 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         if(indexHeader != null) {
             headerString.append(indexHeader.value().toString());
         } else {
-            if(metas!=null)
-            headerString.append(metas.get("index"));
+            if(metas != null) {
+                headerString.append(metas.get("index"));
+            }
         }
 
         headerString.append(insertHeaderToken());
@@ -223,8 +224,9 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         if(hostHeader != null) {
             headerString.append(hostHeader.value().toString());
         } else {
-            if(metas!=null)
-            headerString.append("default-host");
+            if(metas != null) {
+                headerString.append("default-host");
+            }
         }
 
         headerString.append(insertHeaderToken());
@@ -232,8 +234,9 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         if(sourceHeader != null) {
             headerString.append(sourceHeader.value().toString());
         } else {
-            if(metas!=null)
-            headerString.append(metas.get("source"));
+            if(metas != null) {
+                headerString.append(metas.get("source"));
+            }
         }
 
         headerString.append(insertHeaderToken());
@@ -241,8 +244,9 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         if(sourcetypeHeader != null) {
             headerString.append(sourcetypeHeader.value().toString());
         } else {
-            if(metas!=null)
-            headerString.append(metas.get("sourcetype"));
+            if(metas != null) {
+                headerString.append(metas.get("sourcetype"));
+            }
         }
 
         headerString.append(insertHeaderToken());

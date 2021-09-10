@@ -21,6 +21,7 @@ import org.apache.kafka.connect.sink.SinkConnector;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.connect.sink.SinkTask;
 
 import java.util.*;
 
@@ -130,7 +131,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             + "-1 which will retry indefinitely.";
 
     static final String HEC_BACKOFF_PRESSURE_THRESHOLD_DOC = "The amount of time Splunk Connect for Kafka waits on errors "
-            +   "sending events to Splunk to attempt resending it";
+            + "sending events to Splunk to attempt resending it";
     // Endpoint Parameters
     static final String RAW_DOC = "Set to true in order for Splunk software to ingest data using the the /raw HEC "
             + "endpoint. Default is false, which will use the /event endpoint.";
@@ -250,6 +251,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         maxRetries = getInt(MAX_RETRIES_CONF);
         backoffThresholdSeconds = getInt(HEC_BACKOFF_PRESSURE_THRESHOLD);
         hecEventFormatted = getBoolean(HEC_EVENT_FORMATTED_CONF);
+        validateTopicsAndTopicsRegexCombination(taskConfig);
         topicMetas = initMetaMap(taskConfig);
         headerSupport = getBoolean(HEADER_SUPPORT_CONF);
         headerCustom = getString(HEADER_CUSTOM_CONF);
@@ -297,8 +299,9 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(HEADER_HOST_CONF, ConfigDef.Type.STRING, "splunk.header.host", ConfigDef.Importance.MEDIUM, HEADER_HOST_DOC)
                 .define(LB_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 120, ConfigDef.Importance.LOW, LB_POLL_INTERVAL_DOC);
     }
+
     /**
-     Configuration Method to setup all settings related to Splunk HEC Client
+     * Configuration Method to setup all settings related to Splunk HEC Client
      */
     public HecConfig getHecConfig() {
         HecConfig config = new HecConfig(Arrays.asList(splunkURI.split(",")), splunkToken);
@@ -376,10 +379,10 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         }
 
         Map<String, String> enrichmentKvs = new HashMap<>();
-        for (final String kv: kvs) {
+        for (final String kv : kvs) {
             String[] kvPairs = split(kv, "=");
             if (kvPairs.length != 2) {
-                throw new ConfigException("Invalid enrichment: " + enrichment+ ". Expect key value pairs and separated by comma");
+                throw new ConfigException("Invalid enrichment: " + enrichment + ". Expect key value pairs and separated by comma");
             }
             enrichmentKvs.put(kvPairs[0], kvPairs[1]);
         }
@@ -409,15 +412,15 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         Map<String, Map<String, String>> metaMap = new HashMap<>();
         int idx = 0;
         /*
-        ** to allow the use of 'topics.regex' instead of the static list of topics.
-        ** If topics.regex is specified in the config, the Connector will subscribe to all matching topics.
-        ** If topics.regex is used, mapping from topic value to Splunk metadata will not work,
-        ** so either the Headers must define the Splunk metadata, or simply rely on the HEC token
-        ** to set default index, sourcetype, etc.
-        */
+         ** to allow the use of 'topics.regex' instead of the static list of topics.
+         ** If topics.regex is specified in the config, the Connector will subscribe to all matching topics.
+         ** If topics.regex is used, mapping from topic value to Splunk metadata will not work,
+         ** so either the Headers must define the Splunk metadata, or simply rely on the HEC token
+         ** to set default index, sourcetype, etc.
+         */
 
         // If the config has no "topics" values, skip metamap formation
-        if(topics != null && topics.length != 0) {
+        if (topics != null && topics.length != 0) {
             for (String topic : topics) {
                 HashMap<String, String> topicMeta = new HashMap<>();
                 String meta = getMetaForTopic(topicIndexes, topics.length, idx, INDEX_CONF);
@@ -444,7 +447,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
 
     private void validateHttpsConfig(String uriConf) {
         List<String> uris = Arrays.asList(uriConf.split(","));
-        for (String uri: uris) {
+        for (String uri : uris) {
             if (uri.startsWith("https://") && this.validateCertificates && !this.hasTrustStorePath) {
                 throw new ConfigException("Invalid Secure HTTP (HTTPS) configuration: "
                         + SplunkSinkConnectorConfig.URI_CONF + "='" + uriConf + "',"
@@ -453,4 +456,15 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             }
         }
     }
+
+    private void validateTopicsAndTopicsRegexCombination(Map<String, String> taskConfig) {
+        String topics = taskConfig.get(SinkConnector.TOPICS_CONFIG);
+        String topicsRegex = taskConfig.get(SinkTask.TOPICS_REGEX_CONFIG);
+        if(StringUtils.isEmpty(topics) && StringUtils.isEmpty(topicsRegex)) {
+            throw new ConfigException("Either topics or topics.regex value must be provided in the config");
+        } else if (StringUtils.isNotEmpty(topics) && StringUtils.isNotEmpty(topicsRegex)) {
+            throw new ConfigException("Should not provide both topics and topics.regex's value at the same time in the config");
+        }
+    }
+
 }
