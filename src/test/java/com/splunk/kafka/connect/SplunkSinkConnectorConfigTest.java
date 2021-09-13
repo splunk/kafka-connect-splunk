@@ -20,6 +20,7 @@ import com.splunk.hecclient.HecConfig;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.sink.SinkConnector;
 
+import org.apache.kafka.connect.sink.SinkTask;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -235,6 +236,33 @@ public class SplunkSinkConnectorConfigTest {
         config.put(SplunkSinkConnectorConfig.INDEX_CONF, "i1,i2");
         config.put(SplunkSinkConnectorConfig.SOURCE_CONF, "s1,s2,s3");
         config.put(SplunkSinkConnectorConfig.SOURCETYPE_CONF, "e1,e2,e3");
+        SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
+    }
+
+    @Test
+    public void createWithEmptyTopicMetaData() {
+        UnitUtil uu = new UnitUtil(4);
+
+        // when topics.regex value use in config then skip formation of topicMeta
+        Map<String, String> config = uu.createTaskConfig();
+        SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
+        Assert.assertEquals(0, connectorConfig.topicMetas.size());
+    }
+
+    @Test(expected = ConfigException.class)
+    public void testTopicsAndTopicsRegexCombination() {
+        UnitUtil uu = new UnitUtil(4);
+        Map<String, String> config = uu.createTaskConfig();
+        config.put(SinkConnector.TOPICS_CONFIG, "topic1");
+        SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
+    }
+
+    @Test(expected = ConfigException.class)
+    public void testEmptyTopicsAndTopicsRegexCombination() {
+        UnitUtil uu = new UnitUtil(4);
+        Map<String, String> config = uu.createTaskConfig();
+        config.put(SinkConnector.TOPICS_CONFIG, "");
+        config.put(SinkTask.TOPICS_REGEX_CONFIG, "");
         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
     }
 

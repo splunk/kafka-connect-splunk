@@ -89,7 +89,7 @@ Use the below schema to configure Splunk Connect for Kafka
 "config": {
    "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
    "tasks.max": "<number-of-tasks>",
-   "topics": "<list-of-topics-separated-by-comma>",
+   "topics" or "topics.regex": "<list-of-topics-separated-by-comma>" or "<regex to subscribe all the topics which match the regex pattern>"
    "splunk.indexes": "<list-of-indexes-for-topics-data-separated-by-comma>",
    "splunk.sources": "<list-of-sources-for-topics-data-separated-by-comma>",
    "splunk.sourcetypes": "<list-of-sourcetypes-for-topics-data-separated-by-comma>",
@@ -133,7 +133,8 @@ Use the below schema to configure Splunk Connect for Kafka
 | `tasks.max` |  The number of tasks generated to handle data collection jobs in parallel. The tasks will be spread evenly across all Splunk Kafka Connector nodes.||
 | `splunk.hec.uri` | Splunk HEC URIs. Either a list of FQDNs or IPs of all Splunk indexers, separated with a ",", or a load balancer. The connector will load balance to indexers using round robin. Splunk Connector will round robin to this list of indexers. `https://hec1.splunk.com:8088,https://hec2.splunk.com:8088,https://hec3.splunk.com:8088`||
 | `splunk.hec.token` |  [Splunk Http Event Collector token](http://docs.splunk.com/Documentation/SplunkCloud/6.6.3/Data/UsetheHTTPEventCollector#About_Event_Collector_tokens).||
-| `topics` |  Comma separated list of Kafka topics for Splunk to consume. `prod-topic1,prod-topc2,prod-topic3`||
+| `topics` or `topics.regex` |  For **topics**: Comma separated list of Kafka topics for Splunk to consume. `prod-topic1,prod-topc2,prod-topic3` <br/> For **topics.regex**: Use for declaring topic subscriptions as name pattern, instead of specifying each topic in a list. `^prod-topic[0-9]$`<br/> **NOTE:** <br/> 1) If "topics.regex" is specified, the "topics" parameter must be omitted.<br/> 2) With "topics.regex", the Splunk meta fields("splunk.indexes", "splunk.sourcetypes", "splunk.sources") are ignored and should be omitted.<br/> 3) With "topics.regex" the Splunk metadata must either be defined on a per-event basis by using Kafka Header Fields("splunk.header.index", "splunk.header.sourcetype", etc.), OR it can be defined by the HEC token default index and sourcetype values.
+ 
 #### General Optional Parameters
 | Name              | Description                | Default Value  |
 |--------           |----------------------------|-----------------------|
