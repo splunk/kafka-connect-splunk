@@ -1,0 +1,174 @@
+name: CI Build Test
+
+on:
+  pull_request:
+    branches-ignore:
+      - /^release\/.*/
+      - master
+
+jobs:
+
+  build-unit-test:
+    name: build and run unit test
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Get maven dependencies
+        run: |
+          mvn dependency:go-offline
+
+      - name: Run Unit tests
+        run: |
+          mvn package -Dsurefire.useSystemClassLoader=false -q
+          cp -R target/splunk-kafka-connect*.jar /tmp
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: splunk-kafka-connector
+          path: /tmp/splunk-kafka-connect*.jar
+
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action/composite@v1
+        if: always()
+        with:
+          check_name: Unit Test Results
+          files: "target/surefire-reports/*.xml"
+
+  e2e_test:
+    name: e2e test - kafka version-${{ matrix.kafka_version }}
+    runs-on: ubuntu-20.04
+    needs:
+      - build-unit-test
+    strategy:
+      matrix:
+        include:
+          - kafka_version: "1.1.1"
+            kafka_package: "kafka_2.11-1.1.1.tgz"
+          - kafka_version: "2.0.0"
+            kafka_package: "kafka_2.11-2.0.0.tgz"
+          - kafka_version: "2.1.0"
+            kafka_package: "kafka_2.12-2.1.0.tgz"
+          - kafka_version: "2.6.0"
+            kafka_package: "kafka_2.13-2.6.0.tgz"
+          - kafka_version: "2.7.1"
+            kafka_package: "kafka_2.13-2.7.1.tgz"
+          - kafka_version: "2.8.0"
+            kafka_package: "kafka_2.13-2.8.0.tgz"
+    env:
+      CI_SPLUNK_VERSION: "8.2.2"
+      CI_SPLUNK_FILENAME: splunk-8.2.2-87344edfcdb4-Linux-x86_64.tgz
+      CI_SPLUNK_HOST: 127.0.0.1
+      CI_SPLUNK_PORT: 8089
+      CI_SPLUNK_USERNAME: admin
+      CI_SPLUNK_HEC_TOKEN: a6b5e77f-d5f6-415a-bd43-930cecb12959
+      CI_SPLUNK_HEC_TOKEN_ACK: a6b5e77f-d5f6-415a-bd43-930cecb12950
+      CI_SPLUNK_PASSWORD: helloworld
+      CI_INDEX_EVENTS: main
+      CI_KAFKA_HEADER_INDEX: kafka
+      CI_DATAGEN_IMAGE: rock1017/log-generator:latest
+      CI_OLD_CONNECTOR_VERSION: v2.0.1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Splunk
+        run: |
+          cd /opt && wget -O $CI_SPLUNK_FILENAME 'https://d7wz6hmoaavd0.cloudfront.net/products/splunk/releases/'$CI_SPLUNK_VERSION'/linux/'$CI_SPLUNK_FILENAME''
+          sudo tar xzvf $CI_SPLUNK_FILENAME
+          # Set user seed
+          hashed_pwd=$(sudo /opt/splunk/bin/splunk hash-passwd $CI_SPLUNK_PASSWORD)
+          # sudo tee /opt/splunk/etc/system/local/user-seed.conf > /dev/null \<< EOF
+          sudo tee /opt/splunk/etc/system/local/user-seed.conf <<EOF >/dev/null
+          [user_info]
+          USERNAME = $CI_SPLUNK_USERNAME
+          HASHED_PASSWORD = $hashed_pwd
+          EOF
+          # Add delete capability to admin role
+          sudo tee /opt/splunk/etc/system/local/authorize.conf <<EOF >/dev/null
+          [role_admin]
+          delete_by_keyword = enabled
+          EOF
+          sudo /opt/splunk/bin/splunk start --accept-license --answer-yes --no-prompt
+          # Enable HEC services
+          curl -X POST -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -k https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/servicesNS/nobody/splunk_httpinput/data/inputs/http/http/enable
+          # Create new HEC token
+          curl -X POST -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -k -d "name=splunk_hec_token&token=$CI_SPLUNK_HEC_TOKEN" https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/servicesNS/nobody/splunk_httpinput/data/inputs/http
+          # Enable HEC new-token
+          sudo /opt/splunk/bin/splunk http-event-collector enable -name splunk_hec_token -uri https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT -auth $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD
+          # Create new HEC token with ack
+          curl -X POST -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -k -d "name=splunk_hec_token_ack&token=$CI_SPLUNK_HEC_TOKEN_ACK&useACK=1" https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/servicesNS/nobody/splunk_httpinput/data/inputs/http
+          # Enable HEC new-token
+          sudo /opt/splunk/bin/splunk http-event-collector enable -name splunk_hec_token_ack -uri https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT -auth $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD
+          # Setup Indexes
+          curl -X POST -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -k -d "name=$CI_INDEX_EVENTS&datatype=event" https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/servicesNS/-/search/data/indexes
+          curl -X POST -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -k -d "name=$CI_KAFKA_HEADER_INDEX&datatype=event" https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/servicesNS/-/search/data/indexes
+          # Restart Splunk
+          curl -k -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/services/server/control/restart -X POST
+
+      - name: Install Kafka ${{ matrix.kafka_version }}
+        run: |
+          cd /tmp && wget https://archive.apache.org/dist/kafka/${{ matrix.kafka_version }}/${{ matrix.kafka_package }}
+          sudo tar xzf ${{ matrix.kafka_package }}
+          rm ${{ matrix.kafka_package }}
+          sudo mv kafka_* /usr/local/kafka
+          cd /usr/local/kafka && ls
+
+      - name: Start ZooKeeper Server
+        working-directory: /usr/local/kafka
+        run: |
+          echo "Start ZooKeeper"
+          sudo bin/zookeeper-server-start.sh config/zookeeper.properties &
+
+      - name: Start Kafka Server
+        working-directory: /usr/local/kafka
+        run: |
+          echo "Start kafka server"
+          sudo bin/kafka-server-start.sh config/server.properties &
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: splunk-kafka-connector
+          path: /tmp
+
+      - name: Test kafka connect upgrade
+        run: |
+          echo "Download kafka connect "$CI_OLD_CONNECTOR_VERSION
+          sudo mkdir -p /usr/local/share/kafka/plugins/
+          wget https://github.com/splunk/kafka-connect-splunk/releases/download/$CI_OLD_CONNECTOR_VERSION/splunk-kafka-connect-$CI_OLD_CONNECTOR_VERSION.jar
+          sudo cp splunk-kafka-connect-$CI_OLD_CONNECTOR_VERSION.jar /usr/local/share/kafka/plugins/
+          sudo mkdir -p /usr/local/share/kafka-connector/
+          sudo cp /tmp/splunk-kafka-connect*.jar /usr/local/share/kafka-connector/
+          test /usr/local/share/kafka-connector/splunk-kafka-connect*.jar && echo /usr/local/share/kafka-connector/splunk-kafka-connect*.jar
+          sed -i 's/plugin\.path\=connectors\//plugin\.path\=\/usr\/local\/share\/kafka\/plugins\//' $GITHUB_WORKSPACE/config/connect-distributed-quickstart.properties
+          sed -i 's/key\.converter\=org\.apache\.kafka\.connect\.storage\.StringConverter/key\.converter\=org\.apache\.kafka\.connect\.json\.JsonConverter/' $GITHUB_WORKSPACE/config/connect-distributed-quickstart.properties
+          sed -i 's/value\.converter\=org\.apache\.kafka\.connect\.storage\.StringConverter/value\.converter\=org\.apache\.kafka\.connect\.json\.JsonConverter/' $GITHUB_WORKSPACE/config/connect-distributed-quickstart.properties
+          pip install --upgrade pip
+          pip install -r test/requirements.txt
+          export PYTHONWARNINGS="ignore:Unverified HTTPS request"
+          echo "Test kafka connect upgrade ..."
+          python test/lib/connector_upgrade.py --log-level=INFO
+
+      - name: Install kafka connect
+        run: |
+          sudo rm -f /usr/local/share/kafka/plugins/splunk-kafka-connect*.jar
+          sudo cp /tmp/splunk-kafka-connect*.jar /usr/local/share/kafka/plugins/
+          sudo /usr/local/kafka/bin/connect-distributed.sh $GITHUB_WORKSPACE/config/connect-distributed-quickstart.properties &
+
+      - name: Run functional tests
+        run: |
+          sleep 5
+          pip install --upgrade pip
+          pip install -r test/requirements.txt
+          export PYTHONWARNINGS="ignore:Unverified HTTPS request"
+          echo "Running functional tests....."
+          python -m pytest --log-level=INFO
+

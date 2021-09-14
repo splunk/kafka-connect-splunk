@@ -39,7 +39,7 @@ def create_kafka_connector(setup, params, success=True):
     status = get_kafka_connector_status(setup, params, action='Create', state='RUNNING')
 
     if status:
-        logger.info("Created connector successfully - " + json.dumps(params))
+        logger.debug("Created connector successfully - " + json.dumps(params))
         return True
     else:
         return False
@@ -74,7 +74,7 @@ def delete_kafka_connector(setup, connector):
     response = requests.delete(url=setup["kafka_connect_url"] + "/connectors/" + connector,
                                headers={'Accept': 'application/json', 'Content-Type': 'application/json'})
     if response.status_code == 204:
-        logger.info("Deleted connector successfully - " + connector)
+        logger.debug("Deleted connector successfully - " + connector)
         return True
 
     logger.error("Failed to delete connector: {0}, response code - {1}".format(connector, response.status_code))
