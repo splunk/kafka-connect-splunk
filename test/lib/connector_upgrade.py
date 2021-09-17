@@ -30,8 +30,8 @@ _connector_ack = 'kafka_connect_ack'
 def start_old_connector():
     cmds = ["test -f {0}/{1} && echo {0}/{1}".format(config["connector_path"], config["old_connector_name"]),
             "cd {}".format(config["kafka_home"]),
-            "sudo ./bin/connect-distributed.sh {}/config/connect-distributed-quickstart.properties &".
-                format(config["kafka_connect_home"])]
+            "sudo {0}/bin/connect-distributed.sh {1}/config/connect-distributed-quickstart.properties &".
+                format(config["kafka_home"], os.environ.get('GITHUB_WORKSPACE'))]
 
     cmd = "\n".join(cmds)
     try:
@@ -95,16 +95,15 @@ def upgrade_connector_plugin():
             "sudo rm {}/{} && sleep 2".format(config["connector_path"], config["old_connector_name"]),
             "sudo cp {0}/splunk-kafka-connect*.jar {1} && sleep 2".format(config["connector_build_target"],
                                                                           config["connector_path"]),
-            "cd {}".format(config["kafka_home"]),
-            "sudo ./bin/connect-distributed.sh {}/config/connect-distributed-quickstart.properties &".
-                format(config["kafka_connect_home"])]
+            "sudo {0}/bin/connect-distributed.sh {1}/config/connect-distributed-quickstart.properties &".
+                format(config["kafka_home"], os.environ.get('GITHUB_WORKSPACE'))]
 
     cmd = "\n".join(cmds)
     try:
         proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT)
         output, error = proc.communicate()
-        logger.info(output)
+        logger.debug(output)
         time.sleep(2)
         update_kafka_connectors()
     except OSError as e:
@@ -164,7 +163,7 @@ if __name__ == '__main__':
     time.sleep(100)
     search_query_1 = "index={0} | search timestamp=\"{1}\" source::{2}".format(config['splunk_index'], _time_stamp,
                                                                                _connector)
-    logger.info(search_query_1)
+    logger.debug(search_query_1)
     events_1 = check_events_from_splunk(start_time="-15m@m",
                                       url=config["splunkd_url"],
                                       user=config["splunk_user"],
@@ -174,7 +173,7 @@ if __name__ == '__main__':
     assert len(events_1) == 2000
     search_query_2 = "index={0} | search timestamp=\"{1}\" source::{2}".format(config['splunk_index'], _time_stamp,
                                                                                _connector_ack)
-    logger.info(search_query_2)
+    logger.debug(search_query_2)
     events_2 = check_events_from_splunk(start_time="-15m@m",
                                         url=config["splunkd_url"],
                                         user=config["splunk_user"],

@@ -12,7 +12,7 @@ kafka_topic_2: kafka_topic_2
 kafka_header_topic: kafka_header_topic
 kafka_header_index: kafka
 connector_path: /usr/local/share/kafka/plugins
-connector_build_target: /home/circleci/repo/target
+connector_build_target: /usr/local/share/kafka-connector
 kafka_home: /usr/local/kafka
 kafka_connect_home: /home/circleci/repo
-old_connector_name: splunk-kafka-connect-v1.2.0.jar
+old_connector_name: splunk-kafka-connect-v2.0.1.jar
