@@ -36,7 +36,7 @@ mkdir -p ${builddir}/libs
 # Build the package
 echo "Building the connector package ..."
 mvn versions:set -DnewVersion=${jarversion}
-mvn package > /dev/null
+mvn package > /dev/null 2>&1
 
 # Copy over the pacakge
 echo "Copy over splunk-kafka-connect jar ..."
