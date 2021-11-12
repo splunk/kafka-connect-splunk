@@ -15,21 +15,20 @@
  */
 package com.splunk.hecclient;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.splunk.kafka.connect.VersionUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.JsonNode;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,8 +120,12 @@ final class Indexer implements IndexerInf {
         String url = baseUrl + endpoint;
         final HttpPost httpPost = new HttpPost(url);
         httpPost.setHeaders(headers);
-        httpPost.setEntity(batch.getHttpEntity());
-
+        if (batch.isEnableCompression()) {
+            httpPost.setHeader("Content-Encoding", "gzip");
+            httpPost.setEntity(batch.getHttpEntityTemplate());
+        } else {
+            httpPost.setEntity(batch.getHttpEntity());
+        }
         String resp;
         try {
             resp = executeHttpRequest(httpPost);

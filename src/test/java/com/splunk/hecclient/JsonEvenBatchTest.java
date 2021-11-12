@@ -19,13 +19,14 @@ import org.apache.http.HttpEntity;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPInputStream;
 
 public class JsonEvenBatchTest {
     @Test
@@ -176,5 +177,32 @@ public class JsonEvenBatchTest {
         }
 
         return UnitUtil.read(in, data);
+    }
+
+    @Test
+    public void testGZIPCompressionForJsonEvent() {
+        EventBatch batch = new JsonEventBatch();
+        batch.setEnableCompression(true);
+        Assert.assertTrue(batch.isEnableCompression());
+        Event event = new JsonEvent("hello world! hello world! hello world!", "hao");
+        batch.add(event);
+        HttpEntity entity = batch.getHttpEntityTemplate();
+        byte[] data = new byte[1024];
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            entity.writeTo(out);
+            String expected = "{\"event\":\"hello world! hello world! hello world!\"}\n";
+            ByteArrayInputStream bis = new ByteArrayInputStream(out.toByteArray());
+            GZIPInputStream gis = new GZIPInputStream(bis);
+            int read = gis.read(data, 0, data.length);
+            gis.close();
+            bis.close();
+
+            // Decode the bytes into a String
+            String ori = new String(data, 0, read, "UTF-8");
+            Assert.assertEquals(expected, ori);
+        } catch (IOException ex) {
+            Assert.assertTrue("failed to compress and decompress the data", false);
+            throw new HecException("failed to compress and decompress the data", ex);
+        }
     }
 }

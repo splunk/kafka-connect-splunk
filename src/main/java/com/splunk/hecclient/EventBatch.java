@@ -17,19 +17,14 @@ package com.splunk.hecclient;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.AbstractHttpEntity;
+import org.apache.http.entity.ContentProducer;
+import org.apache.http.entity.EntityTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.SequenceInputStream;
-
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.io.*;
+import java.util.*;
+import java.util.zip.GZIPOutputStream;
 
 public abstract class EventBatch {
     private static Logger log = LoggerFactory.getLogger(EventBatch.class);
@@ -42,19 +37,23 @@ public abstract class EventBatch {
 
     private volatile int status = INIT;
     private int failureCount = 0;
+    private boolean enableCompression;
     private long sendTimestamp = System.currentTimeMillis() / 1000; // in seconds
     protected int len;
     protected List<Event> events = new ArrayList<>();
 
     public abstract String getRestEndpoint();
+
     public abstract String getContentType();
+
     public abstract void add(Event event);
+
     public abstract EventBatch createFromThis();
 
     public final void addExtraFields(final Map<String, String> fields) {
         // recalculate the batch length since we inject more meta data to each event
         int newLength = 0;
-        for (final Event event: events) {
+        for (final Event event : events) {
             event.addFields(fields);
             newLength += event.length();
         }
@@ -129,16 +128,52 @@ public abstract class EventBatch {
         return e;
     }
 
+    public final HttpEntity getHttpEntityTemplate() {
+        AbstractHttpEntity e = new EntityTemplate(new GzipDataContentProducer());
+        e.setContentEncoding("gzip");
+        e.setContentType(getContentType());
+        return e;
+    }
+
     @Override
     public final String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("[");
-        for (Event e: events) {
+        for (Event e : events) {
             builder.append(e.toString());
             builder.append(",");
         }
         builder.append("]");
         return builder.toString();
+    }
+
+    public boolean isEnableCompression() {
+        return enableCompression;
+    }
+
+    public void setEnableCompression(boolean enableCompression) {
+        this.enableCompression = enableCompression;
+    }
+
+    public final byte[] getDataOfBatch() throws IOException {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            for (final Event e : events) {
+                e.writeTo(bos);
+            }
+            byte[] unCompressBytes = bos.toByteArray();
+            return unCompressBytes;
+        }
+    }
+
+    private class GzipDataContentProducer implements ContentProducer {
+
+        @Override
+        public void writeTo(OutputStream outputStream) throws IOException {
+            OutputStream out = new GZIPOutputStream(outputStream);
+            out.write(getDataOfBatch());
+            out.flush();
+            out.close();
+        }
     }
 
     private class HttpEventBatchEntity extends AbstractHttpEntity {
