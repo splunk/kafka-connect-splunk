@@ -216,4 +216,26 @@ public class IndexerTest {
             Assert.assertEquals(CloseableHttpClientMock.success, poller.getResponse());
         }
     }
+
+    @Test
+    public void sendCompressedRawBatchWithSuccess() {
+        for (int i = 0; i < 2; i++) {
+            CloseableHttpClientMock client = new CloseableHttpClientMock();
+            if (i == 0) {
+                client.setResponse(CloseableHttpClientMock.success);
+            }
+            PollerMock poller = new PollerMock();
+
+            Indexer indexer = new Indexer(baseUrl, token, client, poller);
+            EventBatch batch = UnitUtil.createRawEventBatch();
+            batch.setEnableCompression(true);
+            boolean result = indexer.send(batch);
+            Assert.assertTrue(result);
+            Assert.assertNotNull(poller.getBatch());
+            Assert.assertNull(poller.getFailedBatch());
+            Assert.assertNull(poller.getException());
+            Assert.assertEquals(indexer.getChannel(), poller.getChannel());
+            Assert.assertEquals(CloseableHttpClientMock.success, poller.getResponse());
+        }
+    }
 }

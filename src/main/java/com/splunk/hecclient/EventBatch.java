@@ -43,17 +43,14 @@ public abstract class EventBatch {
     protected List<Event> events = new ArrayList<>();
 
     public abstract String getRestEndpoint();
-
     public abstract String getContentType();
-
     public abstract void add(Event event);
-
     public abstract EventBatch createFromThis();
 
     public final void addExtraFields(final Map<String, String> fields) {
         // recalculate the batch length since we inject more meta data to each event
         int newLength = 0;
-        for (final Event event : events) {
+        for (final Event event: events) {
             event.addFields(fields);
             newLength += event.length();
         }
@@ -139,7 +136,7 @@ public abstract class EventBatch {
     public final String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("[");
-        for (Event e : events) {
+        for (Event e: events) {
             builder.append(e.toString());
             builder.append(",");
         }

@@ -34,6 +34,13 @@ public class UnitUtil {
         return batch;
     }
 
+    public static EventBatch createRawEventBatch() {
+        Event event = new RawEvent("ni", "hao");
+        EventBatch batch = RawEventBatch.factory().build();
+        batch.add(event);
+        return batch;
+    }
+
     public static void milliSleep(long milliseconds) {
         try {
             TimeUnit.MILLISECONDS.sleep(milliseconds);
