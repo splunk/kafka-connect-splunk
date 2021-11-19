@@ -1,6 +1,6 @@
 pytest
 requests
 kafka-python
-pyyaml
+pyyaml == 5.4.1
 jinja2
 jsonpath

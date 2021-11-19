@@ -16,14 +16,17 @@
 package com.splunk.kafka.connect;
 
 import com.splunk.hecclient.HecConfig;
-import org.apache.kafka.common.config.ConfigException;
-import org.apache.kafka.connect.sink.SinkConnector;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.kafka.common.config.ConfigException;
+import org.apache.kafka.connect.sink.SinkConnector;
 import org.apache.kafka.connect.sink.SinkTask;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class SplunkSinkConnectorConfig extends AbstractConfig {
     // General
@@ -45,6 +48,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String HEC_THREDS_CONF = "splunk.hec.threads";
     static final String SOCKET_TIMEOUT_CONF = "splunk.hec.socket.timeout"; // seconds
     static final String SSL_VALIDATE_CERTIFICATES_CONF = "splunk.hec.ssl.validate.certs";
+    static final String ENABLE_COMPRESSSION_CONF = "splunk.hec.enable.compression";
     // Acknowledgement Parameters
     // Use Ack
     static final String ACK_CONF = "splunk.hec.ack.enabled";
@@ -108,6 +112,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             + "Socket timeout.By default, this is set to 60 seconds.";
     static final String SSL_VALIDATE_CERTIFICATES_DOC = "Valid settings are true or false. Enables or disables HTTPS "
             + "certification validation. By default, this is set to true.";
+    static final String ENABLE_COMPRESSSION_DOC = "Valid settings are true or false. Used for enable or disable gzip-compression. By default, this is set to false.";
     // Acknowledgement Parameters
     // Use Ack
     static final String ACK_DOC = "Valid settings are true or false. When set to true Splunk Connect for Kafka will "
@@ -189,6 +194,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final int numberOfThreads;
     final int socketTimeout;
     final boolean validateCertificates;
+    final boolean enableCompression;
     final int lbPollInterval;
 
     final boolean ack;
@@ -259,6 +265,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         headerSource = getString(HEADER_SOURCE_CONF);
         headerSourcetype = getString(HEADER_SOURCETYPE_CONF);
         headerHost = getString(HEADER_HOST_CONF);
+        enableCompression = getBoolean(ENABLE_COMPRESSSION_CONF);
     }
 
     public static ConfigDef conf() {
@@ -297,7 +304,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(HEADER_SOURCE_CONF, ConfigDef.Type.STRING, "splunk.header.source", ConfigDef.Importance.MEDIUM, HEADER_SOURCE_DOC)
                 .define(HEADER_SOURCETYPE_CONF, ConfigDef.Type.STRING, "splunk.header.sourcetype", ConfigDef.Importance.MEDIUM, HEADER_SOURCETYPE_DOC)
                 .define(HEADER_HOST_CONF, ConfigDef.Type.STRING, "splunk.header.host", ConfigDef.Importance.MEDIUM, HEADER_HOST_DOC)
-                .define(LB_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 120, ConfigDef.Importance.LOW, LB_POLL_INTERVAL_DOC);
+                .define(LB_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 120, ConfigDef.Importance.LOW, LB_POLL_INTERVAL_DOC)
+                .define(ENABLE_COMPRESSSION_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.MEDIUM, ENABLE_COMPRESSSION_DOC);
     }
 
     /**
@@ -362,6 +370,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 + "headerSource:" + headerSource + ", "
                 + "headerSourcetype:" + headerSourcetype + ", "
                 + "headerHost:" + headerHost + ", "
+                + "enableCompression:" + enableCompression + ", "
                 + "lbPollInterval:" + lbPollInterval;
     }
 
