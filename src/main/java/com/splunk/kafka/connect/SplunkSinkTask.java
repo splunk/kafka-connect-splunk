@@ -15,26 +15,25 @@
  */
 package com.splunk.kafka.connect;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.splunk.hecclient.*;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.connect.errors.RetriableException;
+import org.apache.kafka.connect.header.Header;
 import org.apache.kafka.connect.header.Headers;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTask;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.kafka.connect.header.Header;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class);
-    private static long flushWindow = 30 * 1000; // 30 seconds
+    private static long flushWindow = 10 * 1000; // 30 seconds
     private static final String HEADERTOKEN = "$$$";
 
     private HecInf hec;
