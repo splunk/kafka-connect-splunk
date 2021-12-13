@@ -6,7 +6,7 @@
 
     <groupId>com.github.splunk.kafka.connect</groupId>
     <artifactId>splunk-kafka-connect</artifactId>
-    <version>v2.0.3</version>
+    <version>v2.0.5</version>
     <name>splunk-kafka-connect</name>
 
     <properties>
