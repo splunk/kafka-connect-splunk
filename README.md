@@ -208,6 +208,9 @@ See [Splunk Docs](https://docs.splunk.com/Documentation/KafkaConnect/latest/User
 
 See [Splunk Docs](https://docs.splunk.com/Documentation/KafkaConnect/latest/User/Troubleshootyourdeployment) for details on troubleshooting your deployment.
 
+## Log4j Security Update
+We have upgraded the connector's log4j-core version from 2.13.2 to 2.15.0 to address [CVE-2021-44228](https://github.com/advisories/GHSA-jfh8-c2jp-5v3q)
+
 ## License
 
 Splunk Connect for Kafka  is licensed under the Apache License 2.0. Details can be found in the file LICENSE.
