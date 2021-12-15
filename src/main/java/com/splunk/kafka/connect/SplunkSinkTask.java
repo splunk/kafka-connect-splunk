@@ -65,8 +65,6 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         if(connectorConfig.flushWindow > 0) {
             flushWindow = connectorConfig.flushWindow * 1000; // Flush window set to user configured value (Multiply by 1000 as all the calculations are done in milliseconds)
         }
-
-        log.info("kafka-connect-splunk task starts with config={}", connectorConfig);
     }
 
     @Override
@@ -366,7 +364,6 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         if (hec != null) {
             hec.close();
         }
-        log.info("kafka-connect-splunk task ends with config={}", connectorConfig);
     }
 
     @Override
@@ -404,7 +401,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
                 event.setTied(record);
                 event.addFields(connectorConfig.enrichments);
             } catch(Exception e) {
-                log.error("event does not follow correct HEC pre-formatted format: {}", record.value().toString());
+                log.trace("event does not follow correct HEC pre-formatted format: {}", record.value().toString());
                 event = createHECEventNonFormatted(record);
             }
         } else {

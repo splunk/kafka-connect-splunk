@@ -69,10 +69,10 @@ public final class ResponsePoller implements Poller {
                 return;
             }
             if (response.getText() == "Invalid data format") {
-                log.warn("Invalid Splunk HEC data format. Ignoring events. channel={} index={} events={}", channel, channel.getIndexer(), batch.toString());
+                log.warn("Invalid Splunk HEC data format. Ignoring events. channel={} index={} batch={}", channel, channel.getIndexer(), batch.getUUID());
             }
         } catch (Exception ex) {
-            log.error("failed to parse response", resp, ex);
+            log.error("failed to parse response", ex);
             fail(channel, batch, ex);
             return;
         }

@@ -55,7 +55,7 @@ final class KafkaRecordTracker {
      * @param batches the acked event batches
      */
     public void removeAckedEventBatches(final List<EventBatch> batches) {
-        log.debug("received acked event batches={}", batches);
+        log.debug("received acked event batches={}", batches.size());
         /* Loop all *assigned* partitions to find the lowest consecutive
          * HEC-commited offsets. A batch could contain events coming from a
          * variety of topic/partitions, and scanning those events coulb be

@@ -188,7 +188,7 @@ final class Indexer implements IndexerInf {
                 logBackPressure();
             }
 
-            log.error("failed to post events resp={}, status={}", respPayload, status);
+            log.error("failed to post events status={}", status);
             JsonNode jsonNode;
             try {
                 jsonNode = jsonMapper.readTree(respPayload);

@@ -132,7 +132,7 @@ public final class HecAckPoller implements Poller {
         }
         
         if (resp.getText() == "Invalid data format") {
-            log.warn("Invalid Splunk HEC data format. Ignoring events. channel={} index={} events={}", channel, channel.getIndexer(), batch.toString());
+            log.warn("Invalid Splunk HEC data format. Ignoring events. channel={} index={} batch={}", channel, channel.getIndexer(), batch.getUUID());
             batch.commit();
             List<EventBatch> committedBatches = new ArrayList<>();
             committedBatches.add(batch);
@@ -316,7 +316,7 @@ public final class HecAckPoller implements Poller {
     }
 
     private void handleAckPollResponse(String resp, HecChannel channel) {
-        log.debug("ackPollResponse={}, channel={}", resp, channel);
+        log.debug("Ack response for channel={}", channel);
         HecAckPollResponse ackPollResult;
         try {
             ackPollResult = jsonMapper.readValue(resp, HecAckPollResponse.class);
