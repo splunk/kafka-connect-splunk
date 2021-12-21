@@ -44,19 +44,22 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 class SplunkSinkConnecterTest {
 
-    private String SPLUNK_URI_HOST1 = "https://www.host1.com:1111/";
+    final private String SPLUNK_URI_HOST1 = "https://www.host1.com:1111/";
 
     @Mock
-    CloseableHttpResponse validHttpResponse;
+    CloseableHttpResponse okHttpResponse;
 
     @Mock
-    CloseableHttpResponse unauthorizedHttpResponse;
+    CloseableHttpResponse badRequestHttpResponse;
+
+    @Mock
+    CloseableHttpResponse forbiddenHttpResponse;
 
     @Mock
     CloseableHttpResponse notFoundHttpResponse;
@@ -73,16 +76,21 @@ class SplunkSinkConnecterTest {
 
         doReturn(httpClient)
             .when(connector)
-            .createHttpClient(anyObject());
+            .createHttpClient(any());
 
-        when(validHttpResponse.getStatusLine()).
+        when(okHttpResponse.getStatusLine()).
+            thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK"));
+        when(okHttpResponse.getEntity())
+            .thenReturn(new StringEntity("{\"text\":\"HEC is healthy\",\"code\":17}", ContentType.APPLICATION_JSON));
+
+        when(badRequestHttpResponse.getStatusLine()).
             thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_BAD_REQUEST, "Bad Request"));
-        when(validHttpResponse.getEntity())
+        when(badRequestHttpResponse.getEntity())
             .thenReturn(new StringEntity("{\"text\":\"No data\",\"code\":5}", ContentType.APPLICATION_JSON));
 
-        when(unauthorizedHttpResponse.getStatusLine())
-            .thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_FORBIDDEN, "Unauthorized"));
-        when(unauthorizedHttpResponse.getEntity())
+        when(forbiddenHttpResponse.getStatusLine())
+            .thenReturn(new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_FORBIDDEN, "Forbidden"));
+        when(forbiddenHttpResponse.getEntity())
             .thenReturn(new StringEntity("{\"text\":\"Invalid token\",\"code\":4}", ContentType.APPLICATION_JSON));
 
         when(notFoundHttpResponse.getStatusLine()).
@@ -136,7 +144,8 @@ class SplunkSinkConnecterTest {
     public void testValidationSuccess() throws IOException {
         Map<String, String> connectorConfig = getConnectorConfig();
 
-        doReturn(validHttpResponse)
+        doReturn(okHttpResponse)
+            .doReturn(badRequestHttpResponse)
             .when(httpClient)
             .execute(any());
 
@@ -147,10 +156,10 @@ class SplunkSinkConnecterTest {
     }
 
     @Test
-    public void testValidationFailure() throws IOException {
+    public void testConnectionFailure() throws IOException {
         Map<String, String> connectorConfig = getConnectorConfig();
 
-        doReturn(unauthorizedHttpResponse)
+        doThrow(new UnknownHostException("Host not found"))
             .when(httpClient)
             .execute(any());
 
@@ -160,21 +169,71 @@ class SplunkSinkConnecterTest {
             .collect(Collectors.toMap(ConfigValue::name, ConfigValue::errorMessages));
 
         assertFalse(errorMessages.get(SplunkSinkConnectorConfig.URI_CONF).isEmpty());
-        assertFalse(errorMessages.get(SplunkSinkConnectorConfig.TOKEN_CONF).isEmpty());
+        assertTrue(errorMessages.get(SplunkSinkConnectorConfig.TOKEN_CONF).isEmpty());
 
         assertTrue(errorMessages.get(SplunkSinkConnectorConfig.URI_CONF).get(0).contains(SPLUNK_URI_HOST1));
+    }
+
+    @Test
+    public void testAccessFailure() throws IOException {
+        Map<String, String> connectorConfig = getConnectorConfig();
+
+        doReturn(okHttpResponse)
+            .doReturn(forbiddenHttpResponse)
+            .when(httpClient)
+            .execute(any());
+
+        Config config = connector.validate(connectorConfig);
+
+        Map<String, List<String>> errorMessages = config.configValues().stream()
+            .collect(Collectors.toMap(ConfigValue::name, ConfigValue::errorMessages));
+
+        assertTrue(errorMessages.get(SplunkSinkConnectorConfig.URI_CONF).isEmpty());
+        assertFalse(errorMessages.get(SplunkSinkConnectorConfig.TOKEN_CONF).isEmpty());
+
         assertTrue(errorMessages.get(SplunkSinkConnectorConfig.TOKEN_CONF).get(0).contains(SPLUNK_URI_HOST1));
     }
 
     @Test
-    public void testMultipleValidationFailure() throws IOException {
+    public void testMultipleConnectionFailure() throws IOException {
         Map<String, String> connectorConfig = getConnectorConfig();
         String host2 = "https://www.host2.com:2222/";
         String host3 = "https://www.host3.com:3333/";
         connectorConfig.put(SplunkSinkConnectorConfig.URI_CONF,
             SPLUNK_URI_HOST1 + "," + host2 + "," + host3);
 
-        doReturn(unauthorizedHttpResponse)
+        doReturn(notFoundHttpResponse)
+            .doThrow(new UnknownHostException("Host not found"))
+            .doReturn(okHttpResponse)
+            .when(httpClient)
+            .execute(any());
+
+        Config config = connector.validate(connectorConfig);
+
+        Map<String, List<String>> errorMessages = config.configValues().stream()
+            .collect(Collectors.toMap(ConfigValue::name, ConfigValue::errorMessages));
+
+
+        assertFalse(errorMessages.get(SplunkSinkConnectorConfig.URI_CONF).isEmpty());
+        assertTrue(errorMessages.get(SplunkSinkConnectorConfig.TOKEN_CONF).isEmpty());
+
+        assertTrue(errorMessages.get(SplunkSinkConnectorConfig.URI_CONF).get(0).contains(SPLUNK_URI_HOST1));
+        assertTrue(errorMessages.get(SplunkSinkConnectorConfig.URI_CONF).get(0).contains(host2));
+        assertFalse(errorMessages.get(SplunkSinkConnectorConfig.URI_CONF).get(0).contains(host3));
+    }
+
+    @Test
+    public void testMultipleAccessFailure() throws IOException {
+        Map<String, String> connectorConfig = getConnectorConfig();
+        String host2 = "https://www.host2.com:2222/";
+        String host3 = "https://www.host3.com:3333/";
+        connectorConfig.put(SplunkSinkConnectorConfig.URI_CONF,
+            SPLUNK_URI_HOST1 + "," + host2 + "," + host3);
+
+        doReturn(okHttpResponse)
+            .doReturn(okHttpResponse)
+            .doReturn(okHttpResponse)
+            .doReturn(badRequestHttpResponse)
             .doThrow(new UnknownHostException("Host not found"))
             .doReturn(notFoundHttpResponse)
             .when(httpClient)
@@ -186,14 +245,10 @@ class SplunkSinkConnecterTest {
             .collect(Collectors.toMap(ConfigValue::name, ConfigValue::errorMessages));
 
 
-        assertFalse(errorMessages.get(SplunkSinkConnectorConfig.URI_CONF).isEmpty());
+        assertTrue(errorMessages.get(SplunkSinkConnectorConfig.URI_CONF).isEmpty());
         assertFalse(errorMessages.get(SplunkSinkConnectorConfig.TOKEN_CONF).isEmpty());
 
-        assertTrue(errorMessages.get(SplunkSinkConnectorConfig.URI_CONF).get(0).contains(SPLUNK_URI_HOST1));
-        assertTrue(errorMessages.get(SplunkSinkConnectorConfig.URI_CONF).get(0).contains(host2));
-        assertTrue(errorMessages.get(SplunkSinkConnectorConfig.URI_CONF).get(0).contains(host3));
-
-        assertTrue(errorMessages.get(SplunkSinkConnectorConfig.TOKEN_CONF).get(0).contains(SPLUNK_URI_HOST1));
+        assertFalse(errorMessages.get(SplunkSinkConnectorConfig.TOKEN_CONF).get(0).contains(SPLUNK_URI_HOST1));
         assertTrue(errorMessages.get(SplunkSinkConnectorConfig.TOKEN_CONF).get(0).contains(host2));
         assertTrue(errorMessages.get(SplunkSinkConnectorConfig.TOKEN_CONF).get(0).contains(host3));
     }

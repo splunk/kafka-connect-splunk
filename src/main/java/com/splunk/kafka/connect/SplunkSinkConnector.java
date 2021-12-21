@@ -19,6 +19,7 @@ import com.splunk.hecclient.Hec;
 import com.splunk.hecclient.HecConfig;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -31,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -41,6 +43,8 @@ import java.util.stream.Collectors;
 public class SplunkSinkConnector extends SinkConnector {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkConnector.class);
     private Map<String, String> taskConfig;
+    final private String COLLECTOR_ENDPOINT = "/services/collector";
+    final private String HEALTH_CHECK_ENDPOINT = COLLECTOR_ENDPOINT + "/health";
 
     @Override
     public void start(Map<String, String> taskConfig) {
@@ -96,9 +100,79 @@ public class SplunkSinkConnector extends SinkConnector {
                     ConfigValue::name,
                     Function.identity()));
 
-        validateAccess(connectorConfig, configValues);
+        HecConfig hecConfig = connectorConfig.getHecConfig();
+        try (CloseableHttpClient httpClient = createHttpClient(hecConfig)) {
+
+            if (!validateCollector(httpClient, hecConfig, configValues)) {
+                return config;
+            }
+
+            validateAccess(httpClient, hecConfig, configValues);
+
+        } catch (IOException e) {
+            log.error("Configuration validation error", e);
+            recordErrors(
+                configValues,
+                "Configuration validation error: " + e.getMessage(),
+                SplunkSinkConnectorConfig.TOKEN_CONF
+            );
+        }
 
         return config;
+    }
+
+    /**
+     * We validate the collector by querying the HEC collector health.
+     *
+     * For a valid collector endpoint, this returns a HTTP 200 OK with the payload:
+     * {"text":"HEC is healthy","code":17}
+     * For an invalid hostname and other errors, the Java UnknownHostException and other similar
+     * Exceptions are thrown.
+     *
+     * @param httpClient HEC HTTP Client
+     * @param hecConfig The HEC configuration
+     * @param configValues The configuration ConfigValues
+     * @return Whether the validation was successful
+     */
+    private boolean validateCollector(
+        CloseableHttpClient httpClient,
+        HecConfig hecConfig,
+        Map<String, ConfigValue> configValues
+    ) {
+        List<String> uris = hecConfig.getUris();
+
+        Map<String, String> connectionFailedCollectors = new LinkedHashMap<>();
+
+        for (String uri : uris) {
+            log.trace("Connecting to " + uri);
+            HttpGet request = new HttpGet(uri + HEALTH_CHECK_ENDPOINT);
+
+            int status = -1;
+            try (CloseableHttpResponse response = httpClient.execute(request)) {
+                status = response.getStatusLine().getStatusCode();
+                if (status == 200) {
+                    log.trace("Connection succeeded for collector {}", uri);
+                } else {
+                    log.trace("Connection failed for collector {}", uri);
+                    connectionFailedCollectors.put(uri, response.getStatusLine().toString());
+                }
+            } catch (Exception e) {
+                log.error("Caught exception while connecting", e);
+                connectionFailedCollectors.put(uri, e.getMessage());
+            }
+        }
+
+        if (!connectionFailedCollectors.isEmpty()) {
+            log.trace("Connection failed: " + connectionFailedCollectors);
+            recordErrors(
+                configValues,
+                "Connection Failed: " + connectionFailedCollectors,
+                SplunkSinkConnectorConfig.URI_CONF
+            );
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -111,55 +185,51 @@ public class SplunkSinkConnector extends SinkConnector {
      * For an invalid hostname and other errors, the Java UnknownHostException and other similar
      * Exceptions are thrown.
      *
-     * @param connectorConfig The connector configuration
+     * @param httpClient HEC HTTP Client
+     * @param hecConfig The HEC configuration
      * @param configValues The configuration ConfigValues
      */
-    private void validateAccess(SplunkSinkConnectorConfig connectorConfig, Map<String, ConfigValue> configValues) {
-        HecConfig hecConfig = connectorConfig.getHecConfig();
+    private void validateAccess(
+        CloseableHttpClient httpClient,
+        HecConfig hecConfig,
+        Map<String, ConfigValue> configValues
+    ) throws UnsupportedEncodingException {
+        List<String> uris = hecConfig.getUris();
 
-        try (CloseableHttpClient httpClient = createHttpClient(hecConfig)) {
-            List<String> uris = hecConfig.getUris();
+        Map<String, String> accessFailedCollectors = new LinkedHashMap<>();
 
-            Map<String, String> validationFailedIndexers = new LinkedHashMap<>();
+        for (String uri : uris) {
+            log.trace("Validating " + uri);
+            HttpPost request = new HttpPost(uri + COLLECTOR_ENDPOINT);
+            request.setEntity(new StringEntity(""));
 
-            for (String uri : uris) {
-                log.trace("Validating " + uri);
-                HttpPost request = new HttpPost(uri + "/services/collector");
-                request.setEntity(new StringEntity(""));
+            request.addHeader(HttpHeaders.AUTHORIZATION, String.format("Splunk %s", hecConfig.getToken()));
 
-                request.addHeader(HttpHeaders.AUTHORIZATION, String.format("Splunk %s", hecConfig.getToken()));
-
-                int status = -1;
-                try (CloseableHttpResponse response = httpClient.execute(request)) {
-                    status = response.getStatusLine().getStatusCode();
-                    if (status == 400) {
-                        log.trace("Validation succeeded for indexer {}", uri);
-                    } else if (status == 403) {
-                        log.trace("Invalid HEC token for indexer {}", uri);
-                        validationFailedIndexers.put(uri, response.getStatusLine().toString());
-                    } else {
-                        log.trace("Validation failed for {}", uri);
-                        validationFailedIndexers.put(uri, response.getStatusLine().toString());
-                    }
-                } catch (Exception e) {
-                    log.error("Caught exception while validating", e);
-                    validationFailedIndexers.put(uri, e.getMessage());
+            int status = -1;
+            try (CloseableHttpResponse response = httpClient.execute(request)) {
+                status = response.getStatusLine().getStatusCode();
+                if (status == 400) {
+                    log.trace("Validation succeeded for collector {}", uri);
+                } else if (status == 403) {
+                    log.trace("Invalid HEC token for collector {}", uri);
+                    accessFailedCollectors.put(uri, response.getStatusLine().toString());
+                } else {
+                    log.trace("Validation failed for {}", uri);
+                    accessFailedCollectors.put(uri, response.getStatusLine().toString());
                 }
+            } catch (Exception e) {
+                log.error("Caught exception while validating", e);
+                accessFailedCollectors.put(uri, e.getMessage());
             }
+        }
 
-            if (!validationFailedIndexers.isEmpty()) {
-                log.trace("Validation failed: " + validationFailedIndexers);
-                recordErrors(configValues,
-                    "Validation Failed: " + validationFailedIndexers,
-                    SplunkSinkConnectorConfig.URI_CONF,
-                    SplunkSinkConnectorConfig.TOKEN_CONF);
-            }
-        } catch (IOException e) {
-            log.error("Configuration validation error", e);
-            recordErrors(configValues,
-                "Configuration validation error: " + e.getMessage(),
-                SplunkSinkConnectorConfig.URI_CONF,
-                SplunkSinkConnectorConfig.TOKEN_CONF);
+        if (!accessFailedCollectors.isEmpty()) {
+            log.trace("Validation failed: " + accessFailedCollectors);
+            recordErrors(
+                configValues,
+                "Validation Failed: " + accessFailedCollectors,
+                SplunkSinkConnectorConfig.TOKEN_CONF
+            );
         }
     }
 
