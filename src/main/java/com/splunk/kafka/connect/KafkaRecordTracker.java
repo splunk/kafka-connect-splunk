@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 final class KafkaRecordTracker {
-    private static final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class);
+    private static final Logger log = LoggerFactory.getLogger(KafkaRecordTracker.class);
     private ConcurrentMap<TopicPartition, ConcurrentNavigableMap<Long, EventBatch>> all; // TopicPartition + Long offset represents the SinkRecord
     private AtomicLong total;
     private ConcurrentLinkedQueue<EventBatch> failed;
