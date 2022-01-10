@@ -164,6 +164,7 @@ Use the below schema to configure Splunk Connect for Kafka
 | `splunk.hec.max.retries` | Amount of times a failed batch will attempt to resend before dropping events completely. Warning: This will result in data loss, default is `-1` which will retry indefinitely  | `-1` |
 | `splunk.hec.backoff.threshhold.seconds` | The amount of time Splunk Connect for Kafka waits to attempt resending after errors from a HEC endpoint." | `60` |
 | `splunk.hec.lb.poll.interval`  |  Specify this parameter(in seconds) to control the polling interval(increase to do less polling, decrease to do more frequent polling) |  `120` |
+| `splunk.hec.enable.compression` | Valid settings are true or false. Used for enable or disable gzip-compression. |`false`|
 ### Acknowledgement Parameters
 #### Use Ack
 | Name              | Description                | Default Value  |

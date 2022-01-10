@@ -165,10 +165,12 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             Map<TopicPartition, Collection<SinkRecord>> partitionedRecords = partitionRecords(records);
             for (Map.Entry<TopicPartition, Collection<SinkRecord>> entry: partitionedRecords.entrySet()) {
                 EventBatch batch = createRawEventBatch(entry.getKey());
+                batch.setEnableCompression(connectorConfig.enableCompression);
                 sendEvents(entry.getValue(), batch);
             }
         } else {
             EventBatch batch = createRawEventBatch(null);
+            batch.setEnableCompression(connectorConfig.enableCompression);
             sendEvents(records, batch);
         }
     }
@@ -193,6 +195,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             ArrayList<SinkRecord> recordArrayList = set.getValue();
 
             EventBatch batch = createRawHeaderEventBatch(splunkSinkRecordKey);
+            batch.setEnableCompression(connectorConfig.enableCompression);
             sendEvents(recordArrayList, batch);
         }
         log.debug("{} records have been bucketed in to {} batches", records.size(), recordsWithSameHeaders.size());
@@ -260,6 +263,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
     private void handleEvent(final Collection<SinkRecord> records) {
         EventBatch batch = new JsonEventBatch();
+        batch.setEnableCompression(connectorConfig.enableCompression);
         sendEvents(records, batch);
     }
 
@@ -283,6 +287,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
                 send(batch);
                 // start a new batch after send
                 batch = batch.createFromThis();
+                batch.setEnableCompression(connectorConfig.enableCompression);
             }
         }
 
