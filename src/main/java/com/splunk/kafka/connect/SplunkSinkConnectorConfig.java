@@ -252,7 +252,11 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         useRecordTimestamp = getBoolean(USE_RECORD_TIMESTAMP_CONF);
         maxBatchSize = getInt(MAX_BATCH_SIZE_CONF);
         numberOfThreads = getInt(HEC_THREDS_CONF);
-        lineBreaker = getString(LINE_BREAKER_CONF);
+        if (taskConfig.get(LINE_BREAKER_CONF) != null && taskConfig.get(LINE_BREAKER_CONF).length() == 1) {
+            lineBreaker = taskConfig.get(LINE_BREAKER_CONF);
+        } else {
+            lineBreaker = getString(LINE_BREAKER_CONF);
+        }
         maxOutstandingEvents = getInt(MAX_OUTSTANDING_EVENTS_CONF);
         maxRetries = getInt(MAX_RETRIES_CONF);
         backoffThresholdSeconds = getInt(HEC_BACKOFF_PRESSURE_THRESHOLD);

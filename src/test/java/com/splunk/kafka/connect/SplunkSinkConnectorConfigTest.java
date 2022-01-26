@@ -267,6 +267,22 @@ public class SplunkSinkConnectorConfigTest {
     }
 
     @Test
+    public void testSpecialCharLineBreaker() {
+        UnitUtil uu = new UnitUtil(0);
+        Map<String, String> config = uu.createTaskConfig();
+        SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
+        Assert.assertEquals("\n", connectorConfig.lineBreaker);
+
+        config.put(SplunkSinkConnectorConfig.LINE_BREAKER_CONF, "\r");
+        connectorConfig = new SplunkSinkConnectorConfig(config);
+        Assert.assertEquals("\r", connectorConfig.lineBreaker);
+
+        config.put(SplunkSinkConnectorConfig.LINE_BREAKER_CONF, "\t");
+        connectorConfig = new SplunkSinkConnectorConfig(config);
+        Assert.assertEquals("\t", connectorConfig.lineBreaker);
+    }
+
+    @Test
     public void toStr() {
         UnitUtil uu = new UnitUtil(0);
 
