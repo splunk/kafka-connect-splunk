@@ -461,7 +461,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             Map<String, String> headerMap = new HashMap<>();
             for (String header : customHeaders) {
                     Header customHeader = headers.lastWithName(header);
-                if (customHeader != null) {
+                if (customHeader != null && customHeader.value() != null) {
                     headerMap.put(header, customHeader.value().toString());
                 }
             }
