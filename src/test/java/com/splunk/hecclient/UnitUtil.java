@@ -24,7 +24,8 @@ import java.util.concurrent.TimeUnit;
 
 public class UnitUtil {
     public static HecConfig createHecConfig() {
-        return new HecConfig(Arrays.asList("https://dummyhost:8088"), "token");
+         return new HecConfig(Arrays.asList("https://dummyhost:8088"), "token")
+            .setKerberosPrincipal("");
     }
 
     public static EventBatch createBatch() {

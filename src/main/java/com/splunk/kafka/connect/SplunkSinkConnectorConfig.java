@@ -80,6 +80,10 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     // Load Balancer
     static final String LB_POLL_INTERVAL_CONF = "splunk.hec.lb.poll.interval";
 
+     // Kerberos config
+     static final String KERBEROS_USER_PRINCIPAL_CONF = "kerberos.user.principal";
+     static final String KERBEROS_KEYTAB_PATH_CONF = "kerberos.keytab.path";
+
     // Kafka configuration description strings
     // Required Parameters
     static final String URI_DOC = "Splunk HEC URIs. Either a list of FQDNs or IPs of all Splunk indexers, separated "
@@ -177,6 +181,9 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     // Load Balancer
     static final String LB_POLL_INTERVAL_DOC = "This setting controls the load balancer polling interval. By default, "
             + "this setting is 120 seconds.";
+    
+    static final String KERBEROS_USER_PRINCIPAL_DOC = "Kerberos user principal";
+    static final String KERBEROS_KEYTAB_LOCATION_DOC = "Kerberos keytab path";
 
     final String splunkToken;
     final String splunkURI;
@@ -224,6 +231,10 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final String headerSourcetype;
     final String headerHost;
 
+    final String kerberosUserPrincipal;
+    final String kerberosKeytabPath;
+
+
     SplunkSinkConnectorConfig(Map<String, String> taskConfig) {
         super(conf(), taskConfig);
         splunkToken = getPassword(TOKEN_CONF).value();
@@ -269,6 +280,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         headerSource = getString(HEADER_SOURCE_CONF);
         headerSourcetype = getString(HEADER_SOURCETYPE_CONF);
         headerHost = getString(HEADER_HOST_CONF);
+        kerberosUserPrincipal = getString(KERBEROS_USER_PRINCIPAL_CONF);
+        kerberosKeytabPath = getString(KERBEROS_KEYTAB_PATH_CONF);
         enableCompression = getBoolean(ENABLE_COMPRESSSION_CONF);
     }
 
@@ -309,7 +322,9 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(HEADER_SOURCETYPE_CONF, ConfigDef.Type.STRING, "splunk.header.sourcetype", ConfigDef.Importance.MEDIUM, HEADER_SOURCETYPE_DOC)
                 .define(HEADER_HOST_CONF, ConfigDef.Type.STRING, "splunk.header.host", ConfigDef.Importance.MEDIUM, HEADER_HOST_DOC)
                 .define(LB_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 120, ConfigDef.Importance.LOW, LB_POLL_INTERVAL_DOC)
-                .define(ENABLE_COMPRESSSION_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.MEDIUM, ENABLE_COMPRESSSION_DOC);
+                .define(ENABLE_COMPRESSSION_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.MEDIUM, ENABLE_COMPRESSSION_DOC)
+                .define(KERBEROS_USER_PRINCIPAL_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, KERBEROS_USER_PRINCIPAL_DOC)
+                .define(KERBEROS_KEYTAB_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, KERBEROS_KEYTAB_LOCATION_DOC);
     }
 
     /**
@@ -330,7 +345,9 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
               .setBackoffThresholdSeconds(backoffThresholdSeconds)
               .setTrustStorePath(trustStorePath)
               .setTrustStorePassword(trustStorePassword)
-              .setHasCustomTrustStore(hasTrustStorePath);
+              .setHasCustomTrustStore(hasTrustStorePath)
+              .setKerberosPrincipal(kerberosUserPrincipal)
+              .setKerberosKeytabPath(kerberosKeytabPath);
         return config;
     }
 

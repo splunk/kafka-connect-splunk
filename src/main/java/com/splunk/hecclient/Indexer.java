@@ -19,6 +19,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.splunk.kafka.connect.VersionUtils;
+import com.sun.security.auth.module.Krb5LoginModule;
+import java.security.Principal;
+import java.security.PrivilegedAction;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import javax.security.auth.Subject;
+import javax.security.auth.kerberos.KerberosPrincipal;
+import javax.security.auth.login.AppConfigurationEntry;
+import javax.security.auth.login.Configuration;
+import javax.security.auth.login.LoginContext;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -38,6 +50,8 @@ final class Indexer implements IndexerInf {
     private static final Logger log = LoggerFactory.getLogger(Indexer.class);
     private static final ObjectMapper jsonMapper = new ObjectMapper();
 
+    private HecConfig hecConfig;
+    private Configuration config;
     private CloseableHttpClient httpClient;
     private HttpContext context;
     private String baseUrl;
@@ -51,10 +65,12 @@ final class Indexer implements IndexerInf {
     private long backPressureThreshold = 60 * 1000; // 1 min
 
     // Indexer doesn't own client, ack poller
-    public Indexer(String baseUrl, String hecToken, CloseableHttpClient client, Poller poller) {
+    public Indexer(String baseUrl,CloseableHttpClient client,Poller poller,HecConfig config) {
         this.httpClient = client;
         this.baseUrl = baseUrl;
         this.hecToken = hecToken;
+        this.hecConfig = config;
+        this.hecToken = config.getToken();
         this.poller = poller;
         this.context = HttpClientContext.create();
         backPressure = 0;
@@ -147,16 +163,72 @@ final class Indexer implements IndexerInf {
     @Override
     public synchronized String executeHttpRequest(final HttpUriRequest req) {
         CloseableHttpResponse resp;
-        try {
-            resp = httpClient.execute(req, context);
-        } catch (Exception ex) {
-            logBackPressure();
-            log.error("encountered io exception", ex);
-            throw new HecException("encountered exception when post data", ex);
+        if (hecConfig.kerberosAuthEnabled()) {
+            if (config == null) {
+                defineKerberosConfigs();
+            }
+            Set<Principal> principals = new HashSet<>(1);
+            principals.add(new KerberosPrincipal(hecConfig.kerberosPrincipal()));
+            Subject subject = new Subject(false, principals, new HashSet<>(), new HashSet<>());
+            try {
+                LoginContext lc = new LoginContext("SplunkSinkConnector", subject, null, config);
+                lc.login();
+                Subject serviceSubject = lc.getSubject();
+                resp = Subject.doAs(serviceSubject, (PrivilegedAction<CloseableHttpResponse>) () -> {
+                    try {
+                        return httpClient.execute(req, context);
+                    } catch (IOException ex) {
+                        logBackPressure();
+                        throw new HecException("Encountered exception while posting data.", ex);
+                    }
+                });
+            } catch (Exception le) {
+                throw new HecException(
+                    "Encountered exception while authenticating via Kerberos.", le);
+            }
+        } else {
+            try {
+                resp = httpClient.execute(req, context);
+            } catch (Exception ex) {
+                logBackPressure();
+                throw new HecException("encountered exception when post data", ex);
+            }
         }
 
         return readAndCloseResponse(resp);
     }
+
+
+     /**
+     * Creates the Kerberos configurations.
+     *
+     * @return map of kerberos configs
+     */
+    private Map<String, Object> kerberosConfigMap() {
+        Map<String, Object> configs = new HashMap<>();
+        configs.put("useTicketCache", "true");
+        configs.put("renewTGT", "true");
+        configs.put("useKeyTab", "true");
+        configs.put("keyTab", hecConfig.kerberosKeytabLocation());
+        configs.put("refreshKrb5Config", "true");
+        configs.put("principal", hecConfig.kerberosPrincipal());
+        configs.put("storeKey", "false");
+        configs.put("doNotPrompt", "true");
+        return configs;
+    }
+
+    private void defineKerberosConfigs() {
+        config = new Configuration() {
+            @Override
+            public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
+                return new AppConfigurationEntry[]{
+                    new AppConfigurationEntry(Krb5LoginModule.class.getName(),
+                        AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, kerberosConfigMap())
+                };
+            }
+        };
+    }
+
 
     private String readAndCloseResponse(CloseableHttpResponse resp) {
         String respPayload;
@@ -180,6 +252,8 @@ final class Indexer implements IndexerInf {
             log.info("Sticky session expiry detected, will cleanup old channel and its associated batches");
             poller.setStickySessionToTrue();
         }
+
+        
 
         int status = resp.getStatusLine().getStatusCode();
         // FIXME 503 server is busy backpressure
