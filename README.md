@@ -127,6 +127,8 @@ Use the below schema to configure Splunk Connect for Kafka
    "splunk.hec.json.event.formatted": "<true|false>",
    "splunk.hec.ssl.trust.store.path": "<Java KeyStore location>",
    "splunk.hec.ssl.trust.store.password": "<Java KeyStore password>"
+   "kerberos.user.principal": "<The Kerberos user principal the connector may use to authenticate with Kerberos>",
+   "kerberos.keytab.path": "<The path to the keytab file to use for authentication with Kerberos>"
   }
 }
 ```
@@ -197,6 +199,12 @@ Use the below schema to configure Splunk Connect for Kafka
 | `splunk.header.source` | This setting specifies the Kafka record header key which will determine the source value for the Splunk event. This setting is only applicable when `splunk.header.support` is set to `true`. | `splunk.header.source` |
 | `splunk.header.sourcetype` | This setting specifies the Kafka record header key which will determine the sourcetype value for the Splunk event. This setting is only applicable when `splunk.header.support` is set to `true`. | `splunk.header.sourcetype` |
 | `splunk.header.host` | This setting specifies the Kafka record header key which will determine the host value for the Splunk event. This setting is only applicable when `splunk.header.support` is set to `true`. | `splunk.header.host` |
+
+### Kerberos Parameters
+| Name              | Description                | Default Value  |
+|--------           |----------------------------|-----------------------|
+| `kerberos.user.principal` |   The Kerberos user principal the connector may use to authenticate with Kerberos. | `""` |
+| `kerberos.keytab.path` | The path to the keytab file to use for authentication with Kerberos. | `""` |
 
 ## Load balancing
 

@@ -15,7 +15,16 @@
  */
 package com.splunk.kafka.connect;
 
+import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.KERBEROS_KEYTAB_PATH_CONF;
+import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.KERBEROS_USER_PRINCIPAL_CONF;
+import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.TOKEN_CONF;
+import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.URI_CONF;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import org.apache.kafka.common.config.Config;
 import org.apache.kafka.common.config.ConfigDef;
+import org.apache.kafka.common.config.ConfigValue;
 import org.apache.kafka.connect.connector.Task;
 import org.apache.kafka.connect.sink.SinkConnector;
 import org.junit.Assert;
@@ -25,6 +34,10 @@ import org.junit.jupiter.api.Test;
 import java.util.*;
 
 class SplunkSinkConnecterTest {
+    private static final String TEST_URI = "http://localhost:8000";
+    private static final String TEST_TOKEN = "ab12351s";
+    private static final String TEST_KERB_PRINCIPAL = "testuser";
+    private static final String TEST_KERB_KEYTAB_PATH = "krb.keytab";
 
     @Test
     void startStop() {
@@ -54,5 +67,65 @@ class SplunkSinkConnecterTest {
         SinkConnector connector = new SplunkSinkConnector();
         ConfigDef config = connector.config();
         Assert.assertNotNull(config);
+    }
+    
+    @Test
+    public void testValidKerberosBothEmpty() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SinkConnector connector = new SplunkSinkConnector();
+        Config result = connector.validate(configs);
+        assertNoErrors(result);
+    }
+
+    @Test
+    public void testValidKerberosBothSet() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        configs.put(KERBEROS_USER_PRINCIPAL_CONF, TEST_KERB_PRINCIPAL);
+        configs.put(KERBEROS_KEYTAB_PATH_CONF, TEST_KERB_KEYTAB_PATH);
+        SinkConnector connector = new SplunkSinkConnector();
+        Config result = connector.validate(configs);
+        assertNoErrors(result);
+    }
+
+    @Test
+    public void testInvalidKerberosOnlyPrincipalSet() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        configs.put(KERBEROS_USER_PRINCIPAL_CONF, TEST_KERB_PRINCIPAL);
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+        Config result = connector.validate(configs);
+        assertHasErrorMessage(result, KERBEROS_USER_PRINCIPAL_CONF, "must be set");
+        assertHasErrorMessage(result, KERBEROS_KEYTAB_PATH_CONF, "must be set");
+    }
+
+    @Test
+    public void testInvalidKerberosOnlyKeytabSet() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        configs.put(KERBEROS_KEYTAB_PATH_CONF, TEST_KERB_KEYTAB_PATH);
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+        Config result = connector.validate(configs);
+        assertHasErrorMessage(result, KERBEROS_USER_PRINCIPAL_CONF, "must be set");
+        assertHasErrorMessage(result, KERBEROS_KEYTAB_PATH_CONF, "must be set");
+    }
+
+    private void addNecessaryConfigs(Map<String, String> configs) {
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+    }
+
+    private void assertHasErrorMessage(Config config, String property, String msg) {
+        for (ConfigValue configValue : config.configValues()) {
+            if (configValue.name().equals(property)) {
+                assertFalse(configValue.errorMessages().isEmpty());
+                assertTrue(configValue.errorMessages().get(0).contains(msg));
+            }
+        }
+    }
+
+    private void assertNoErrors(Config config) {
+        config.configValues().forEach(c -> assertTrue(c.errorMessages().isEmpty()));
     }
 }
