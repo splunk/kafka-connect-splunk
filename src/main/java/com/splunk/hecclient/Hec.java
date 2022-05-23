@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
+import org.apache.kafka.connect.errors.ConnectException;
 
 /**
  * Hec is the central class which will construct the HTTP Event Collector Client to send messages to Splunk.
@@ -196,7 +197,7 @@ public class Hec implements HecInf {
     public Hec(HecConfig config, CloseableHttpClient httpClient, Poller poller, LoadBalancerInf loadBalancer) {
         for (int i = 0; i < config.getTotalChannels(); ) {
             for (String uri : config.getUris()) {
-                Indexer indexer = new Indexer(uri, config.getToken(), httpClient, poller);
+                Indexer indexer = new Indexer(uri, httpClient, poller, config);
                 indexer.setKeepAlive(config.getHttpKeepAlive());
                 indexer.setBackPressureThreshold(config.getBackoffThresholdSeconds());
                 loadBalancer.add(uri, indexer.getChannel().setTracking(config.getEnableChannelTracking()));
@@ -265,6 +266,14 @@ public class Hec implements HecInf {
     */
     public static CloseableHttpClient createHttpClient(final HecConfig config) {
         int poolSizePerDest = config.getMaxHttpConnectionPerChannel();
+
+        if (config.kerberosAuthEnabled()) {
+            try {
+              return new HttpClientBuilder().buildKerberosClient();
+            } catch (KeyStoreException | NoSuchAlgorithmException | KeyManagementException ex) {
+              throw new ConnectException("Unable to build Kerberos Client", ex);
+            }
+          }
 
         // Code block for default client construction
         if(!config.getHasCustomTrustStore() &&

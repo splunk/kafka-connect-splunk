@@ -36,6 +36,8 @@ public final class HecConfig {
     private String trustStorePath;
     private String trustStorePassword;
     private int lbPollInterval = 120; // in seconds
+    private String kerberosPrincipal;
+    private String kerberosKeytabPath;
 
     public HecConfig(List<String> uris, String token) {
         this.uris = uris;
@@ -177,5 +179,27 @@ public final class HecConfig {
     public HecConfig setBackoffThresholdSeconds(int backoffSeconds) {
         backoffThresholdSeconds = backoffSeconds * 1000;
         return this;
+    }
+
+    public String kerberosPrincipal() {
+        return kerberosPrincipal;
+    }
+
+    public HecConfig setKerberosPrincipal(String kerberosPrincipal) {
+        this.kerberosPrincipal = kerberosPrincipal;
+        return this;
+    }
+
+    public String kerberosKeytabLocation() {
+        return kerberosKeytabPath;
+    }
+
+    public HecConfig setKerberosKeytabPath(String kerberosKeytabPath) {
+        this.kerberosKeytabPath = kerberosKeytabPath;
+        return this;
+    }
+
+    public boolean kerberosAuthEnabled() {
+        return !kerberosPrincipal().isEmpty();
     }
 }

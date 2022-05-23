@@ -23,7 +23,9 @@ import com.fasterxml.jackson.databind.util.StdDateFormat;
 import org.slf4j.*;
 
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.Map;
+import java.util.TimeZone;
 
 /**
  * Event is an abstract class that represents a bare bones implementation of a Splunk Event. Every event that arrives
@@ -48,7 +50,9 @@ public abstract class Event {
     static {
         jsonMapper = new ObjectMapper();
         jsonMapper.registerModule(new com.splunk.kafka.connect.JacksonStructModule());
-        jsonMapper.setDateFormat(StdDateFormat.instance);
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+        df.setTimeZone(TimeZone.getTimeZone("UTC"));
+        jsonMapper.setDateFormat(df);
     }
 
     protected static final Logger log = LoggerFactory.getLogger(Event.class);

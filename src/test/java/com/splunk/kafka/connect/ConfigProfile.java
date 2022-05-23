@@ -36,6 +36,7 @@ public class ConfigProfile {
     private String headerSource;
     private String headerSourcetype;
     private String headerHost;
+    private String lineBreaker;
 
     public ConfigProfile() {
         this(0);
@@ -88,6 +89,7 @@ public class ConfigProfile {
         this.trackData = true;
         this.maxBatchSize = 1;
         this.numOfThreads = 1;
+        this.lineBreaker = "\n";
         return this;
     }
 
@@ -220,6 +222,10 @@ public class ConfigProfile {
         this.headerHost = "splunk.header.host";
 
         return this;
+    }
+
+    public String getLineBreaker() {
+        return lineBreaker;
     }
 
     public String getTopics() {

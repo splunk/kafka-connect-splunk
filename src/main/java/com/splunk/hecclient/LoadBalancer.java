@@ -63,7 +63,15 @@ public final class LoadBalancer implements LoadBalancerInf {
         Runnable r = () -> {
             run();
         };
-        scheduledExecutorService.scheduleWithFixedDelay(r, 0, this.hecConfig.getlbPollInterval(), TimeUnit.MILLISECONDS);
+
+	if (this.hecConfig.getlbPollInterval() > 0)
+	{
+            scheduledExecutorService.scheduleWithFixedDelay(r, 0, this.hecConfig.getlbPollInterval(), TimeUnit.MILLISECONDS);
+	}
+	else
+	{
+            log.info("Disabling out-of-band health-check");
+	}
     }
 
     public void setHttpClient(CloseableHttpClient httpClient) {

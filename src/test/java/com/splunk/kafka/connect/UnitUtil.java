@@ -58,6 +58,7 @@ public class UnitUtil {
         config.put(SplunkSinkConnectorConfig.TRACK_DATA_CONF, String.valueOf(configProfile.isTrackData()));
         config.put(SplunkSinkConnectorConfig.MAX_BATCH_SIZE_CONF, String.valueOf(configProfile.getMaxBatchSize()));
         config.put(SplunkSinkConnectorConfig.HEC_THREDS_CONF, String.valueOf(configProfile.getNumOfThreads()));
+        config.put(SplunkSinkConnectorConfig.LINE_BREAKER_CONF, configProfile.getLineBreaker());
         return config;
     }
 
