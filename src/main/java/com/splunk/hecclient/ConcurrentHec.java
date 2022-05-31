@@ -57,7 +57,11 @@ public class ConcurrentHec implements HecInf {
     @Override
     public final void send(final EventBatch batch) {
         try {
-            batches.offer(batch, 1000, TimeUnit.MILLISECONDS);
+            boolean offerSuccess = batches.offer(batch, 1000, TimeUnit.MILLISECONDS);
+            if (!offerSuccess) {
+                log.warn("Linked blocking queue is full (size = {}) for event batch = {}, failed to offer batch into queue", batches.size(), batch.getUUID());
+                throw new HecException("linked blocking event queue is full, failed to offer batch into queue");
+            }
         } catch (InterruptedException ex) {
             throw new HecException("failed to offer batch into queue", ex);
         }
