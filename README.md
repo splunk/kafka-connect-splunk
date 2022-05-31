@@ -1,4 +1,4 @@
-## Splunk Connect for Kafka
+## Splunk Connect for Kafka test
 
 Splunk Connect for Kafka is a Kafka Connect Sink for Splunk with the following features:
 
