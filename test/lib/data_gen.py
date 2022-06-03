@@ -32,7 +32,10 @@ def generate_connector_content(input_disc=None):
             "splunk_header_sourcetype": None,
             "splunk_header_host": None,
             "splunk_hec_json_event_formatted": None,
-            "splunk_sourcetypes": "kafka"
+            "splunk_sourcetypes": "kafka",
+            "value_converter": None,
+            "value_converter_schema_registry_url": None,
+            "value_converter_schemas_enable":"false"
         }
 
     if input_disc:
