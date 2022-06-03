@@ -19,7 +19,7 @@ logger = logging.getLogger('connector_upgrade')
 
 _config_path = os.path.join(get_test_folder(), 'config.yaml')
 with open(_config_path, 'r') as yaml_file:
-    config = yaml.load(yaml_file, Loader=yaml.FullLoader)
+    config = yaml.load(yaml_file)
 now = datetime.now()
 _time_stamp = str(datetime.timestamp(now))
 _topic = 'kafka_connect_upgrade'
@@ -79,10 +79,7 @@ def generate_kafka_events(num):
     broker_topics = client.list_topics()
     logger.info(broker_topics)
     if _topic not in broker_topics:
-        try:
-            create_kafka_topics(config, topics)
-        except Exception as e:
-            logger.error(e)
+        create_kafka_topics(config, topics)
     producer = KafkaProducer(bootstrap_servers=config["kafka_broker_url"],
                              value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 
