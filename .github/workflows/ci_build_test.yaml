@@ -19,11 +19,23 @@ jobs:
         run: |
           mvn dependency:go-offline
 
+      - name: Run Unit tests
+        run: |
+          mvn package -Dsurefire.useSystemClassLoader=false -q
+          cp -R target/splunk-kafka-connect*.jar /tmp
+
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: splunk-kafka-connector
           path: /tmp/splunk-kafka-connect*.jar
+
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action/composite@v1
+        if: always()
+        with:
+          check_name: Unit Test Results
+          files: "target/surefire-reports/*.xml"
 
   e2e_test:
     name: e2e test - kafka version-${{ matrix.kafka_version }}
