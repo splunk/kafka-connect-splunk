@@ -9,7 +9,6 @@ kafka_broker_url: 127.0.0.1:9092
 kafka_connect_url: http://127.0.0.1:8083
 kafka_topic: test-datagen
 kafka_topic_2: kafka_topic_2
-kafka_topic_3: prototopic
 kafka_header_topic: kafka_header_topic
 kafka_header_index: kafka
 connector_path: /usr/local/share/kafka/plugins
