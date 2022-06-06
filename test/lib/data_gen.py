@@ -33,8 +33,8 @@ def generate_connector_content(input_disc=None):
             "splunk_header_host": None,
             "splunk_hec_json_event_formatted": None,
             "splunk_sourcetypes": "kafka",
-            "value_converter": None,
-            "value_converter_schema_registry_url": None,
+            "value_converter": "org.apache.kafka.connect.storage.StringConverter",
+            "value_converter_schema_registry_url": "",
             "value_converter_schemas_enable":"false"
         }
 
