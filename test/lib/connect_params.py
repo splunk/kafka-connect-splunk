@@ -195,8 +195,8 @@ connect_params = [
      "splunk_hec_json_event_enrichment": "chars=hec_malformed_events_{}".format(config['timestamp'])},
     {"name": "test_protobuf_events",
      "splunk_sourcetypes": "protobuf",
-     "topics": "prototopic",
      "splunk_hec_raw": False,
+     "topics": "prototopic",
      "value_converter":"io.confluent.connect.protobuf.ProtobufConverter",
      "value_converter_schema_registry_url":os.environ["SCHEMA_REGISTRY_URL"],
      "value_converter_schemas_enable":"true"
