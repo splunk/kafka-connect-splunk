@@ -37,7 +37,7 @@ def setup(request):
 
 def pytest_configure():
     # Generate message data
-    topics = [config["kafka_topic"], config["kafka_topic_2"], config["kafka_header_topic"],config["kafka_topic_3"],
+    topics = [config["kafka_topic"], config["kafka_topic_2"], config["kafka_header_topic"],"prototopic",
               "test_splunk_hec_malformed_events"]
 
     create_kafka_topics(config, topics)
