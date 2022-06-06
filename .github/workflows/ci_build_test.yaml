@@ -19,23 +19,11 @@ jobs:
         run: |
           mvn dependency:go-offline
 
-      - name: Run Unit tests
-        run: |
-          mvn package -Dsurefire.useSystemClassLoader=false -q
-          cp -R target/splunk-kafka-connect*.jar /tmp
-
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: splunk-kafka-connector
           path: /tmp/splunk-kafka-connect*.jar
-
-      - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action/composite@v1
-        if: always()
-        with:
-          check_name: Unit Test Results
-          files: "target/surefire-reports/*.xml"
 
   e2e_test:
     name: e2e test - kafka version-${{ matrix.kafka_version }}
@@ -45,20 +33,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - kafka_version: "1.1.1"
-            kafka_package: "kafka_2.11-1.1.1.tgz"
-          - kafka_version: "2.0.0"
-            kafka_package: "kafka_2.11-2.0.0.tgz"
-          - kafka_version: "2.1.0"
-            kafka_package: "kafka_2.12-2.1.0.tgz"
-          - kafka_version: "2.6.0"
-            kafka_package: "kafka_2.13-2.6.0.tgz"
-          - kafka_version: "2.7.1"
-            kafka_package: "kafka_2.13-2.7.1.tgz"
-          - kafka_version: "2.8.0"
-            kafka_package: "kafka_2.13-2.8.0.tgz"
-          - kafka_version: "3.0.0"
-            kafka_package: "kafka_2.13-3.0.0.tgz"
           - kafka_version: "3.1.0"
             kafka_package: "kafka_2.13-3.1.0.tgz"
     env:
