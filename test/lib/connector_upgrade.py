@@ -91,7 +91,8 @@ def generate_kafka_events(num):
 
 
 def upgrade_connector_plugin():
-    cmds = ["sudo kill $(sudo lsof -t -i:8083) && sleep 2",
+    cmds = ["sudo kill $(sudo lsof -t -i:8083) && sleep 5",
+            "ps -AF",
             "sudo rm {}/{} && sleep 2".format(config["connector_path"], config["old_connector_name"]),
             "sudo cp {0}/splunk-kafka-connect*.jar {1} && sleep 2".format(config["connector_build_target"],
                                                                           config["connector_path"]),
@@ -103,7 +104,7 @@ def upgrade_connector_plugin():
         proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT)
         output, error = proc.communicate()
-        logger.debug(output)
+        logger.info(output)
         time.sleep(2)
         update_kafka_connectors()
     except OSError as e:
