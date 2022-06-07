@@ -44,6 +44,9 @@
 			{% if splunk_hec_json_event_formatted %}
 				"splunk.hec.json.event.formatted": "{{splunk_hec_json_event_formatted}}",
 			{% endif %}
-			"splunk.sourcetypes": "{{splunk_sourcetypes}}"
+			"splunk.sourcetypes": "{{splunk_sourcetypes}}",
+			"value.converter": "{{value_converter}}",
+            "value.converter.schema.registry.url": "{{value_converter_schema_registry_url}}",
+            "value.converter.schemas.enable": "{{value_converter_schemas_enable}}"
 		}
 }
