@@ -74,6 +74,7 @@ jobs:
       CI_KAFKA_HEADER_INDEX: kafka
       CI_DATAGEN_IMAGE: rock1017/log-generator:latest
       CI_OLD_CONNECTOR_VERSION: v2.0.1
+      SCHEMA_REGISTRY_URL: ${{ Secrets.SCHEMA_REGISTRY_URL }}
 
     steps:
       - name: Checkout
