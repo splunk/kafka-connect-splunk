@@ -106,6 +106,12 @@ Use the below schema to configure Splunk Connect for Kafka
    "splunk.hec.raw": "<true|false>",
    "splunk.hec.raw.line.breaker": "<line breaker separator>",
    "splunk.hec.json.event.enrichment": "<key value pairs separated by comma, only applicable to /event HEC>",
+   "value.converter": "<converter class used to convert between Kafka Connect format and the serialized form that is written to Kafka>",
+   "value.converter.schema.registry.url": "<Schema-Registry-URL>",
+   "value.converter.schemas.enable": "<true|false>",
+   "key.converter": "<converter class used to convert between Kafka Connect format and the serialized form that is written to Kafka>",
+   "key.converter.schema.registry.url": "<Schema-Registry-URL>",
+   "key.converter.schemas.enable": "<true|false>",
    "splunk.hec.ack.enabled": "<true|false>",
    "splunk.hec.ack.poll.interval": "<event ack poll interval>",
    "splunk.hec.ack.poll.threads": "<number of threads used to poll event acks>",
@@ -205,6 +211,16 @@ Use the below schema to configure Splunk Connect for Kafka
 |--------           |----------------------------|-----------------------|
 | `kerberos.user.principal` |   The Kerberos user principal the connector may use to authenticate with Kerberos. | `""` |
 | `kerberos.keytab.path` | The path to the keytab file to use for authentication with Kerberos. | `""` |
+
+### Protobuf Parameters
+| Name              | Description                | Default Value  |
+|--------           |----------------------------|-----------------------|
+| `value.converter` |  Converter class used to convert between Kafka Connect format and the serialized form that is written to Kafka. This controls the format of the values in messages written to or read from Kafka. For using protobuf format ,set the value of this field to `io.confluent.connect.protobuf.ProtobufConverter` | `org.apache.kafka.connect.storage.StringConverter` |
+| `value.converter.schema.registry.url` |  Schema Registry URL. | `""` |
+| `value.converter.schemas.enable` | For using protobuf format ,set the value of this field to `true` | `false` |
+| `key.converter` |  Converter class used to convert between Kafka Connect format and the serialized form that is written to Kafka. This controls the format of the keys in messages written to or read from Kafka. For using protobuf format ,set the value of this field to `io.confluent.connect.protobuf.ProtobufConverter` | `org.apache.kafka.connect.storage.StringConverter` |
+| `key.converter.schema.registry.url` |  Schema Registry URL. | `""` |
+| `key.converter.schemas.enable` | For using protobuf format ,set the value of this field to `true` | `false` |
 
 ## Load balancing
 
