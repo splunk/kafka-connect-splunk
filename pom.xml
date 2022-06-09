@@ -152,7 +152,20 @@
             <version>3.7</version>
             <scope>compile</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/io.confluent/kafka-connect-protobuf-converter -->
+        <dependency>
+            <groupId>io.confluent</groupId>
+            <artifactId>kafka-connect-protobuf-converter</artifactId>
+            <version>7.0.1</version>
+        </dependency>
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>confluent</id>
+            <url>https://packages.confluent.io/maven/</url>
+        </repository>
+    </repositories>
 
     <reporting>
         <plugins>
