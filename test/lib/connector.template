@@ -47,6 +47,9 @@
 			"splunk.sourcetypes": "{{splunk_sourcetypes}}",
 			"value.converter": "{{value_converter}}",
             "value.converter.schema.registry.url": "{{value_converter_schema_registry_url}}",
-            "value.converter.schemas.enable": "{{value_converter_schemas_enable}}"
+            "value.converter.schemas.enable": "{{value_converter_schemas_enable}}",
+			"enable.timestamp.extraction": "{{enable_timestamp_extraction}}",
+			"regex": "{{regex}}",
+			"timestamp.format": "{{timestamp_format}}"
 		}
 }

@@ -44,3 +44,38 @@ class TestDataOnboarding:
                                           password=setup["splunk_password"])
         logger.info("Splunk received %s events in the last hour", len(events))
         assert len(events) == expected
+
+    @pytest.mark.parametrize("test_scenario, test_input, expected", [
+        ("date_format", "latest=1365209605.000", "2010-06-13T23:11:52.454+00:00"),
+    ])
+    def test_extracted_timestamp_data_onboarding_date_format(self, setup, test_scenario, test_input, expected):
+        logger.info("testing {0} input={1} expected={2} event(s)".format(test_scenario, test_input, expected))
+        search_query = "index={0} {1}".format(setup['splunk_index'],
+                                                                         test_input)
+        logger.info(search_query)
+        events = check_events_from_splunk(start_time="-15m@m",
+                                          url=setup["splunkd_url"],
+                                          user=setup["splunk_user"],
+                                          query=["search {}".format(search_query)],
+                                          password=setup["splunk_password"])
+        logger.info("Splunk received %s events in the last hour", len(events))
+        assert events[0]["_time"] == expected
+        assert len(events) == 1
+
+
+    @pytest.mark.parametrize("test_scenario, test_input, expected", [
+        ("epoch_format", "latest=1565209605.000", "2019-04-14T02:40:05.000+00:00"),
+    ])
+    def test_extracted_timestamp_data_onboarding_epoch_format(self, setup, test_scenario, test_input, expected):
+        logger.info("testing {0} input={1} expected={2} event(s)".format(test_scenario, test_input, expected))
+        search_query = "index={0} {1}".format(setup['splunk_index'],
+                                                                         test_input)
+        logger.info(search_query)
+        events = check_events_from_splunk(start_time="-15m@m",
+                                          url=setup["splunkd_url"],
+                                          user=setup["splunk_user"],
+                                          query=["search {}".format(search_query)],
+                                          password=setup["splunk_password"])
+        logger.info("Splunk received %s events in the last hour", len(events))
+        assert events[0]["_time"] == expected
+        assert len(events) == 2

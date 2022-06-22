@@ -16,6 +16,9 @@
 package com.splunk.kafka.connect;
 
 import com.splunk.hecclient.*;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
+import org.apache.kafka.clients.admin.Config;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.connect.errors.RetriableException;
@@ -25,9 +28,14 @@ import org.apache.kafka.connect.sink.SinkTask;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.connect.header.Header;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -479,6 +487,43 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         if (connectorConfig.useRecordTimestamp && record.timestamp() != null) {
             event.setTime(record.timestamp() / 1000.0); // record timestamp is in milliseconds
         }
+
+        if(connectorConfig.enableTimestampExtraction && StringUtils.isNotEmpty(connectorConfig.regex) )   {
+            String jsonStr = event.getEvent().toString();  
+            String string = jsonStr.replaceAll("\\\"","\"");
+            String extracted_timestamp = "";
+            final Pattern pattern = Pattern.compile(connectorConfig.regex);
+            final Matcher matcher = pattern.matcher(string);
+
+            if (matcher.find()) {
+            System.out.println("Full match: " + matcher.group(1));
+            extracted_timestamp = (matcher.group(1));
+            }
+            
+            double epoch= (double) 0;
+            if (!connectorConfig.timestampFormat.trim().equalsIgnoreCase("epoch")){
+                SimpleDateFormat df = new SimpleDateFormat(connectorConfig.timestampFormat);
+                Date date;
+                try {
+                    date = df.parse(extracted_timestamp);
+                    epoch = (date.getTime());
+                } catch (ParseException e) {
+                    log.warn("Could not set the time as invalid timestamp format is given");
+                } 
+            }
+            else{
+                try {
+                    epoch = ((Double.parseDouble(extracted_timestamp)));
+                }
+                catch (Exception e){
+                    log.warn("Could not set the time as invalid timestamp format is given");
+                }
+
+            }
+            if(epoch != (double) 0 ){
+                event.setTime(epoch / 1000.0);
+            }
+         }
 
         Map<String, String> metas = connectorConfig.topicMetas.get(record.topic());
         if (metas != null) {

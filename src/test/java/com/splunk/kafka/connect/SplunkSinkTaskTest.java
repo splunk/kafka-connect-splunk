@@ -17,15 +17,19 @@ package com.splunk.kafka.connect;
 
 import com.splunk.hecclient.Event;
 import com.splunk.hecclient.EventBatch;
+import com.splunk.hecclient.JsonEvent;
 import com.splunk.hecclient.RawEventBatch;
+import org.apache.commons.logging.Log;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.common.record.TimestampType;
 import org.apache.kafka.connect.errors.RetriableException;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.text.ParseException;
 import java.util.*;
 
 public class SplunkSinkTaskTest {
@@ -237,13 +241,97 @@ public class SplunkSinkTaskTest {
         task.start(config);
         task.put(createNullSinkRecord());
         Assert.assertEquals(0, hec.getBatches().size());
-
         task.stop();
     }
 
     @Test
     public void putWithRawAndAck() {
         putWithSuccess(true, true);
+    }
+
+    @Test
+    public void checkExtractedTimestamp() {
+        SplunkSinkTask task = new SplunkSinkTask();
+        Collection<SinkRecord> record = createSinkRecords(1,"{\"id\": \"19\",\"host\":\"host-01\",\"source\":\"bu\",\"fields\":{\"hn\":\"hostname1\",\"CLASS\":\"class1\",\"cust_id\":\"000013934\",\"time\": \"Jun 13 2010 23:11:52.454 UTC\",\"category\":\"IFdata\",\"ifname\":\"LoopBack7\",\"IFdata.Bits received\":\"0\",\"IFdata.Bits sent\":\"0\"}");
+        // SinkRecord record = new SinkRecord(new UnitUtil(0).configProfile.getTopics(), 1, null, null, null, "{\"id\": \"19\",\"host\":\"host-01\",\"source\":\"bu\",\"fields\":{\"hn\":\"hostname1\",\"CLASS\":\"class1\",\"cust_id\":\"000013934\",\"time\": \"Jun 13 2010 23:11:52.454 UTC\",\"category\":\"IFdata\",\"ifname\":\"LoopBack7\",\"IFdata.Bits received\":\"0\",\"IFdata.Bits sent\":\"0\"}", 0, 0L, TimestampType.NO_TIMESTAMP_TYPE);
+        UnitUtil uu = new UnitUtil(0);
+        Map<String, String> config = uu.createTaskConfig();
+        config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
+        config.put(SplunkSinkConnectorConfig.ENABLE_TIMESTAMP_EXTRACTION_CONF, String.valueOf(true));
+        config.put(SplunkSinkConnectorConfig.REGEX_CONF, "\\\"time\\\":\\s*\\\"(?<time>.*?)\"");
+        config.put(SplunkSinkConnectorConfig.TIMESTAMP_FORMAT_CONF, "MMM dd yyyy HH:mm:ss.SSS zzz");
+        HecMock hec = new HecMock(task);
+        hec.setSendReturnResult(HecMock.success);
+        task.setHec(hec);
+        task.start(config);
+        task.put(record);
+       
+        List<EventBatch> batches = hec.getBatches();
+        for (Iterator<EventBatch> iter = batches.listIterator(); iter.hasNext();) {
+            EventBatch ch = iter.next();
+            List<Event> ev = ch.getEvents();
+            Iterator<Event> iter1 = ev.listIterator() ;
+            Event ev1 = iter1.next();
+            Assert.assertEquals(1.276470712454E12+"",ev1.getTime()*1000+"");
+            break;       
+        }  
+        task.stop();
+    }
+
+    
+    @Test(expected = ConfigException.class)
+    public void emptyRegex() {
+        SplunkSinkTask task = new SplunkSinkTask();
+        UnitUtil uu = new UnitUtil(0);
+        Map<String, String> config = uu.createTaskConfig();
+        config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
+        config.put(SplunkSinkConnectorConfig.ENABLE_TIMESTAMP_EXTRACTION_CONF, String.valueOf(true));
+        config.put(SplunkSinkConnectorConfig.REGEX_CONF, null);
+        config.put(SplunkSinkConnectorConfig.TIMESTAMP_FORMAT_CONF, "MMM dd yyyy HH:mm:ss.SSS zzz");
+        task.start(config);
+        task.stop();
+    }
+
+    @Test(expected = ConfigException.class)
+    public void invalidCaptureGroup() {
+        SplunkSinkTask task = new SplunkSinkTask();
+        UnitUtil uu = new UnitUtil(0);
+        Map<String, String> config = uu.createTaskConfig();
+        config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
+        config.put(SplunkSinkConnectorConfig.ENABLE_TIMESTAMP_EXTRACTION_CONF, String.valueOf(true));
+        config.put(SplunkSinkConnectorConfig.REGEX_CONF, "\\\"time\\\":\\s*\\\"(?<invalid>.*?)\"");
+        config.put(SplunkSinkConnectorConfig.TIMESTAMP_FORMAT_CONF, "MMM dd yyyy HH:mm:ss.SSS zzz");
+        task.start(config);
+        task.stop();
+    }
+
+    @Test
+    public void FailExtractTimestamp() {
+        SplunkSinkTask task = new SplunkSinkTask();
+        Collection<SinkRecord> record = createSinkRecords(1,"{\"id\": \"19\",\"host\":\"host-01\",\"source\":\"bu\",\"fields\":{\"hn\":\"hostname1\",\"CLASS\":\"class1\",\"cust_id\":\"000013934\",\"t\": \"Jun 13 2010 23:11:52.454 UTC\",\"category\":\"IFdata\",\"ifname\":\"LoopBack7\",\"IFdata.Bits received\":\"0\",\"IFdata.Bits sent\":\"0\"}");
+        // SinkRecord record = new SinkRecord(new UnitUtil(0).configProfile.getTopics(), 1, null, null, null, "{\"id\": \"19\",\"host\":\"host-01\",\"source\":\"bu\",\"fields\":{\"hn\":\"hostname1\",\"CLASS\":\"class1\",\"cust_id\":\"000013934\",\"time\": \"Jun 13 2010 23:11:52.454 UTC\",\"category\":\"IFdata\",\"ifname\":\"LoopBack7\",\"IFdata.Bits received\":\"0\",\"IFdata.Bits sent\":\"0\"}", 0, 0L, TimestampType.NO_TIMESTAMP_TYPE);
+        UnitUtil uu = new UnitUtil(0);
+        Map<String, String> config = uu.createTaskConfig();
+        config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
+        config.put(SplunkSinkConnectorConfig.ENABLE_TIMESTAMP_EXTRACTION_CONF, String.valueOf(true));
+        config.put(SplunkSinkConnectorConfig.REGEX_CONF, "\\\"time\\\":\\s*\\\"(?<time>.*?)\"");
+        config.put(SplunkSinkConnectorConfig.TIMESTAMP_FORMAT_CONF, "MMM dd yyyy HH:mm:ss.SSS zzz");
+        HecMock hec = new HecMock(task);
+        hec.setSendReturnResult(HecMock.success);
+        task.setHec(hec);
+        task.start(config);
+        task.put(record);
+       
+        List<EventBatch> batches = hec.getBatches();
+        for (Iterator<EventBatch> iter = batches.listIterator(); iter.hasNext();) {
+            EventBatch ch = iter.next();
+            List<Event> ev = ch.getEvents();
+            Iterator<Event> iter1 = ev.listIterator() ;
+            Event ev1 = iter1.next();
+            Assert.assertEquals(0.0+"",ev1.getTime()*1000+"");
+            break;       
+        }  
+        task.stop();
     }
 
     @Test
