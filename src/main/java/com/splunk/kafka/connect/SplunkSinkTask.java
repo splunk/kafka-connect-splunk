@@ -16,6 +16,9 @@
 package com.splunk.kafka.connect;
 
 import com.splunk.hecclient.*;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
+import org.apache.kafka.clients.admin.Config;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.connect.errors.RetriableException;
@@ -25,9 +28,14 @@ import org.apache.kafka.connect.sink.SinkTask;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.connect.header.Header;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -480,6 +488,10 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             event.setTime(record.timestamp() / 1000.0); // record timestamp is in milliseconds
         }
 
+        if(connectorConfig.enableTimestampExtraction) {
+            timestampExtraction(event);
+         }
+
         Map<String, String> metas = connectorConfig.topicMetas.get(record.topic());
         if (metas != null) {
             event.setIndex(metas.get(SplunkSinkConnectorConfig.INDEX));
@@ -535,6 +547,43 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
                 return Hec.newHecWithAck(connectorConfig.getHecConfig(), this);
             } else {
                 return Hec.newHecWithoutAck(connectorConfig.getHecConfig(), this);
+            }
+        }
+    }
+
+    private void timestampExtraction(Event event) {
+        String jsonStr = event.getEvent().toString();
+        String string = jsonStr.replaceAll("\\\"", "\"");
+        String timestamp = "";
+        final Pattern pattern = Pattern.compile(connectorConfig.regex);
+        final Matcher matcher = pattern.matcher(string);
+        try {
+            if (matcher.find()) {
+                timestamp = (matcher.group("time"));
+            }
+        } catch (Exception e) {
+            log.warn("Couldn't extract timestamp", e);
+            return;
+        }
+
+        if (connectorConfig.timestampFormat.equalsIgnoreCase("epoch")) {
+            try {
+                double epoch;
+                epoch = ((Double.parseDouble(timestamp)));
+                long long_epoch = (new Double(epoch)).longValue();
+                event.setTime(epoch / (Math.pow(10, Long.toString(long_epoch).length()-10)));
+                
+            } catch (Exception e) {
+                log.warn("Could not set the time", e);
+            }
+        } else {
+            SimpleDateFormat df = new SimpleDateFormat(connectorConfig.timestampFormat);
+            Date date;
+            try {
+                date = df.parse(timestamp);
+                event.setTime(date.getTime() / 1000.0);
+            } catch (ParseException e) {
+                log.warn("Couldn't parse the timestamp", e);
             }
         }
     }
