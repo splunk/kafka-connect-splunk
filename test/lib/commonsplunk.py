@@ -74,7 +74,7 @@ def create_index_in_splunk(index="",
     returns True/False
     '''
 
-    search_url = '{0}/services/data/indexes/{1}?output_mode=json'.format(url, index)
+    search_url = f'{url}/services/data/indexes/{index}?output_mode=json'
     logger.debug('requesting: %s', search_url)
     data = {
         'name': index
@@ -90,7 +90,7 @@ def create_index_in_splunk(index="",
     elif create_job.status_code == 409:
         logger.info('The index: %s already exits', index)
     else:
-        logger.info('The index: {0} not created, exit code is {1}'.format(index, create_job.status_code))
+        logger.info(f'The index: {index} not created, exit code is {create_job.status_code}')
         return False
 
     return True
@@ -109,7 +109,7 @@ def delete_index_in_splunk(index="",
     returns True/False
     '''
 
-    search_url = '{0}/services/data/indexes/{1}?output_mode=json'.format(url, index)
+    search_url = f'{url}/services/data/indexes/{index}?output_mode=json'
     logger.debug('requesting: %s', search_url)
     data = {
         'name': index
@@ -139,8 +139,7 @@ def _collect_events(query, start_time, end_time, url="", user="", password=""):
     returns events
     '''
 
-    search_url = '{0}/services/search/jobs?output_mode=json'.format(
-        url)
+    search_url = f'{url}/services/search/jobs?output_mode=json'
     logger.debug('requesting: %s', search_url)
     data = {
         'search': query,
@@ -169,8 +168,7 @@ def _collect_metrics(start_time, end_time, url="", user="", password="", index="
     @param: end_time (search end time)
     returns events
     '''
-    api_url = url + '/services/catalog/metricstore/dimensions/host/values?filter=index%3d' + index + '&metric_name=' + metric_name + '&earliest=' + start_time + '&latest=' + end_time + '&output_mode=json'.format(
-        url)
+    api_url = url + '/services/catalog/metricstore/dimensions/host/values?filter=index%3d' + index + '&metric_name=' + metric_name + '&earliest=' + start_time + '&latest=' + end_time + '&output_mode=json'
 
     logger.debug('requesting: %s', api_url)
 
@@ -197,8 +195,7 @@ def _wait_for_job_and__get_events(job_id, url="", user="", password=""):
     returns events
     '''
     events = []
-    job_url = '{0}/services/search/jobs/{1}?output_mode=json'.format(
-        url, str(job_id))
+    job_url = f'{url}/services/search/jobs/{str(job_id)}?output_mode=json'
     logger.debug('requesting: %s', job_url)
 
     for _ in range(TIMEROUT):
@@ -215,7 +212,7 @@ def _wait_for_job_and__get_events(job_id, url="", user="", password=""):
             events = _get_events(job_id, url, user, password)
             break
         if dispatch_state == 'FAILED':
-            raise Exception('Search job: {0} failed'.format(job_url))
+            raise Exception(f'Search job: {job_url} failed')
         time.sleep(1)
 
     return events
@@ -227,8 +224,7 @@ def _get_events(job_id, url="", user="", password=""):
     @param: job_id
     returns events
     '''
-    event_url = '{0}/services/search/jobs/{1}/events?output_mode=json&count=0'.format(
-        url, str(job_id))
+    event_url = f'{url}/services/search/jobs/{str(job_id)}/events?output_mode=json&count=0'
     logger.debug('requesting: %s', event_url)
 
     event_job = _requests_retry_session().get(
@@ -251,8 +247,7 @@ def _check_request_status(req_obj):
     returns True/False
     '''
     if not req_obj.ok:
-        raise Exception('status code: {0} \n details: {1}'.format(
-            str(req_obj.status_code), req_obj.text))
+        raise Exception(f'status code: {str(req_obj.status_code)} \n details: {req_obj.text}')
 
 
 def _requests_retry_session(

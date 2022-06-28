@@ -28,10 +28,9 @@ _connector_ack = 'kafka_connect_ack'
 
 
 def start_old_connector():
-    cmds = ["test -f {0}/{1} && echo {0}/{1}".format(config["connector_path"], config["old_connector_name"]),
-            "cd {}".format(config["kafka_home"]),
-            "sudo {0}/bin/connect-distributed.sh {1}/config/connect-distributed-quickstart.properties &".
-                format(config["kafka_home"], os.environ.get('GITHUB_WORKSPACE'))]
+    cmds = [f"test -f {config['connector_path']}/{config['old_connector_name']} && echo {config['connector_path']}/{config['old_connector_name']}",
+            f"cd {config['kafka_home']}",
+            f"sudo {config['kafka_home']}/bin/connect-distributed.sh {os.environ.get('GITHUB_WORKSPACE')}/config/connect-distributed-quickstart.properties &"]
 
     cmd = "\n".join(cmds)
     try:
@@ -92,11 +91,9 @@ def generate_kafka_events(num):
 
 def upgrade_connector_plugin():
     cmds = ["sudo kill $(sudo lsof -t -i:8083) && sleep 2",
-            "sudo rm {}/{} && sleep 2".format(config["connector_path"], config["old_connector_name"]),
-            "sudo cp {0}/splunk-kafka-connect*.jar {1} && sleep 2".format(config["connector_build_target"],
-                                                                          config["connector_path"]),
-            "sudo {0}/bin/connect-distributed.sh {1}/config/connect-distributed-quickstart.properties &".
-                format(config["kafka_home"], os.environ.get('GITHUB_WORKSPACE'))]
+            f"sudo rm {config['connector_path']}/{config['old_connector_name']} && sleep 2",
+            f"sudo cp {config['connector_build_target']}/splunk-kafka-connect*.jar {config['connector_path']} && sleep 2",
+            f"sudo {config['kafka_home']}/bin/connect-distributed.sh {os.environ.get('GITHUB_WORKSPACE')}/config/connect-distributed-quickstart.properties &"]
 
     cmd = "\n".join(cmds)
     try:
@@ -161,23 +158,21 @@ if __name__ == '__main__':
     thread_upgrade = threading.Thread(target=upgrade_connector_plugin, daemon=True)
     thread_upgrade.start()
     time.sleep(100)
-    search_query_1 = "index={0} | search timestamp=\"{1}\" source::{2}".format(config['splunk_index'], _time_stamp,
-                                                                               _connector)
+    search_query_1 = f"index={config['splunk_index']} | search timestamp=\"{_time_stamp}\" source::{_connector}"
     logger.debug(search_query_1)
     events_1 = check_events_from_splunk(start_time="-15m@m",
                                       url=config["splunkd_url"],
                                       user=config["splunk_user"],
-                                      query=["search {}".format(search_query_1)],
+                                      query=[f"search {search_query_1}"],
                                       password=config["splunk_password"])
     logger.info("Splunk received %s events in the last 15m", len(events_1))
     assert len(events_1) == 2000
-    search_query_2 = "index={0} | search timestamp=\"{1}\" source::{2}".format(config['splunk_index'], _time_stamp,
-                                                                               _connector_ack)
+    search_query_2 = f"index={config['splunk_index']} | search timestamp=\"{_time_stamp}\" source::{_connector_ack}"
     logger.debug(search_query_2)
     events_2 = check_events_from_splunk(start_time="-15m@m",
                                         url=config["splunkd_url"],
                                         user=config["splunk_user"],
-                                        query=["search {}".format(search_query_2)],
+                                        query=[f"search {search_query_2}"],
                                         password=config["splunk_password"])
     logger.info("Splunk received %s events in the last 15m", len(events_2))
     assert len(events_2) == 2000

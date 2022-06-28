@@ -28,16 +28,14 @@ class TestConfigurations:
         ("test_tasks_max_null", "chars::test_tasks_max_null", 0)
     ])
     def test_tasks_max(self, setup, test_scenario, test_input, expected):
-        logger.info("testing {0} input={1} expected={2} event(s)".format(test_scenario, test_input, expected))
+        logger.info(f"testing {test_scenario} input={test_input} expected={expected} event(s)")
 
-        search_query = "index={0} | search timestamp=\"{1}\" {2}".format(setup['splunk_index'],
-                                                                         setup["timestamp"],
-                                                                         test_input)
+        search_query = f"index={setup['splunk_index']} | search timestamp=\"{setup['timestamp']}\" {test_input}"
         logger.info(search_query)
         events = check_events_from_splunk(start_time="-15m@m",
                                           url=setup["splunkd_url"],
                                           user=setup["splunk_user"],
-                                          query=["search {}".format(search_query)],
+                                          query=[f"search {search_query}"],
                                           password=setup["splunk_password"])
         logger.info("Splunk received %s events in the last 15m", len(events))
 
@@ -52,16 +50,14 @@ class TestConfigurations:
         ("test_2_sources_hec_raw_false-2", "source::source_2_event", 3)
     ])
     def test_splunk_sources(self, setup, test_scenario, test_input, expected):
-        logger.info("testing {0} input={1} expected={2} event(s)".format(test_scenario, test_input, expected))
+        logger.info(f"testing {test_scenario} input={test_input} expected={expected} event(s)")
 
-        search_query = "index={0} | search timestamp=\"{1}\" {2}".format(setup['splunk_index'],
-                                                                         setup["timestamp"],
-                                                                         test_input)
+        search_query = f"index={setup['splunk_index']} | search timestamp=\"{setup['timestamp']}\" {test_input}"
         logger.info(search_query)
         events = check_events_from_splunk(start_time="-15m@m",
                                           url=setup["splunkd_url"],
                                           user=setup["splunk_user"],
-                                          query=["search {}".format(search_query)],
+                                          query=[f"search {search_query}"],
                                           password=setup["splunk_password"])
         logger.info("Splunk received %s events in the last 15m", len(events))
 
@@ -76,16 +72,14 @@ class TestConfigurations:
         ("test_2_sourcetypes_hec_raw_false-2", "sourcetype::sourcetype_2_event", 3)
     ])
     def test_splunk_sourcetypes(self, setup, test_scenario, test_input, expected):
-        logger.info("testing {0} input={1} expected={2} event(s)".format(test_scenario, test_input, expected))
+        logger.info(f"testing {test_scenario} input={test_input} expected={expected} event(s)")
 
-        search_query = "index={0} | search timestamp=\"{1}\" {2}".format(setup['splunk_index'],
-                                                                         setup["timestamp"],
-                                                                         test_input)
+        search_query = f"index={setup['splunk_index']} | search timestamp=\"{setup['timestamp']}\" {test_input}"
         logger.info(search_query)
         events = check_events_from_splunk(start_time="-15m@m",
                                           url=setup["splunkd_url"],
                                           user=setup["splunk_user"],
-                                          query=["search {}".format(search_query)],
+                                          query=[f"search {search_query}"],
                                           password=setup["splunk_password"])
         logger.info("Splunk received %s events in the last 15m", len(events))
         assert len(events) == expected
@@ -94,16 +88,14 @@ class TestConfigurations:
     #     ("test_ssl_validate_certs_true", "source::ssl_validate_certs_true", 1)
     # ])
     # def test_splunk_ssl_validate_certs_true(self, setup, test_scenario, test_input, expected):
-    #     logger.info("testing {0} input={1} expected={2} event(s)".format(test_scenario, test_input, expected))
+    #     logger.info(f"testing {test_scenario} input={test_input} expected={expected} event(s)")
     #
-    #     search_query = "index={0} | search timestamp=\"{1}\" {2}".format(setup['splunk_index'],
-    #                                                                      setup["timestamp"],
-    #                                                                      test_input)
+    #     search_query = f"index={setup['splunk_index']} | search timestamp=\"{setup['timestamp']}\" {test_input}"
     #     logger.info(search_query)
     #     events = check_events_from_splunk(start_time="-15m@m",
     #                                       url=setup["splunkd_url"],
     #                                       user=setup["splunk_user"],
-    #                                       query=["search {}".format(search_query)],
+    #                                       query=[f"search {search_query}"],
     #                                       password=setup["splunk_password"])
     #     logger.info("Splunk received %s events in the last 15m", len(events))
     #     assert len(events) == expected
@@ -113,16 +105,14 @@ class TestConfigurations:
         ("test_header_support_false_raw_data", "source::test_header_support_false_raw", 1)
     ])
     def test_header_support_false_event_data(self, setup, test_scenario, test_input, expected):
-        logger.info("testing {0} input={1} expected={2} event(s)".format(test_scenario, test_input, expected))
+        logger.info(f"testing {test_scenario} input={test_input} expected={expected} event(s)")
 
-        search_query = "index={0} | search timestamp=\"{1}\" {2}".format(setup['splunk_index'],
-                                                                         setup["timestamp"],
-                                                                         test_input)
+        search_query = f"index={setup['splunk_index']} | search timestamp=\"{setup['timestamp']}\" {test_input}"
         logger.info(search_query)
         events = check_events_from_splunk(start_time="-15m@m",
                                           url=setup["splunkd_url"],
                                           user=setup["splunk_user"],
-                                          query=["search {}".format(search_query)],
+                                          query=[f"search {search_query}"],
                                           password=setup["splunk_password"])
         logger.info("Splunk received %s events in the last 15m", len(events))
         assert len(events) == expected
@@ -139,16 +129,14 @@ class TestConfigurations:
         ("test_kafka_custom_header_source_raw", "sourcetype::kafka_custom_header_sourcetype NOT chars=\"*\"", 1)
     ])
     def test_header_support_true_event_data(self, setup, test_scenario, test_input, expected):
-        logger.info("testing {0} input={1} expected={2} event(s)".format(test_scenario, test_input, expected))
+        logger.info(f"testing {test_scenario} input={test_input} expected={expected} event(s)")
 
-        search_query = "index={0} | search \"{1}\" {2}".format(setup['kafka_header_index'],
-                                                               setup["timestamp"],
-                                                               test_input)
+        search_query = f"index={setup['kafka_header_index']} | search \"{setup['timestamp']}\" {test_input}"
         logger.info(search_query)
         events = check_events_from_splunk(start_time="-15m@m",
                                           url=setup["splunkd_url"],
                                           user=setup["splunk_user"],
-                                          query=["search {}".format(search_query)],
+                                          query=[f"search {search_query}"],
                                           password=setup["splunk_password"])
         logger.info("Splunk received %s events in the last 15m", len(events))
         assert len(events) == expected
@@ -158,14 +146,12 @@ class TestConfigurations:
         ("test_empty_hec_token", "chars::test_empty_hec_token", 0)
     ])
     def test_create_connector_with_incorrect_hec_token(self, setup, test_case, test_input, expected):
-        search_query = "index={0} | search timestamp=\"{1}\" {2}".format(setup['kafka_header_index'],
-                                                                         setup["timestamp"],
-                                                                         test_input)
+        search_query = f"index={setup['kafka_header_index']} | search timestamp=\"{setup['timestamp']}\" {test_input}"
         logger.info(search_query)
         events = check_events_from_splunk(start_time="-15m@m",
                                           url=setup["splunkd_url"],
                                           user=setup["splunk_user"],
-                                          query=["search {}".format(search_query)],
+                                          query=[f"search {search_query}"],
                                           password=setup["splunk_password"])
         logger.info("Splunk received %s events in the last 15m", len(events))
         assert len(events) == expected
@@ -181,16 +167,14 @@ class TestConfigurations:
          "sourcetype::test_splunk_hec_json_event_formatted_false_raw_data", 1)
     ])
     def test_splunk_hec_json_event_formatted(self, setup, test_scenario, test_input, expected):
-        logger.info("testing {0} input={1} expected={2} event(s)".format(test_scenario, test_input, expected))
+        logger.info(f"testing {test_scenario} input={test_input} expected={expected} event(s)")
 
-        search_query = "index={0} | search timestamp=\"{1}\" {2}".format(setup['splunk_index'],
-                                                                         setup["timestamp"],
-                                                                         test_input)
+        search_query = f"index={setup['splunk_index']} | search timestamp=\"{setup['timestamp']}\" {test_input}"
         logger.info(search_query)
         events = check_events_from_splunk(start_time="-15m@m",
                                           url=setup["splunkd_url"],
                                           user=setup["splunk_user"],
-                                          query=["search {}".format(search_query)],
+                                          query=[f"search {search_query}"],
                                           password=setup["splunk_password"])
         logger.info("Splunk received %s events in the last 15m", len(events))
         assert len(events) == expected
@@ -200,14 +184,14 @@ class TestConfigurations:
         ("test_splunk_hec_malformed_events", "\"&&\"=null chars::hec_malformed_events", 1)
     ])
     def test_splunk_hec_malformed_events(self, setup, test_scenario, test_input, expected):
-        logger.info("testing {0} input={1} expected={2} event(s)".format(test_scenario, test_input, expected))
+        logger.info(f"testing {test_scenario} input={test_input} expected={expected} event(s)")
 
-        search_query = "index={0} | search {1}_{2}".format(setup['splunk_index'], test_input, setup['timestamp'])
+        search_query = f"index={setup['splunk_index']} | search {test_input}_{setup['timestamp']}"
         logger.info(search_query)
         events = check_events_from_splunk(start_time="-15m@m",
                                           url=setup["splunkd_url"],
                                           user=setup["splunk_user"],
-                                          query=["search {}".format(search_query)],
+                                          query=[f"search {search_query}"],
                                           password=setup["splunk_password"])
         logger.info("Splunk received %s events in the last 15m", len(events))
         assert len(events) == expected

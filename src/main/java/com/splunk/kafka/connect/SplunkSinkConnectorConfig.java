@@ -302,7 +302,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         enableCompression = getBoolean(ENABLE_COMPRESSSION_CONF);
         enableTimestampExtraction = getBoolean(ENABLE_TIMESTAMP_EXTRACTION_CONF);
         regex = getString(REGEX_CONF);
-        timestampFormat = getString(TIMESTAMP_FORMAT_CONF);
+        timestampFormat = getString(TIMESTAMP_FORMAT_CONF).trim();
         validateRegexForTimestamp(regex);
     }
 
@@ -521,28 +521,27 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         }
     }
 
-    private void validateRegexForTimestamp(String regex){
-            if(enableTimestampExtraction &&  regex == null ){
-                throw new ConfigException("For Timestamp Extraction regex value should not be null");
+    private void validateRegexForTimestamp(String regex) {
+        if (enableTimestampExtraction && StringUtils.isBlank(regex)) {
+            throw new ConfigException("regex can't be null or empty if enableTimestampExtraction is true");
+        }
+        if (enableTimestampExtraction) {
+            if (Pattern.compile(regex) == null) {
+                throw new ConfigException("Invalid regex entered for timestamp extraction");
             }
-            
-            if(StringUtils.isNotBlank(regex) && enableTimestampExtraction){
-                if(Pattern.compile(regex) == null){
-                    throw new ConfigException(" Invalid Regex please enter again");
-                }
-                if(!getNamedGroupCandidates(regex)){
-                    throw new ConfigException("Invalid Named Group");
-                }
+            if (!getNamedGroupCandidates(regex)) {
+                throw new ConfigException("Named capture group 'time' can't be found for timestamp extraction");
             }
+        }
     }
 
     private static boolean getNamedGroupCandidates(String regex) {
         Matcher m = Pattern.compile("\\(\\?<([a-zA-Z][a-zA-Z0-9]*)>").matcher(regex);
-            while (m.find()) {
-                if(m.group(1).equals("time")) {
-                    return true;   
-                }             
+        while (m.find()) {
+            if (m.group(1).equals("time")) {
+                return true;
             }
-            return false;
         }
+        return false;
+    }
 }

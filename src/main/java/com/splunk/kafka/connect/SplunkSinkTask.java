@@ -488,41 +488,8 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             event.setTime(record.timestamp() / 1000.0); // record timestamp is in milliseconds
         }
 
-        if(connectorConfig.enableTimestampExtraction && StringUtils.isNotEmpty(connectorConfig.regex) )   {
-            String jsonStr = event.getEvent().toString();  
-            String string = jsonStr.replaceAll("\\\"","\"");
-            String extracted_timestamp = "";
-            final Pattern pattern = Pattern.compile(connectorConfig.regex);
-            final Matcher matcher = pattern.matcher(string);
-
-            if (matcher.find()) {
-            System.out.println("Full match: " + matcher.group(1));
-            extracted_timestamp = (matcher.group(1));
-            }
-            
-            double epoch= (double) 0;
-            if (!connectorConfig.timestampFormat.trim().equalsIgnoreCase("epoch")){
-                SimpleDateFormat df = new SimpleDateFormat(connectorConfig.timestampFormat);
-                Date date;
-                try {
-                    date = df.parse(extracted_timestamp);
-                    epoch = (date.getTime());
-                } catch (ParseException e) {
-                    log.warn("Could not set the time as invalid timestamp format is given");
-                } 
-            }
-            else{
-                try {
-                    epoch = ((Double.parseDouble(extracted_timestamp)));
-                }
-                catch (Exception e){
-                    log.warn("Could not set the time as invalid timestamp format is given");
-                }
-
-            }
-            if(epoch != (double) 0 ){
-                event.setTime(epoch / 1000.0);
-            }
+        if(connectorConfig.enableTimestampExtraction) {
+            timestampExtraction(event);
          }
 
         Map<String, String> metas = connectorConfig.topicMetas.get(record.topic());
@@ -580,6 +547,43 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
                 return Hec.newHecWithAck(connectorConfig.getHecConfig(), this);
             } else {
                 return Hec.newHecWithoutAck(connectorConfig.getHecConfig(), this);
+            }
+        }
+    }
+
+    private void timestampExtraction(Event event) {
+        String jsonStr = event.getEvent().toString();
+        String string = jsonStr.replaceAll("\\\"", "\"");
+        String timestamp = "";
+        final Pattern pattern = Pattern.compile(connectorConfig.regex);
+        final Matcher matcher = pattern.matcher(string);
+        try {
+            if (matcher.find()) {
+                timestamp = (matcher.group("time"));
+            }
+        } catch (Exception e) {
+            log.warn("Couldn't extract timestamp", e);
+            return;
+        }
+
+        if (connectorConfig.timestampFormat.equalsIgnoreCase("epoch")) {
+            try {
+                double epoch;
+                epoch = ((Double.parseDouble(timestamp)));
+                long long_epoch = (new Double(epoch)).longValue();
+                event.setTime(epoch / (Math.pow(10, Long.toString(long_epoch).length()-10)));
+                
+            } catch (Exception e) {
+                log.warn("Could not set the time", e);
+            }
+        } else {
+            SimpleDateFormat df = new SimpleDateFormat(connectorConfig.timestampFormat);
+            Date date;
+            try {
+                date = df.parse(timestamp);
+                event.setTime(date.getTime() / 1000.0);
+            } catch (ParseException e) {
+                log.warn("Couldn't parse the timestamp", e);
             }
         }
     }

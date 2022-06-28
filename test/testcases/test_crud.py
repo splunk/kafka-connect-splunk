@@ -26,8 +26,7 @@ class TestCrud:
         '''
         Test that valid kafka connect task can be created, updated, paused, resumed, restarted and deleted
         '''
-        logger.info("testing test_valid_CRUD_tasks input={0} expected={1} ".format(
-            test_input, expected))
+        logger.info(f"testing test_valid_CRUD_tasks input={test_input} expected={expected} ")
 
         # defining a connector definition dict for the parameters to be sent to the API
         connector_definition = {
@@ -93,7 +92,7 @@ class TestCrud:
         '''
         Test that invalid kafka connect task cannot be created
         '''
-        logger.info("testing {0} input={1} expected={2} ".format(test_case, config_input, expected))
+        logger.info(f"testing {test_case} input={config_input} expected={expected} ")
 
         connector_definition_invalid_tasks = generate_connector_content(config_input)
         setup['connectors'].append(test_case)
@@ -122,7 +121,7 @@ class TestCrud:
         Test that invalid event_enrichment kafka connect task can be created but task status should be FAILED
         and no data should enter splunk
         '''
-        logger.info("testing {0} input={1} expected={2} ".format(test_case, config_input, expected))
+        logger.info(f"testing {test_case} input={config_input} expected={expected} ")
 
         connector_definition_invalid_tasks = generate_connector_content(config_input)
         setup['connectors'].append(test_case)
