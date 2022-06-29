@@ -225,7 +225,7 @@ Use the below schema to configure Splunk Connect for Kafka
 | `key.converter.schema.registry.url` |  Schema Registry URL. | `""` |
 | `key.converter.schemas.enable` | For using protobuf format ,set the value of this field to `true` | `false` |
 
-### Timestamp extracttion Parameters
+### Timestamp extraction Parameters
 | Name              | Description                | Default Value  |
 |--------           |----------------------------|-----------------------|
 | `enable.timestamp.extraction` |  To enable timestamp extraction ,set the value of this field to `true`. <br/> **NOTE:** <br/> Applicable only if `splunk.hec.raw` is `false` | `false` |
