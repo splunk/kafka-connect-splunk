@@ -91,7 +91,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
 
      // Input the Regex String and timestamp format
      static final String ENABLE_TIMESTAMP_EXTRACTION_CONF = "enable.timestamp.extraction";
-     static final String REGEX_CONF = "regex";
+     static final String REGEX_CONF = "timestamp.regex";
      static final String TIMESTAMP_FORMAT_CONF = "timestamp.format";
 
     // Kafka configuration description strings

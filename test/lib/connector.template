@@ -49,7 +49,7 @@
             "value.converter.schema.registry.url": "{{value_converter_schema_registry_url}}",
             "value.converter.schemas.enable": "{{value_converter_schemas_enable}}",
 			"enable.timestamp.extraction": "{{enable_timestamp_extraction}}",
-			"regex": "{{regex}}",
+			"timestamp.regex": "{{timestamp_regex}}",
 			"timestamp.format": "{{timestamp_format}}"
 		}
 }
