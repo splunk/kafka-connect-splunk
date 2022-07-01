@@ -206,13 +206,13 @@ connect_params = [
      "topics": "date_format",
      "splunk_hec_raw": False,
      "enable_timestamp_extraction" : "true",
-     "regex": r"\\\"time\\\":\\s*\\\"(?<time>.*?)\"",
+     "timestamp_regex": r"\\\"time\\\":\\s*\\\"(?<time>.*?)\"",
      "timestamp_format": "MMM dd yyyy HH:mm:ss.SSS zzz"},
     {"name": "test_extracted_timestamp_epochformat",
      "splunk_sourcetypes": "epoch_format",
      "topics": "epoch_format",
      "splunk_hec_raw": False,
      "enable_timestamp_extraction" : "true",
-     "regex": r"\\\"time\\\":\\s*\\\"(?<time>.*?)\"",
+     "timestamp_regex": r"\\\"time\\\":\\s*\\\"(?<time>.*?)\"",
      "timestamp_format": "epoch"}
 ]
