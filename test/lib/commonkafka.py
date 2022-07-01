@@ -77,7 +77,7 @@ def delete_kafka_connector(setup, connector):
         logger.debug("Deleted connector successfully - " + connector)
         return True
 
-    logger.error("Failed to delete connector: {0}, response code - {1}".format(connector, response.status_code))
+    logger.error(f"Failed to delete connector: {connector}, response code - {response.status_code}")
     return False
 
 
@@ -110,7 +110,7 @@ def get_kafka_connector_status(setup, params, action, state):
             if content['connector']['state'] == state:
                 return True
 
-    logger.error("Failed to {} connector and tasks are not in a {} state after 10 seconds".format(action, state))
+    logger.error(f"Failed to {action} connector and tasks are not in a {state} state after 10 seconds")
     return False
 
 

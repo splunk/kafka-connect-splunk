@@ -35,7 +35,10 @@ def generate_connector_content(input_disc=None):
             "splunk_sourcetypes": "kafka",
             "value_converter": "org.apache.kafka.connect.storage.StringConverter",
             "value_converter_schema_registry_url": "",
-            "value_converter_schemas_enable":"false"
+            "value_converter_schemas_enable": "false",
+            "enable_timestamp_extraction": "false",
+            "regex": "",
+            "timestamp_format": ""
         }
 
     if input_disc:

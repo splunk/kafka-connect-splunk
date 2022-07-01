@@ -48,15 +48,14 @@ class ExportData(object):
         returns True/False
         '''
         if not req_obj.ok:
-            raise Exception('status code: {0} \n details: {1}'.format(
-                str(req_obj.status_code), req_obj.text))
+            raise Exception(f'status code: {str(req_obj.status_code)} \n details: {req_obj.text}')
 
     def _check_source_connection(self):
         '''
         Check if a source server connection is accessible
         returns True/False
         '''
-        service_url = '{0}/services'.format(self.src_splunk_uri)
+        service_url = f'{self.src_splunk_uri}/services'
         logger.info('requesting: %s', service_url)
 
         res = self._requests_retry_session().get(
@@ -70,11 +69,10 @@ class ExportData(object):
         Check if a destination server connection is accessible by
         sending a test event returns True/False
         '''
-        dest_splunk_hec_url = '{0}/services/collector/event'.format(
-            self.dest_splunk_hec_uri)
+        dest_splunk_hec_url = f'{self.dest_splunk_hec_uri}/services/collector/event'
         logger.info('requesting: %s', dest_splunk_hec_url)
         headers = {
-            'Authorization': 'Splunk {token}'.format(token=self.dest_splunk_hec_token),
+            'Authorization': f'Splunk {self.dest_splunk_hec_token}',
             'Content-Type': 'application/json',
         }
         data = {
@@ -92,11 +90,10 @@ class ExportData(object):
         returns job_str
         '''
         for idx, item in enumerate(self.src_source_types):
-            self.src_source_types[idx] = 'sourcetype="{0}"'.format(item)
+            self.src_source_types[idx] = f'sourcetype="{item}"'
 
         source_type_str = ' OR '.join(self.src_source_types)
-        job_str = 'search index="{index}" {source_type_search}'.format(
-            index=self.src_index, source_type_search=source_type_str)
+        job_str = f'search index="{self.src_index}" {source_type_str}'
 
         logger.info('job_str: %s', job_str)
 
@@ -111,8 +108,7 @@ class ExportData(object):
         returns events
         '''
 
-        url = '{0}/services/search/jobs?output_mode=json'.format(
-            self.src_splunk_uri)
+        url = f'{self.src_splunk_uri}/services/search/jobs?output_mode=json'
         logger.info('requesting: %s', url)
         data = {
             'search': query,
@@ -139,8 +135,7 @@ class ExportData(object):
         returns events
         '''
         events = []
-        job_url = '{0}/services/search/jobs/{1}?output_mode=json'.format(
-            self.src_splunk_uri, str(job_id))
+        job_url = f'{self.src_splunk_uri}/services/search/jobs/{str(job_id)}?output_mode=json'
         logger.info('requesting: %s', job_url)
 
         for _ in range(self.timeout):
@@ -157,7 +152,7 @@ class ExportData(object):
                 events = self._get_events(job_id)
                 break
             if dispatch_state == 'FAILED':
-                raise Exception('Search job: {0} failed'.format(job_url))
+                raise Exception(f'Search job: {job_url} failed')
             time.sleep(1)
 
         return events
@@ -168,8 +163,7 @@ class ExportData(object):
         @param: job_id
         returns events
         '''
-        event_url = '{0}/services/search/jobs/{1}/events?output_mode=json'.format(
-            self.src_splunk_uri, str(job_id))
+        event_url = f'{self.src_splunk_uri}/services/search/jobs/{str(job_id)}/events?output_mode=json'
         logger.info('requesting: %s', event_url)
 
         event_job = self._requests_retry_session().get(
@@ -214,13 +208,11 @@ class ExportData(object):
         hec_events = self._transform_results_to_hec_events(events)
         data = '\n'.join(json.dumps(event) for event in hec_events)
         headers = {
-            'Authorization': 'Splunk {token}'.format(
-                token=self.dest_splunk_hec_token),
+            'Authorization': f'Splunk {self.dest_splunk_hec_token}',
             'Content-Type': 'application/json',
         }
 
-        dest_splunk_hec_url = '{0}/services/collector/event'.format(
-            self.dest_splunk_hec_uri)
+        dest_splunk_hec_url = f'{self.dest_splunk_hec_uri}/services/collector/event'
         logger.info('sending %d events to : %s',
                     len(events), dest_splunk_hec_url)
 

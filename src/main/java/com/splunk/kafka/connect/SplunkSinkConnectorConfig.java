@@ -27,6 +27,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 public final class SplunkSinkConnectorConfig extends AbstractConfig {
     // General
@@ -83,6 +88,11 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
      // Kerberos config
      static final String KERBEROS_USER_PRINCIPAL_CONF = "kerberos.user.principal";
      static final String KERBEROS_KEYTAB_PATH_CONF = "kerberos.keytab.path";
+
+     // Input the Regex String and timestamp format
+     static final String ENABLE_TIMESTAMP_EXTRACTION_CONF = "enable.timestamp.extraction";
+     static final String REGEX_CONF = "timestamp.regex";
+     static final String TIMESTAMP_FORMAT_CONF = "timestamp.format";
 
     // Kafka configuration description strings
     // Required Parameters
@@ -185,6 +195,10 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String KERBEROS_USER_PRINCIPAL_DOC = "Kerberos user principal";
     static final String KERBEROS_KEYTAB_LOCATION_DOC = "Kerberos keytab path";
 
+    static final String ENABLE_TIMESTAMP_EXTRACTION_DOC = "Set to true if you want to extract the timestamp";
+    static final String REGEX_DOC = "Regex";
+    static final String TIMESTAMP_FORMAT_DOC = "Timestamp format";
+
     final String splunkToken;
     final String splunkURI;
     final Map<String, Map<String, String>> topicMetas;
@@ -234,6 +248,9 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final String kerberosUserPrincipal;
     final String kerberosKeytabPath;
 
+    final boolean enableTimestampExtraction;
+    final String regex;
+    final String timestampFormat;
 
     SplunkSinkConnectorConfig(Map<String, String> taskConfig) {
         super(conf(), taskConfig);
@@ -283,6 +300,10 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         kerberosUserPrincipal = getString(KERBEROS_USER_PRINCIPAL_CONF);
         kerberosKeytabPath = getString(KERBEROS_KEYTAB_PATH_CONF);
         enableCompression = getBoolean(ENABLE_COMPRESSSION_CONF);
+        enableTimestampExtraction = getBoolean(ENABLE_TIMESTAMP_EXTRACTION_CONF);
+        regex = getString(REGEX_CONF);
+        timestampFormat = getString(TIMESTAMP_FORMAT_CONF).trim();
+        validateRegexForTimestamp(regex);
     }
 
     public static ConfigDef conf() {
@@ -324,7 +345,10 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(LB_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 120, ConfigDef.Importance.LOW, LB_POLL_INTERVAL_DOC)
                 .define(ENABLE_COMPRESSSION_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.MEDIUM, ENABLE_COMPRESSSION_DOC)
                 .define(KERBEROS_USER_PRINCIPAL_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, KERBEROS_USER_PRINCIPAL_DOC)
-                .define(KERBEROS_KEYTAB_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, KERBEROS_KEYTAB_LOCATION_DOC);
+                .define(KERBEROS_KEYTAB_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, KERBEROS_KEYTAB_LOCATION_DOC)
+                .define(ENABLE_TIMESTAMP_EXTRACTION_CONF, ConfigDef.Type.BOOLEAN,  false , ConfigDef.Importance.MEDIUM, ENABLE_TIMESTAMP_EXTRACTION_DOC)
+                .define(REGEX_CONF, ConfigDef.Type.STRING,  "" , ConfigDef.Importance.MEDIUM, REGEX_DOC)
+                .define(TIMESTAMP_FORMAT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, TIMESTAMP_FORMAT_DOC);         
     }
 
     /**
@@ -497,4 +521,27 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         }
     }
 
+    private void validateRegexForTimestamp(String regex) {
+        if (enableTimestampExtraction && StringUtils.isBlank(regex)) {
+            throw new ConfigException("regex can't be null or empty if enableTimestampExtraction is true");
+        }
+        if (enableTimestampExtraction) {
+            if (Pattern.compile(regex) == null) {
+                throw new ConfigException("Invalid regex entered for timestamp extraction");
+            }
+            if (!getNamedGroupCandidates(regex)) {
+                throw new ConfigException("Named capture group 'time' can't be found for timestamp extraction");
+            }
+        }
+    }
+
+    private static boolean getNamedGroupCandidates(String regex) {
+        Matcher m = Pattern.compile("\\(\\?<([a-zA-Z][a-zA-Z0-9]*)>").matcher(regex);
+        while (m.find()) {
+            if (m.group(1).equals("time")) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

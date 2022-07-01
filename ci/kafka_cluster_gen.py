@@ -18,7 +18,7 @@ class KafkaClusterYamlGen(object):
             # 'ZOOKEEPER_myid=1',
             'ZOOKEEPER_initLimit=5',
             'ZOOKEEPER_syncLimit=2',
-            'ZOOKEEPER_dataDir={}/zookeeper'.format(self.DATA_DIR_ROOT),
+            f'ZOOKEEPER_dataDir={self.DATA_DIR_ROOT}/zookeeper',
             # 'ZOOKEEPER_servers=server.1=zookeeper1:2888:3888,server.2=zookeeper2:2888:3888,server.3=zookeeper3:2888:3888',
         ]
 
@@ -28,7 +28,7 @@ class KafkaClusterYamlGen(object):
         self.broker_opts = [
             'KAFKA_listeners=PLAINTEXT://:9092',
             # 'KAFKA_advertised_listeners=PLAINTEXT://kafka1:9092',
-            'KAFKA_log_dirs={}/kafkadata'.format(self.DATA_DIR_ROOT),
+            f'KAFKA_log_dirs={self.DATA_DIR_ROOT}/kafkadata',
             # 'KAFKA_num_partitions=3',
             'KAFKA_delete_topic_enable=true',
             'KAFKA_auto_create_topics_enable=true',
@@ -40,7 +40,7 @@ class KafkaClusterYamlGen(object):
 
     def bootstrap_servers(self):
         return ','.join(
-            '{prefix}{kid}:9092'.format(prefix=self.broker_prefix, kid=i + 1)
+            f'{self.broker_prefix}{i + 1}:9092'
             for i in xrange(self.num_of_broker))
 
     def gen(self):
@@ -54,7 +54,7 @@ class KafkaClusterYamlGen(object):
                 if lin != '\n':
                     yaml_lines[i] = '  ' + lin
 
-            yaml_lines.insert(0, 'version: \'{}\'\n'.format(self.version))
+            yaml_lines.insert(0, f'version: \'{self.version}\'\n')
             yaml_lines.insert(0, 'services:\n')
         return '\n'.join(yaml_lines)
 
@@ -69,10 +69,10 @@ class KafkaClusterYamlGen(object):
         self.zk_opts.insert(1, self._get_jvm_memory())
 
         def add_myid(service, service_idx):
-            myid = '    - ZOOKEEPER_myid={}'.format(service_idx)
+            myid = f'    - ZOOKEEPER_myid={service_idx}'
             service.append(myid)
             zk_servers = self._get_zk_servers(service_idx)
-            service.append('    - ZOOKEEPER_servers={}'.format(zk_servers))
+            service.append(f'    - ZOOKEEPER_servers={zk_servers}')
 
         return gen_services(
             self.num_of_zk, self.zk_prefix, self.image, [2181, 2888, 3888],
@@ -80,20 +80,19 @@ class KafkaClusterYamlGen(object):
 
     def _do_gen_broker(self):
         def add_advertise_name_and_id(service, service_idx):
-            adname = '    - KAFKA_advertised_listeners=PLAINTEXT://{}{}:9092'.format(
-                self.broker_prefix, service_idx)
+            adname = f'    - KAFKA_advertised_listeners=PLAINTEXT://{self.broker_prefix}{service_idx}:9092'
             service.append(adname)
-            bid = '    - KAFKA_broker_id={}'.format(service_idx - 1)
+            bid = f'    - KAFKA_broker_id={service_idx - 1}'
             service.append(bid)
 
         self.broker_opts.insert(0, 'RUN=kafka')
         self.broker_opts.insert(1, self._get_jvm_memory())
         self.broker_opts.append(
-            'KAFKA_num_partitions={}'.format(self.num_of_partition))
+            f'KAFKA_num_partitions={self.num_of_partition}')
         zk_connect = self._get_zk_connect_setting()
         self.broker_opts.append(
-            'KAFKA_zookeeper_connect={}'.format(zk_connect))
-        depends = ['{}{}'.format(self.zk_prefix, i)
+            f'KAFKA_zookeeper_connect={zk_connect}')
+        depends = [f'{self.zk_prefix}{i}'
                    for i in xrange(1, self.num_of_zk + 1)]
 
         return gen_services(
@@ -102,19 +101,17 @@ class KafkaClusterYamlGen(object):
             add_advertise_name_and_id)
 
     def _get_jvm_memory(self):
-        return 'KAFKA_HEAP_OPTS=-Xmx{} -Xms{}'.format(
-            self.max_jvm_memory, self.min_jvm_memory)
+        return f'KAFKA_HEAP_OPTS=-Xmx{self.max_jvm_memory} -Xms{self.min_jvm_memory}'
 
     def _get_zk_servers(self, cur_idx):
         zk_servers = []
         for i in xrange(1, self.num_of_zk + 1):
             if i != cur_idx:
-                hname = '{prefix}{kid}'.format(prefix=self.zk_prefix, kid=i)
+                hname = f'{self.zk_prefix}{i}'
             else:
                 hname = '0.0.0.0'
 
-            zk_server = 'server.{kid}={hname}:2888:3888'.format(
-                kid=i, hname=hname)
+            zk_server = f'server.{i}={hname}:2888:3888'
             zk_servers.append(zk_server)
         return ','.join(zk_servers)
 
@@ -122,7 +119,7 @@ class KafkaClusterYamlGen(object):
         zk_connect_settings = []
         for i in xrange(self.num_of_zk):
             zk_connect_settings.append(
-                '{prefix}{kid}:2181'.format(prefix=self.zk_prefix, kid=i + 1))
+                f'{self.zk_prefix}{i + 1}:2181')
         return ','.join(zk_connect_settings)
 
 
@@ -130,43 +127,43 @@ def gen_services(num, prefix, image, ports, envs,
                  depends, exposed_ports, volumes, callback):
     services = []
     for i in xrange(1, num + 1):
-        name = '{}{}'.format(prefix, i)
+        name = f'{prefix}{i}'
         service = [
-            '{}:'.format(name),
-            '  image: {}'.format(image),
-            '  hostname: {}'.format(name),
-            '  container_name: {}'.format(name),
+            f'{name}:',
+            f'  image: {image}',
+            f'  hostname: {name}',
+            f'  container_name: {name}',
         ]
 
         # exposed ports
         if exposed_ports:
             service.append('  expose:')
             for port in exposed_ports:
-                service.append('    - "{}"'.format(port))
+                service.append(f'    - "{port}"')
 
         # ports
         if ports:
             service.append('  ports:')
             for port in ports:
-                service.append('    - "{}"'.format(port))
+                service.append(f'    - "{port}"')
 
         # depends
         if depends:
             service.append('  depends_on:')
             for dep in depends:
-                service.append('    - {}'.format(dep))
+                service.append(f'    - {dep}')
 
         # volumes
         if volumes:
             service.append('  volumes:')
             for vol in volumes:
-                service.append('    - {}'.format(vol))
+                service.append(f'    - {vol}')
 
         # envs
         if envs:
             service.append('  environment:')
             for env in envs:
-                service.append('    - {}'.format(env))
+                service.append(f'    - {env}')
 
         if callback is not None:
             callback(service, i)

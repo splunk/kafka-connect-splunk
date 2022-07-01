@@ -21,17 +21,13 @@ class TestDataEnrichment:
         ("greek", "ͰͱͲͳʹ͵Ͷͷ͸͹ͺͻͼͽ;Ϳ΀΁΂΃΄΅Ά·ΈΉΊ΋Ό΍ΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡ΢ΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώϏϐϑϒϓϔϕϖϗϘϙϚϛϜϝϞϟϠϡϢϣϤϥϦϧϨϩϪϫϬϭϮϯϰϱϲϳϴϵ϶ϷϸϹϺϻϼϽϾϿ", 3)
     ])
     def test_data_enrichment_latin1(self, setup, test_scenario, test_input, expected):
-        logger.info("testing {0} input={1} expected={2} event(s)".format(
-            test_scenario, test_input, expected))
-        search_query = "index={0} | search timestamp=\"{1}\" chars::{2}".format(setup['splunk_index'],
-                                                                                setup["timestamp"],
-                                                                                test_input)
+        logger.info(f"testing {test_scenario} input={test_input} expected={expected} event(s)")
+        search_query = f"index={setup['splunk_index']} | search timestamp=\"{setup['timestamp']}\" chars::{test_input}"
         logger.info(search_query)
         events = check_events_from_splunk(start_time="-1h@h",
                                           url=setup["splunkd_url"],
                                           user=setup["splunk_user"],
-                                          query=["search {0}".format(
-                                              search_query)],
+                                          query=[f"search {search_query}"],
                                           password=setup["splunk_password"])
         logger.info("Splunk received %s events in the last hour",
                     len(events))
@@ -42,16 +38,13 @@ class TestDataEnrichment:
         ("line_breaking_of_event_data", "kafka:topic_test_break_event", 3)
     ])
     def test_line_breaking_configuration(self, setup, test_case, test_input, expected):
-        logger.info("testing {0} expected={1} ".format(test_case, expected))
-        search_query = "index={0} | search timestamp=\"{1}\" source::{2}".format(setup['splunk_index'],
-                                                                                 setup["timestamp"],
-                                                                                 test_input)
+        logger.info(f"testing {test_case} expected={expected} ")
+        search_query = f"index={setup['splunk_index']} | search timestamp=\"{setup['timestamp']}\" source::{test_input}"
         logger.info(search_query)
         events = check_events_from_splunk(start_time="-1h@h",
                                           url=setup["splunkd_url"],
                                           user=setup["splunk_user"],
-                                          query=["search {0}".format(
-                                              search_query)],
+                                          query=[f"search {search_query}"],
                                           password=setup["splunk_password"])
         logger.info("Splunk received %s events in the last hour",
                     len(events))
@@ -65,5 +58,4 @@ class TestDataEnrichment:
                             "{\"timestamp\":\"%s\"}######" % (
                                 setup["timestamp"], setup["timestamp"], setup["timestamp"])
             assert actual_raw_data == expected_data, \
-                '\nActual value: \n{} \ndoes not match expected value: \n{}'.format(
-                    actual_raw_data, expected_data)
+                f'\nActual value: \n{actual_raw_data} \ndoes not match expected value: \n{expected_data}'
