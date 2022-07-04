@@ -38,14 +38,14 @@ class KafkaDataGenYamlGen(object):
             num_of_host = self.num_of_gen / self.DATA_GEN_PER_HOST
 
         envs = [
-            'KAFKA_BOOTSTRAP_SERVERS={}'.format(self.bootstrap_servers),
-            'KAFKA_TOPIC={}'.format(self.topic),
-            'MESSAGE_COUNT={}'.format(self.total_messages),
-            'EPS={}'.format(self.eps),
-            'MESSAGE_SIZE={}'.format(self.message_size),
-            'JVM_MAX_HEAP=2G',
-            'JVM_MIN_HEAP=512M',
-            'KAFKA_DATA_GEN_SIZE={}'.format(data_gen_size),
+            f'KAFKA_BOOTSTRAP_SERVERS={self.bootstrap_servers}',
+            f'KAFKA_TOPIC={self.topic}',
+            f'MESSAGE_COUNT={self.total_messages}',
+            f'EPS={self.eps}',
+            f'MESSAGE_SIZE={self.message_size}',
+            f'JVM_MAX_HEAP=2G',
+            f'JVM_MIN_HEAP=512M',
+            f'KAFKA_DATA_GEN_SIZE={data_gen_size}',
         ]
         depends = gen_depends_from(self.bootstrap_servers)
         services = kcg.gen_services(
@@ -67,14 +67,13 @@ class KafkaConnectYamlGen(object):
         self.min_jvm_memory = '512M'
 
     def gen(self):
-        jvm_mem = 'KAFKA_HEAP_OPTS=-Xmx{} -Xms{}'.format(
-            self.max_jvm_memory, self.min_jvm_memory)
+        jvm_mem = f'KAFKA_HEAP_OPTS=-Xmx{self.max_jvm_memory} -Xms{self.min_jvm_memory}'
 
         envs = [
-            'KAFKA_BOOTSTRAP_SERVERS={}'.format(self.bootstrap_servers),
+            f'KAFKA_BOOTSTRAP_SERVERS={self.bootstrap_servers}',
             jvm_mem,
-            'KAFKA_CONNECT_LOGGING={}'.format(self.logging_level),
-            'KAFKA_CONNECT_BRANCH={}'.format(self.branch),
+            f'KAFKA_CONNECT_LOGGING={self.logging_level}',
+            f'KAFKA_CONNECT_BRANCH={self.branch}',
             # for proc monitor
             'SPLUNK_HOST=https://heclb1:8088',
             'SPLUNK_TOKEN=00000000-0000-0000-0000-000000000000',
@@ -105,18 +104,18 @@ class KafkaBastionYamlGen(object):
 
     def gen(self):
         envs = [
-            'INDEX_CLUSTER_SIZE={}'.format(self.num_of_indexer),
-            'KAFKA_CONNECT_HEC_MODE={}'.format(self.hec_mode.lower()),
-            'KAFKA_CONNECT_ACK_MODE={}'.format(self.ack_mode.lower()),
-            'KAFKA_CONNECT_TOPICS={}'.format(self.topic),
-            'KAFKA_CONNECT_LINE_BREAKER={}'.format(self.line_breaker),
-            'JVM_HEAP_SIZE={}'.format(self.jvm_size),
-            'KAFKA_CONNECT_BRANCH={}'.format(self.branch),
-            'CONNECT_PERF_METRIC_DEST_HEC={}'.format(self.metric_dest_hec_uri),
-            'CONNECT_PERF_METRIC_TOKEN={}'.format(self.metric_dest_hec_token),
+            f'INDEX_CLUSTER_SIZE={self.num_of_indexer}',
+            f'KAFKA_CONNECT_HEC_MODE={self.hec_mode.lower()}',
+            f'KAFKA_CONNECT_ACK_MODE={self.ack_mode.lower()}',
+            f'KAFKA_CONNECT_TOPICS={self.topic}',
+            f'KAFKA_CONNECT_LINE_BREAKER={self.line_breaker}',
+            f'JVM_HEAP_SIZE={self.jvm_size}',
+            f'KAFKA_CONNECT_BRANCH={self.branch}',
+            f'CONNECT_PERF_METRIC_DEST_HEC={self.metric_dest_hec_uri}',
+            f'CONNECT_PERF_METRIC_TOKEN={self.metric_dest_hec_token}',
         ]
 
-        depends = ['{}{}'.format(KafkaConnectYamlGen.prefix, i)
+        depends = [f'{KafkaConnectYamlGen.prefix}{i}'
                    for i in xrange(1, self.num_of_connect + 1)]
         services = kcg.gen_services(
             1, 'kafkabastion', self.image, [], envs, depends,
@@ -215,11 +214,11 @@ def _gen_orca_file(args, service_file):
         lines.append('[kafka-connect]')
         lines.append('hec_load_balancers = 1')
         lines.append('search_heads = 1')
-        lines.append('indexers = {}'.format(args.indexer_size))
+        lines.append(f'indexers = {args.indexer_size}')
         lines.append('log_token = 00000000-0000-0000-0000-000000000000')
         if args.perf == 1:
             lines.append('perf = true')
-        lines.append('services = {}'.format(service_file))
+        lines.append(f'services = {service_file}')
         f.write('\n'.join(lines))
 
     print 'finish generating orca.conf'
@@ -284,7 +283,7 @@ def main():
                         help='Splunk HEC destintion token')
 
 
-    volumes = '["{}"]'.format(kcg.KafkaClusterYamlGen.DATA_DIR_ROOT)
+    volumes = f'["{kcg.KafkaClusterYamlGen.DATA_DIR_ROOT}"]'
     parser.add_argument('--volumes', default=volumes, help='Volumes to mount')
 
     args = parser.parse_args()

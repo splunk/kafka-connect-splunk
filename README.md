@@ -106,6 +106,12 @@ Use the below schema to configure Splunk Connect for Kafka
    "splunk.hec.raw": "<true|false>",
    "splunk.hec.raw.line.breaker": "<line breaker separator>",
    "splunk.hec.json.event.enrichment": "<key value pairs separated by comma, only applicable to /event HEC>",
+   "value.converter": "<converter class used to convert between Kafka Connect format and the serialized form that is written to Kafka>",
+   "value.converter.schema.registry.url": "<Schema-Registry-URL>",
+   "value.converter.schemas.enable": "<true|false>",
+   "key.converter": "<converter class used to convert between Kafka Connect format and the serialized form that is written to Kafka>",
+   "key.converter.schema.registry.url": "<Schema-Registry-URL>",
+   "key.converter.schemas.enable": "<true|false>",
    "splunk.hec.ack.enabled": "<true|false>",
    "splunk.hec.ack.poll.interval": "<event ack poll interval>",
    "splunk.hec.ack.poll.threads": "<number of threads used to poll event acks>",
@@ -129,6 +135,9 @@ Use the below schema to configure Splunk Connect for Kafka
    "splunk.hec.ssl.trust.store.password": "<Java KeyStore password>"
    "kerberos.user.principal": "<The Kerberos user principal the connector may use to authenticate with Kerberos>",
    "kerberos.keytab.path": "<The path to the keytab file to use for authentication with Kerberos>"
+   "enable.timestamp.extraction": "<true|false>",
+   "timestamp.regex": "<regex for timestamp extraction>",
+   "timestamp.format": "<time-format for timestamp extraction>"
   }
 }
 ```
@@ -205,6 +214,23 @@ Use the below schema to configure Splunk Connect for Kafka
 |--------           |----------------------------|-----------------------|
 | `kerberos.user.principal` |   The Kerberos user principal the connector may use to authenticate with Kerberos. | `""` |
 | `kerberos.keytab.path` | The path to the keytab file to use for authentication with Kerberos. | `""` |
+
+### Protobuf Parameters
+| Name              | Description                | Default Value  |
+|--------           |----------------------------|-----------------------|
+| `value.converter` |  Converter class used to convert between Kafka Connect format and the serialized form that is written to Kafka. This controls the format of the values in messages written to or read from Kafka. For using protobuf format ,set the value of this field to `io.confluent.connect.protobuf.ProtobufConverter` | `org.apache.kafka.connect.storage.StringConverter` |
+| `value.converter.schema.registry.url` |  Schema Registry URL. | `""` |
+| `value.converter.schemas.enable` | For using protobuf format ,set the value of this field to `true` | `false` |
+| `key.converter` |  Converter class used to convert between Kafka Connect format and the serialized form that is written to Kafka. This controls the format of the keys in messages written to or read from Kafka. For using protobuf format ,set the value of this field to `io.confluent.connect.protobuf.ProtobufConverter` | `org.apache.kafka.connect.storage.StringConverter` |
+| `key.converter.schema.registry.url` |  Schema Registry URL. | `""` |
+| `key.converter.schemas.enable` | For using protobuf format ,set the value of this field to `true` | `false` |
+
+### Timestamp extraction Parameters
+| Name              | Description                | Default Value  |
+|--------           |----------------------------|-----------------------|
+| `enable.timestamp.extraction` |  To enable timestamp extraction ,set the value of this field to `true`. <br/> **NOTE:** <br/> Applicable only if `splunk.hec.raw` is `false` | `false` |
+| `timestamp.regex` |  Regex for timestamp extraction. <br/> **NOTE:** <br/> Regex must have name captured group `"time"` For eg.: `\\\"time\\\":\\s*\\\"(?<time>.*?)\"` | `""` |
+| `timestamp.format` |  Time-format for timestamp extraction .<br/>For eg.: <br/>If timestamp is `1555209605000` , set `timestamp.format` to `"epoch"` format .<br/> If timestamp is `Jun 13 2010 23:11:52.454 UTC` , set `timestamp.format` to `"MMM dd yyyy HH:mm:ss.SSS zzz"` | `""` |
 
 ## Load balancing
 

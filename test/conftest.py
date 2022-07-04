@@ -37,12 +37,14 @@ def setup(request):
 
 def pytest_configure():
     # Generate message data
-    topics = [config["kafka_topic"], config["kafka_topic_2"], config["kafka_header_topic"],
-              "test_splunk_hec_malformed_events"]
+    topics = [config["kafka_topic"], config["kafka_topic_2"], config["kafka_header_topic"],"prototopic",
+              "test_splunk_hec_malformed_events","epoch_format","date_format"]
 
     create_kafka_topics(config, topics)
     producer = KafkaProducer(bootstrap_servers=config["kafka_broker_url"],
                              value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+    protobuf_producer = KafkaProducer(bootstrap_servers=config["kafka_broker_url"])
+    timestamp_producer = KafkaProducer(bootstrap_servers=config["kafka_broker_url"])
 
     for _ in range(3):
         msg = {"timestamp": config['timestamp']}
@@ -67,8 +69,13 @@ def pytest_configure():
 
     producer.send("test_splunk_hec_malformed_events", {})
     producer.send("test_splunk_hec_malformed_events", {"&&": "null", "message": ["$$$$****////", 123, None]})
+    protobuf_producer.send("prototopic",value=b'\x00\x00\x00\x00\x01\x00\n\x011\x12\r10-01-04-3:45\x18\x15%\x00\x00*C*\x02No:\x12\n\x011\x12\x04this\x1a\x07New oneB\x0c\n\x011\x12\x07shampooJ\x04Many')
+    timestamp_producer.send("date_format",b"{\"id\": \"19\",\"host\":\"host-01\",\"source\":\"bu\",\"fields\":{\"hn\":\"hostname\",\"CLASS\":\"class\",\"cust_id\":\"000013934\",\"time\": \"Jun 13 2010 23:11:52.454 UTC\",\"category\":\"IFdata\",\"ifname\":\"LoopBack7\",\"IFdata.Bits received\":\"0\",\"IFdata.Bits sent\":\"0\"}")
+    timestamp_producer.send("epoch_format",b"{\"id\": \"19\",\"host\":\"host-01\",\"source\":\"bu\",\"fields\":{\"hn\":\"hostname\",\"CLASS\":\"class\",\"cust_id\":\"000013934\",\"time\": \"1555209605000\",\"category\":\"IFdata\",\"ifname\":\"LoopBack7\",\"IFdata.Bits received\":\"0\",\"IFdata.Bits sent\":\"0\"}")
     producer.flush()
-
+    protobuf_producer.flush()
+    timestamp_producer.flush()
+    
     # Launch all connectors for tests
     for param in connect_params:
         connector_content = generate_connector_content(param)

@@ -31,8 +31,7 @@ logging.basicConfig(
 # INDEX_CLUSTER_SIZE
 # JVM_HEAP_SIZE
 
-CONNECTOR_URI = 'http://{}:8083/connectors'.format(
-    os.environ.get('KAFKA_CONNECTOR_IP', 'kafkaconnect1'))
+CONNECTOR_URI = f"http://{os.environ.get('KAFKA_CONNECTOR_IP', 'kafkaconnect1')}:8083/connectors"
 TOPIC = os.environ.get('KAFKA_CONNECT_TOPICS', 'perf')
 JVM_HEAP_SIZE = os.environ.get('JVM_HEAP_SIZE', '8G')
 LINE_BREAKER = os.environ.get('KAFKA_CONNECT_LINE_BREAKER', '@@@@')
@@ -124,7 +123,7 @@ def get_hec_uris():
     indxer_cluster_size = int(os.environ['INDEX_CLUSTER_SIZE'])
     endpoints = []
     for i in xrange(1, indxer_cluster_size + 1):
-        endpoints.append('https://{}{}:8088'.format(IDX_HOSTNAME_PREFIX, i))
+        endpoints.append(f'https://{IDX_HOSTNAME_PREFIX}{i}:8088')
 
     return ','.join(endpoints)
 
@@ -134,13 +133,11 @@ def _get_connector_config(hec_uris, hec_raw, hec_ack, test_case):
     if hec_ack == 'true':
         token = TOKEN_WITH_ACK
 
-    hec_settings = 'raw_endpoint={raw}:use_ack={ack}'.format(
-        raw=hec_raw, ack=hec_ack)
+    hec_settings = f'raw_endpoint={hec_raw}:use_ack={hec_ack}'
 
-    params = ':'.join('{}={}'.format(k, v) for k, v in test_case.iteritems())
-    sourcetype = 'connector-perf:{hec_settings}:{params}:jvm_heap={jvm}'.format(
-        hec_settings=hec_settings, params=params, jvm=JVM_HEAP_SIZE)
-    connector_name = 'splunk-sink-{}'.format(int(time.time() * 1000))
+    params = ':'.join(f'{k}={v}' for k, v in test_case.iteritems())
+    sourcetype = f'connector-perf:{hec_settings}:{params}:jvm_heap={JVM_HEAP_SIZE}'
+    connector_name = f'splunk-sink-{int(time.time() * 1000)}'
 
     connector_config = {
         'name': connector_name,
@@ -185,7 +182,7 @@ def create_connector(connector_uri, connector_config):
 
 def delete_connector(connector_uri, connector_config):
     logging.info('delete connector %s', connector_config['name'])
-    uri = '{}/{}'.format(connector_uri, connector_config['name'])
+    uri = f'{connector_uri}/{connector_config['name']}'
     while True:
         try:
             resp = requests.delete(uri)
@@ -257,8 +254,8 @@ def _new_data_exporter():
         src_splunk_uri='https://sh1:8089',
         src_splunk_user='admin',
         src_splunk_password='changed',
-        dest_splunk_hec_uri='{}'.format(os.environ['CONNECT_PERF_METRIC_DEST_HEC']),
-        dest_splunk_hec_token='{}'.format(os.environ['CONNECT_PERF_METRIC_TOKEN']),
+        dest_splunk_hec_uri=f"{os.environ['CONNECT_PERF_METRIC_DEST_HEC']}",
+        dest_splunk_hec_token=f"{os.environ['CONNECT_PERF_METRIC_TOKEN']}",
         src_index='',
         src_sourcetypes=[],
         timeout=600,
@@ -333,7 +330,7 @@ def create_hec_token_with_ack():
     }
 
     def uri_data_gen(i):
-        uri = 'https://{}{}:8089/servicesNS/nobody/splunk_httpinput/data/inputs/http?output_mode=json'.format(IDX_HOSTNAME_PREFIX, i)
+        uri = f'https://{IDX_HOSTNAME_PREFIX}{i}:8089/servicesNS/nobody/splunk_httpinput/data/inputs/http?output_mode=json'
         return uri, data
 
     return splunk_request(uri_data_gen)
@@ -342,12 +339,12 @@ def create_hec_token_with_ack():
 def config_line_breaker():
     data = {
         'name': 'source::connector-perf...',
-        'LINE_BREAKER': '({})'.format(LINE_BREAKER),
+        'LINE_BREAKER': f'({LINE_BREAKER})',
         'SHOULD_LINEMERGE': 'false',
     }
 
     def uri_data_gen(i):
-        uri = 'https://{}{}:8089/servicesNS/nobody/splunk_httpinput/configs/conf-props?output_mode=json'.format(IDX_HOSTNAME_PREFIX, i)
+        uri = f'https://{IDX_HOSTNAME_PREFIX}{i}:8089/servicesNS/nobody/splunk_httpinput/configs/conf-props?output_mode=json'
         return uri, data
 
     return splunk_request(uri_data_gen)
