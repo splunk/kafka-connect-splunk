@@ -54,9 +54,6 @@ jobs:
   build-unit-test:
     name: build and run unit test
     runs-on: ubuntu-20.04
-    needs:
-      - fossa-scan
-      - semgrep 
     steps:
       - name: Checkout
         uses: actions/checkout@v2
