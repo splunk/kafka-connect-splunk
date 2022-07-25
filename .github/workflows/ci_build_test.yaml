@@ -10,6 +10,10 @@ on:
       FOSSA_API_KEY:
         description: API token for FOSSA app
         required: true
+      
+      SEMGREP_PUBLISH_TOKEN:
+        description: Publish token for Semgrep
+        required: true
 
 jobs:
   fossa-scan:
@@ -35,11 +39,21 @@ jobs:
         env:
           FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
 
+  semgrep:
+    runs-on: ubuntu-latest
+    name: security-sast-semgrep
+    if: github.actor != 'dependabot[bot]'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Semgrep
+        id: semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          publishToken: ${{ secrets.SEMGREP_PUBLISH_TOKEN }}
+
   build-unit-test:
     name: build and run unit test
     runs-on: ubuntu-20.04
-    needs:
-      - fossa-scan
     steps:
       - name: Checkout
         uses: actions/checkout@v2
