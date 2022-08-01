@@ -74,6 +74,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String HEC_EVENT_FORMATTED_CONF = "splunk.hec.json.event.formatted";
     // Trust store
     static final String SSL_TRUSTSTORE_PATH_CONF = "splunk.hec.ssl.trust.store.path";
+    static final String SSL_TRUSTSTORE_TYPE_CONF = "splunk.hec.ssl.trust.store.type";
     static final String SSL_TRUSTSTORE_PASSWORD_CONF = "splunk.hec.ssl.trust.store.password";
     //Headers
     static final String HEADER_SUPPORT_CONF = "splunk.header.support";
@@ -178,6 +179,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             + "correctly by Splunk.";
     // TBD
     static final String SSL_TRUSTSTORE_PATH_DOC = "Path on the local disk to the certificate trust store.";
+    static final String SSL_TRUSTSTORE_TYPE_DOC = "Type of the trust store (JKS, PKCS12, ...).";
     static final String SSL_TRUSTSTORE_PASSWORD_DOC = "Password for the trust store.";
 
     static final String HEADER_SUPPORT_DOC = "Setting will enable Kafka Record headers to be used for meta data override";
@@ -236,6 +238,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
 
     final boolean hasTrustStorePath;
     final String trustStorePath;
+    final String trustStoreType;
     final String trustStorePassword;
 
     final boolean headerSupport;
@@ -265,6 +268,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         validateCertificates = getBoolean(SSL_VALIDATE_CERTIFICATES_CONF);
         trustStorePath = getString(SSL_TRUSTSTORE_PATH_CONF);
         hasTrustStorePath = StringUtils.isNotBlank(trustStorePath);
+        trustStoreType = getString(SSL_TRUSTSTORE_TYPE_CONF);
         trustStorePassword = getPassword(SSL_TRUSTSTORE_PASSWORD_CONF).value();
         validateHttpsConfig(splunkURI);
         eventBatchTimeout = getInt(EVENT_TIMEOUT_CONF);
@@ -318,6 +322,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(HTTP_KEEPALIVE_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, HTTP_KEEPALIVE_DOC)
                 .define(SSL_VALIDATE_CERTIFICATES_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, SSL_VALIDATE_CERTIFICATES_DOC)
                 .define(SSL_TRUSTSTORE_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PATH_DOC)
+                .define(SSL_TRUSTSTORE_TYPE_CONF, ConfigDef.Type.STRING, "JKS", ConfigDef.Importance.LOW, SSL_TRUSTSTORE_TYPE_DOC)
                 .define(SSL_TRUSTSTORE_PASSWORD_CONF, ConfigDef.Type.PASSWORD, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PASSWORD_DOC)
                 .define(EVENT_TIMEOUT_CONF, ConfigDef.Type.INT, 300, ConfigDef.Importance.MEDIUM, EVENT_TIMEOUT_DOC)
                 .define(ACK_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 10, ConfigDef.Importance.MEDIUM, ACK_POLL_INTERVAL_DOC)
@@ -368,6 +373,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
               .setEnableChannelTracking(trackData)
               .setBackoffThresholdSeconds(backoffThresholdSeconds)
               .setTrustStorePath(trustStorePath)
+              .setTrustStoreType(trustStoreType)
               .setTrustStorePassword(trustStorePassword)
               .setHasCustomTrustStore(hasTrustStorePath)
               .setKerberosPrincipal(kerberosUserPrincipal)
@@ -393,6 +399,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 + "httpKeepAlive:" + httpKeepAlive + ", "
                 + "validateCertificates:" + validateCertificates + ", "
                 + "trustStorePath:" + trustStorePath + ", "
+                + "trustStoreType:" + trustStoreType + ", "
                 + "socketTimeout:" + socketTimeout + ", "
                 + "eventBatchTimeout:" + eventBatchTimeout + ", "
                 + "ackPollInterval:" + ackPollInterval + ", "

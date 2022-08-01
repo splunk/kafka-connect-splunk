@@ -17,6 +17,7 @@ public class ConfigProfile {
     private boolean validateCertificates;
     private boolean hasTrustStorePath;
     private String trustStorePath;
+    private String trustStoreType;
     private String trustStorePassword;
     private int eventBatchTimeout;
     private int ackPollInterval;
@@ -77,6 +78,7 @@ public class ConfigProfile {
         this.validateCertificates = true;
         this.hasTrustStorePath = true;
         this.trustStorePath = "./src/test/resources/keystoretest.jks";
+        this.trustStoreType = "JKS";
         this.trustStorePassword = "Notchangeme";
         this.eventBatchTimeout = 1;
         this.ackPollInterval = 1;
@@ -110,7 +112,8 @@ public class ConfigProfile {
         this.httpKeepAlive = true;
         this.validateCertificates = true;
         this.hasTrustStorePath = true;
-        this.trustStorePath = "./src/test/resources/keystoretest.jks";
+        this.trustStorePath = "./src/test/resources/keystoretest.p12";
+        this.trustStoreType = "PKCS12";
         this.trustStorePassword = "Notchangeme";
         this.eventBatchTimeout = 1;
         this.ackPollInterval = 1;
@@ -332,6 +335,14 @@ public class ConfigProfile {
         this.trustStorePath = trustStorePath;
     }
 
+    public String getTrustStoreType() {
+        return trustStoreType;
+    }
+
+    public void setTrustStoreType(String trustStoreType) {
+        this.trustStoreType = trustStoreType;
+    }
+
     public String getTrustStorePassword() {
         return trustStorePassword;
     }
@@ -461,6 +472,6 @@ public class ConfigProfile {
     }
 
     @Override public String toString() {
-        return "ConfigProfile{" + "topics='" + topics + '\'' + ", topics.regex='" + topicsRegex +  '\'' + ", token='" + token + '\'' + ", uri='" + uri + '\'' + ", raw=" + raw + ", ack=" + ack + ", indexes='" + indexes + '\'' + ", sourcetypes='" + sourcetypes + '\'' + ", sources='" + sources + '\'' + ", httpKeepAlive=" + httpKeepAlive + ", validateCertificates=" + validateCertificates + ", hasTrustStorePath=" + hasTrustStorePath + ", trustStorePath='" + trustStorePath + '\'' + ", trustStorePassword='" + trustStorePassword + '\'' + ", eventBatchTimeout=" + eventBatchTimeout + ", ackPollInterval=" + ackPollInterval + ", ackPollThreads=" + ackPollThreads + ", maxHttpConnPerChannel=" + maxHttpConnPerChannel + ", totalHecChannels=" + totalHecChannels + ", socketTimeout=" + socketTimeout + ", enrichements='" + enrichements + '\'' + ", enrichementMap=" + enrichementMap + ", trackData=" + trackData + ", maxBatchSize=" + maxBatchSize + ", numOfThreads=" + numOfThreads + '}';
+        return "ConfigProfile{" + "topics='" + topics + '\'' + ", topics.regex='" + topicsRegex +  '\'' + ", token='" + token + '\'' + ", uri='" + uri + '\'' + ", raw=" + raw + ", ack=" + ack + ", indexes='" + indexes + '\'' + ", sourcetypes='" + sourcetypes + '\'' + ", sources='" + sources + '\'' + ", httpKeepAlive=" + httpKeepAlive + ", validateCertificates=" + validateCertificates + ", hasTrustStorePath=" + hasTrustStorePath + ", trustStorePath='" + trustStorePath + '\'' + ", trustStoreType='" + trustStoreType + '\'' + ", trustStorePassword='" + trustStorePassword + '\'' + ", eventBatchTimeout=" + eventBatchTimeout + ", ackPollInterval=" + ackPollInterval + ", ackPollThreads=" + ackPollThreads + ", maxHttpConnPerChannel=" + maxHttpConnPerChannel + ", totalHecChannels=" + totalHecChannels + ", socketTimeout=" + socketTimeout + ", enrichements='" + enrichements + '\'' + ", enrichementMap=" + enrichementMap + ", trackData=" + trackData + ", maxBatchSize=" + maxBatchSize + ", numOfThreads=" + numOfThreads + '}';
     }
 }

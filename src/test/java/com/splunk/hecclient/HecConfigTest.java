@@ -44,6 +44,7 @@ public class HecConfigTest {
               .setEnableChannelTracking(true)
               .setEventBatchTimeout(7)
               .setTrustStorePath("test")
+              .setTrustStoreType("PKCS12")
               .setTrustStorePassword("pass")
               .setHasCustomTrustStore(true)
               .setBackoffThresholdSeconds(10)
@@ -60,6 +61,7 @@ public class HecConfigTest {
         Assert.assertEquals(6, config.getAckPollThreads());
         Assert.assertEquals(7, config.getEventBatchTimeout());
         Assert.assertEquals("test", config.getTrustStorePath());
+        Assert.assertEquals("PKCS12", config.getTrustStoreType());
         Assert.assertEquals("pass", config.getTrustStorePassword());
         Assert.assertEquals(10000, config.getBackoffThresholdSeconds());
         Assert.assertEquals(120000, config.getlbPollInterval());

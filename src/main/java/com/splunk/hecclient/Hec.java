@@ -287,7 +287,7 @@ public class Hec implements HecInf {
         }
 
         // Code block for custom keystore client construction
-        SSLContext context = loadCustomSSLContext(config.getTrustStorePath(), config.getTrustStorePassword());
+        SSLContext context = loadCustomSSLContext(config.getTrustStorePath(), config.getTrustStoreType(), config.getTrustStorePassword());
 
         if (context != null) {
             return new HttpClientBuilder()
@@ -309,6 +309,7 @@ public class Hec implements HecInf {
     * a Hec Client with custom key store functionality.
     *
     * @param    path  A file path to the custom key store to be used.
+    * @param    type  The type of the key store file.
     * @param    pass  The password for the key store file.
     * @since          1.1.0
     * @throws         HecException
@@ -316,9 +317,9 @@ public class Hec implements HecInf {
     * @see            KeyStore
     * @see            SSLContext
     */
-    public static SSLContext loadCustomSSLContext(String path, String pass) {
+    public static SSLContext loadCustomSSLContext(String path, String type, String pass) {
         try {
-            KeyStore ks = KeyStore.getInstance("JKS");
+            KeyStore ks = KeyStore.getInstance(type);
             FileInputStream fileInputStream = new FileInputStream(path);
             ks.load(fileInputStream, pass.toCharArray());
 
