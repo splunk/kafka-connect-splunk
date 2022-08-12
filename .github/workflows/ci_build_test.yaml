@@ -1,7 +1,7 @@
 name: CI Build Test
 
 on:
-  pull_request:
+  pull_request_target:
     branches-ignore:
       - /^release\/.*/
       - master
@@ -80,12 +80,21 @@ jobs:
           check_name: Unit Test Results
           files: "target/surefire-reports/*.xml"
 
-  e2e_test:
+  functional_tests_approval:
+    name: Approve functional tests
+    runs-on: ubuntu-20.04
     environment: workflow-approval
+    needs:
+      - build-unit-test
+    steps:
+      - name: Approve functional tests
+        run: echo For security reasons, all pull requests need to be approved first before running any automated CI.
+
+  e2e_test:
     name: e2e test - kafka version-${{ matrix.kafka_version }}
     runs-on: ubuntu-20.04
     needs:
-      - build-unit-test
+      - functional_tests_approval
     strategy:
       fail-fast: false
       matrix:
