@@ -158,21 +158,21 @@ if __name__ == '__main__':
     thread_upgrade = threading.Thread(target=upgrade_connector_plugin, daemon=True)
     thread_upgrade.start()
     time.sleep(100)
-    search_query_1 = f"index={config['splunk_index']} | search timestamp=\"{_time_stamp}\" source::{_connector}"
+    search_query_1 = f"index={config['splunk_index']} | search source::{_connector}"
     logger.debug(search_query_1)
-    events_1 = check_events_from_splunk(start_time="-15m@m",
+    events_1 = check_events_from_splunk(start_time="-24h@h",
                                       url=config["splunkd_url"],
                                       user=config["splunk_user"],
                                       query=[f"search {search_query_1}"],
                                       password=config["splunk_password"])
-    logger.info("Splunk received %s events in the last 15m", len(events_1))
+    logger.info("Splunk received %s events in the last 24h", len(events_1))
     assert len(events_1) == 2000
-    search_query_2 = f"index={config['splunk_index']} | search timestamp=\"{_time_stamp}\" source::{_connector_ack}"
+    search_query_2 = f"index={config['splunk_index']} | search source::{_connector_ack}"
     logger.debug(search_query_2)
-    events_2 = check_events_from_splunk(start_time="-15m@m",
+    events_2 = check_events_from_splunk(start_time="-24h@h",
                                         url=config["splunkd_url"],
                                         user=config["splunk_user"],
                                         query=[f"search {search_query_2}"],
                                         password=config["splunk_password"])
-    logger.info("Splunk received %s events in the last 15m", len(events_2))
-    assert len(events_2) == 2000
+    logger.info("Splunk received %s events in the last 24h", len(events_2))
+    assert len(events_2) == 2000 
