@@ -93,7 +93,7 @@ def pytest_unconfigure():
 
 def pytest_sessionfinish(session, exitstatus):
     if exitstatus != 0:
-        search_query = f"index={setup['splunk_index']}"
+        search_query = "index=*"
         logger.info(search_query)
         events = check_events_from_splunk(start_time="-24h@h",
                                             url=setup["splunkd_url"],
