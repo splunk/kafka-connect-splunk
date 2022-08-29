@@ -81,11 +81,11 @@ def delete_kafka_connector(setup, connector):
     return False
 
 
-def get_kafka_connector_tasks(setup, params):
+def get_kafka_connector_tasks(setup, params, sleepDuration=0):
     '''
     Get kafka connect connector tasks using kafka connect REST API
     '''
-
+    time.sleep(sleepDuration)
     t_end = time.time() + 10
     while time.time() < t_end:
         response = requests.get(url=setup["kafka_connect_url"] + "/connectors/" + params["name"] + "/tasks",
@@ -95,7 +95,6 @@ def get_kafka_connector_tasks(setup, params):
             return len(response.json())
 
     return 0
-
 
 def get_kafka_connector_status(setup, params, action, state):
     '''

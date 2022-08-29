@@ -205,6 +205,11 @@ jobs:
       - name: Test kafka connect upgrade
         run: |
           echo "Download kafka connect "$CI_OLD_CONNECTOR_VERSION
+           # Summary for the test
+           #1)We will deploy old kafka connector and create 2 tasks for that to check ack and without ack functionality
+           #2)then we will remove that old kafka connector and deploy new kafka connector with updation of two tasks
+           #3) Here in the updation we will check for the new functionality("splunk.hec.json.event.formatted" and "splunk.hec.raw") so that we can check if we can successfully upgrade the connector
+           #4)At last we will check if we have recieved 2000 events for both the tasks
           sudo mkdir -p /usr/local/share/kafka/plugins/
           wget https://github.com/splunk/kafka-connect-splunk/releases/download/$CI_OLD_CONNECTOR_VERSION/splunk-kafka-connect-$CI_OLD_CONNECTOR_VERSION.jar
           sudo cp splunk-kafka-connect-$CI_OLD_CONNECTOR_VERSION.jar /usr/local/share/kafka/plugins/
@@ -220,8 +225,10 @@ jobs:
           echo "Test kafka connect upgrade ..."
           source $GITHUB_WORKSPACE/test/config.sh
           test -f $connector_path/$old_connector_name && echo $connector_path /$old_connector_name 
+          # Starting Old Connector
           sudo $kafka_home/bin/connect-distributed.sh $GITHUB_WORKSPACE/config/connect-distributed-quickstart.properties > output.log 2>&1 &
           sleep 20 
+          # Creating the  two tasks (with ack and without ack)
           curl ${kafka_connect_url}/connectors -X POST -H "Content-Type: application/json" -d '{
           "name": "kafka_connect",
                   "config": {
@@ -233,11 +240,12 @@ jobs:
                       "splunk.hec.uri":  "'"$splunk_hec_url"'",
                       "splunk.hec.ssl.validate.certs": "false",
                       "splunk.hec.token":  "'"$splunk_token"'" ,
-                      "splunk.flush.window": "1",
-                      "splunk.sources": "kafka_connect"
+                      "splunk.sources": "kafka_connect",
+                      "splunk.hec.raw": "true",
+                      "splunk.sourcetypes":"upgraded_test"
                   }
            }'
-          sleep 10
+          sleep 5
           curl ${kafka_connect_url}/connectors -X POST -H "Content-Type: application/json" -d '{
             "name": "kafka_connect_ack",
                     "config": {
@@ -248,23 +256,23 @@ jobs:
                         "splunk.hec.ack.enabled": "true",
                         "splunk.hec.uri":  "'"$splunk_hec_url"'",
                         "splunk.hec.ssl.validate.certs": "false",
-                        "splunk.hec.token":  "'"$splunk_token_ack"'" ,
-                        "splunk.flush.window": "1",
-                        "splunk.sources": "kafka_connect_ack"
+                        "splunk.hec.token":  "'"$splunk_token_ack"'" , 
+                        "splunk.sources": "kafka_connect_ack",
+                        "splunk.hec.raw": "true",
+                        "splunk.sourcetypes":"upgraded_test"
                     }
           }' 
           sleep 5
-          python test/lib/eventproducer_connector_upgrade.py --log-level=INFO 
-          curl -s -XDELETE "${kafka_connect_url}/connectors/kafka_connect"
-          curl -s -XDELETE "${kafka_connect_url}/connectors/kafka_connect_ack"
+          # Generating 1000 events
+          python test/lib/eventproducer_connector_upgrade.py 1000 --log-level=INFO 
           sudo kill $(sudo lsof -t -i:8083) && sleep 2
           sudo rm $connector_path/$old_connector_name && sleep 2
           sudo cp $connector_build_target/splunk-kafka-connect*.jar $connector_path && sleep 2
+          # Starting New Connector
           sudo $kafka_home/bin/connect-distributed.sh $GITHUB_WORKSPACE/config/connect-distributed-quickstart.properties > output.log 2>&1 &
+          # Updating the two tasks (with ack and without ack)
           sleep 10 
-          curl ${kafka_connect_url}/connectors -X POST -H "Content-Type: application/json" -d '{
-            "name": "kafka_connect",
-                    "config": {
+          curl ${kafka_connect_url}/connectors/kafka_connect/config -X PUT -H "Content-Type: application/json" -d '{
                         "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
                         "tasks.max": "1",
                         "splunk.indexes": "'"$splunk_index"'",
@@ -274,15 +282,12 @@ jobs:
                         "splunk.hec.ssl.validate.certs": "false",
                         "splunk.hec.token":  "'"$splunk_token"'" ,
                         "splunk.sources": "kafka_connect",
+                        "splunk.hec.raw": "false",
                         "splunk.hec.json.event.formatted": "true",
-                        "splunk.flush.window": "1",
-                        "splunk.hec.raw": "false"
-                    }
+                        "splunk.sourcetypes":"upgraded_test"
            }'
-          sleep 10
-          curl ${kafka_connect_url}/connectors -X POST -H "Content-Type: application/json" -d '{
-            "name": "kafka_connect_ack",
-                    "config": {
+          sleep 5
+          curl ${kafka_connect_url}/connectors/kafka_connect_ack/config -X PUT -H "Content-Type: application/json" -d '{
                         "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
                         "tasks.max": "1",
                         "splunk.indexes":  "'"$splunk_index"'",
@@ -292,18 +297,19 @@ jobs:
                         "splunk.hec.ssl.validate.certs": "false",
                         "splunk.hec.token":  "'"$splunk_token_ack"'" ,
                         "splunk.sources": "kafka_connect_ack",
+                        "splunk.hec.raw": "false",
                         "splunk.hec.json.event.formatted": "true",
-                        "splunk.flush.window": "1",
-                        "splunk.hec.raw": "false"
-                    }
+                        "splunk.sourcetypes":"upgraded_test"
           }' 
           sleep 5
-          python test/lib/eventproducer_connector_upgrade.py --log-level=INFO 
+          # Generating 1000 events
+          python test/lib/eventproducer_connector_upgrade.py 2000 --log-level=INFO
+          # Check in splunk that we have recieved 2000 events for with ack and without ack tasks
           python test/lib/connector_upgrade.py --log-level=INFO
       - uses: actions/upload-artifact@v3
-        if: always()
+        if: failure()
         with:
-          name: kafka-connect-logs
+          name: kafka-connect-logs-${{ matrix.kafka_version }}
           path: output.log
 
       - name: Install kafka connect
@@ -320,3 +326,9 @@ jobs:
           export PYTHONWARNINGS="ignore:Unverified HTTPS request"
           echo "Running functional tests....."
           python -m pytest --log-level=INFO
+        
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: splunk-events-${{ matrix.kafka_version }}
+          path: events.txt
