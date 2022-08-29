@@ -83,6 +83,7 @@ public class SplunkSinkConnectorConfigTest {
         HecConfig config = connectorConfig.getHecConfig();
         Assert.assertEquals(true, config.getHasCustomTrustStore());
         Assert.assertEquals(uu.configProfile.getTrustStorePath(), config.getTrustStorePath());
+        Assert.assertEquals(uu.configProfile.getTrustStoreType(), config.getTrustStoreType());
         Assert.assertEquals(uu.configProfile.getTrustStorePassword(), config.getTrustStorePassword());
     }
 
@@ -95,9 +96,10 @@ public class SplunkSinkConnectorConfigTest {
         HecConfig config = connectorConfig.getHecConfig();
         Assert.assertEquals(true, config.getHasCustomTrustStore());
         Assert.assertEquals(uu.configProfile.getTrustStorePath(), config.getTrustStorePath());
+        Assert.assertEquals(uu.configProfile.getTrustStoreType(), config.getTrustStoreType());
         Assert.assertEquals(uu.configProfile.getTrustStorePassword(), config.getTrustStorePassword());
 
-        SSLContext context = Hec.loadCustomSSLContext(config.getTrustStorePath(),config.getTrustStorePassword());
+        SSLContext context = Hec.loadCustomSSLContext(config.getTrustStorePath(), config.getTrustStoreType(), config.getTrustStorePassword());
         Assert.assertNotNull(context);
 
     }
@@ -315,6 +317,7 @@ public class SplunkSinkConnectorConfigTest {
         Assert.assertEquals(uu.configProfile.isHttpKeepAlive(), connectorConfig.httpKeepAlive);
         Assert.assertEquals(uu.configProfile.isValidateCertificates(), connectorConfig.validateCertificates);
         Assert.assertEquals(uu.configProfile.getTrustStorePath(), connectorConfig.trustStorePath);
+        Assert.assertEquals(uu.configProfile.getTrustStoreType(), connectorConfig.trustStoreType);
         Assert.assertEquals(uu.configProfile.getTrustStorePassword(), connectorConfig.trustStorePassword);
         Assert.assertEquals(uu.configProfile.getEventBatchTimeout(), connectorConfig.eventBatchTimeout);
         Assert.assertEquals(uu.configProfile.getAckPollInterval(), connectorConfig.ackPollInterval);

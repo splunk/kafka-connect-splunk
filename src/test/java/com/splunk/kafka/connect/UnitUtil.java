@@ -45,6 +45,7 @@ public class UnitUtil {
 
         if(configProfile.getTrustStorePath() != null ) {
             config.put(SplunkSinkConnectorConfig.SSL_TRUSTSTORE_PATH_CONF, configProfile.getTrustStorePath());
+            config.put(SplunkSinkConnectorConfig.SSL_TRUSTSTORE_TYPE_CONF, configProfile.getTrustStoreType());
             config.put(SplunkSinkConnectorConfig.SSL_TRUSTSTORE_PASSWORD_CONF, configProfile.getTrustStorePassword());
         }
 

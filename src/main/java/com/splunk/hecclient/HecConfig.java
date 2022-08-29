@@ -34,6 +34,7 @@ public final class HecConfig {
     private boolean enableChannelTracking = false;
     private boolean hasCustomTrustStore = false;
     private String trustStorePath;
+    private String trustStoreType = "JKS";
     private String trustStorePassword;
     private int lbPollInterval = 120; // in seconds
     private String kerberosPrincipal;
@@ -104,6 +105,8 @@ public final class HecConfig {
 
     public String getTrustStorePath() { return trustStorePath; }
 
+    public String getTrustStoreType() { return trustStoreType; }
+
     public String getTrustStorePassword() { return trustStorePassword; }
 
     public HecConfig setDisableSSLCertVerification(boolean disableVerfication) {
@@ -158,6 +161,11 @@ public final class HecConfig {
 
     public HecConfig setTrustStorePath(String path) {
         trustStorePath = path;
+        return this;
+    }
+
+    public HecConfig setTrustStoreType(String type) {
+        trustStoreType = type;
         return this;
     }
 
