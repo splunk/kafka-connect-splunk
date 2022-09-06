@@ -68,7 +68,7 @@ class TestCrud:
         assert update_kafka_connector(setup, connector_definition) == expected
 
         # Validate get tasks
-        tasks = get_kafka_connector_tasks(setup, connector_definition)
+        tasks = get_kafka_connector_tasks(setup, connector_definition,10)
         assert tasks == int(connector_definition["config"]["tasks.max"])
 
         # Validate pause task

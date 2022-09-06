@@ -17,6 +17,7 @@ from lib.commonkafka import *
 from lib.connect_params import *
 
 from kafka.producer import KafkaProducer
+from lib.commonsplunk import check_events_from_splunk
 from lib.helper import get_test_folder
 from lib.data_gen import generate_connector_content
 import pytest
@@ -89,3 +90,17 @@ def pytest_unconfigure():
     # Delete launched connectors
     for param in connect_params:
         delete_kafka_connector(config, param)
+
+def pytest_sessionfinish(session, exitstatus):
+    if exitstatus != 0:
+        search_query = "index=*"
+        logger.info(search_query)
+        events = check_events_from_splunk(start_time="-24h@h",
+                                            url=setup["splunkd_url"],
+                                            user=setup["splunk_user"],
+                                            query=[f"search {search_query}"],
+                                            password=setup["splunk_password"])
+        myfile = open('events.txt', 'w+')
+        for i in events:
+            myfile.write("%s\n" % i)
+        myfile.close()
