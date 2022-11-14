@@ -156,6 +156,21 @@ class SplunkSinkConnecterTest {
     }
 
     @Test
+    public void testValidationSuccessWithSuccessResponse() throws IOException {
+        Map<String, String> connectorConfig = getConnectorConfig();
+
+        doReturn(okHttpResponse)
+                .doReturn(okHttpResponse)
+                .when(httpClient)
+                .execute(any());
+
+        Config config = connector.validate(connectorConfig);
+        for (ConfigValue value : config.configValues()) {
+            assertTrue(value.errorMessages().isEmpty());
+        }
+    }
+
+    @Test
     public void testConnectionFailure() throws IOException {
         Map<String, String> connectorConfig = getConnectorConfig();
 
