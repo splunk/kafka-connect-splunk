@@ -208,7 +208,7 @@ public class SplunkSinkConnector extends SinkConnector {
             int status = -1;
             try (CloseableHttpResponse response = httpClient.execute(request)) {
                 status = response.getStatusLine().getStatusCode();
-                if (status == 400) {
+                if (status == 400 || status == 200) {
                     log.trace("Validation succeeded for collector {}", uri);
                 } else if (status == 403) {
                     log.trace("Invalid HEC token for collector {}", uri);
