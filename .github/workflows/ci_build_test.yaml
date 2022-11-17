@@ -119,9 +119,11 @@ jobs:
             kafka_package: "kafka_2.13-3.0.0.tgz"
           - kafka_version: "3.1.0"
             kafka_package: "kafka_2.13-3.1.0.tgz"
+          - kafka_version: "3.3.1"
+            kafka_package: "kafka_2.13-3.3.1.tgz"
     env:
-      CI_SPLUNK_VERSION: "8.2.2"
-      CI_SPLUNK_FILENAME: splunk-8.2.2-87344edfcdb4-Linux-x86_64.tgz
+      CI_SPLUNK_VERSION: "9.0.2"
+      CI_SPLUNK_FILENAME: splunk-9.0.2-17e00c557dc1-Linux-x86_64.tgz
       CI_SPLUNK_HOST: 127.0.0.1
       CI_SPLUNK_PORT: 8089
       CI_SPLUNK_USERNAME: admin
