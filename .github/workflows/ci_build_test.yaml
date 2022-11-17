@@ -95,7 +95,7 @@ jobs:
           files: "target/surefire-reports/*.xml"
 
   e2e_test:
-    name: e2e test - kafka version-${{ matrix.kafka_version }}
+    name: e2e test 2 - kafka version-${{ matrix.kafka_version }}
     runs-on: ubuntu-20.04
     needs:
       - build-unit-test
