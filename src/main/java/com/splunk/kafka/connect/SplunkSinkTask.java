@@ -401,7 +401,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
                 event.setTied(record);
                 event.addFields(connectorConfig.enrichments);
             } catch(Exception e) {
-                log.trace("event does not follow correct HEC pre-formatted format: {}", record.value().toString());
+                log.trace("event does not follow correct HEC pre-formatted format for record having offset: {}, topic Name: {} and topic Partition: {}", record.kafkaOffset(), record.topic(), record.kafkaPartition());
                 event = createHECEventNonFormatted(record);
             }
         } else {
