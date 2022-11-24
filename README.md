@@ -173,7 +173,7 @@ Use the below schema to configure Splunk Connect for Kafka
 | `splunk.hec.json.event.formatted` | Set to `true` for events that are already in HEC format. Valid settings are `true` or `false`. |`false`|
 | `splunk.hec.max.outstanding.events` | Maximum amount of un-acknowledged events kept in memory by connector. Will trigger back-pressure event to slow down collection if reached. | `1000000` |
 | `splunk.hec.max.retries` | Amount of times a failed batch will attempt to resend before dropping events completely. Warning: This will result in data loss, default is `-1` which will retry indefinitely  | `-1` |
-| `splunk.hec.backoff.threshhold.seconds` | The amount of duration the Indexer will be stopped after getting error code while posting the data.</br> **NOTE:** <br/>  Other Indexer won't get affected with this parameter." | `60` |
+| `splunk.hec.backoff.threshhold.seconds` | The amount of duration the Indexer object will be stopped after getting error code while posting the data.</br> **NOTE:** <br/>  Other Indexer won't get affected." | `60` |
 | `splunk.hec.lb.poll.interval`  |  Specify this parameter(in seconds) to control the polling interval(increase to do less polling, decrease to do more frequent polling, set `-1` to disable polling) |  `120` |
 | `splunk.hec.enable.compression` | Valid settings are true or false. Used for enable or disable gzip-compression. |`false`|
 ### Acknowledgement Parameters
@@ -235,8 +235,8 @@ Use the below schema to configure Splunk Connect for Kafka
 ### Out-of-band Health Checks and In-band Health Checks
 | Health Checks                | Description                | 
 |--------               |----------------------------|
-| `Out of  band health check` |  This health check targets Loadbalancer and aims to remove all the unhealthy channels from the pool; all channels are released for the configurable period using the parameter `splunk.hec.lb.poll.interval`,  some that may be otherwise healthy. Although this is configurable (by default 120 seconds), It may still get a 503 result code from the indexer. For that, there is another health check, and it can be called the in-band-health check. | 
-| `In band healthcheck` | This health check targets Indexer while posting data. If an error code is received, then it will trigger this health check. When this check fails, It will Pause the indexing from the Particular Indexer for a configurable time using the parameter `Splunk.hec.backoff.threshhold.seconds` and trigger backpressure handling So that event that could not be indexed will be retried again.  | 
+| `Out of  band health check` |  This health check targets Loadbalancer and aims to remove all the unhealthy channels from the pool; all unhealthy channels are released for the configurable period using the parameter `splunk.hec.lb.poll.interval`, Although this is configurable (by default 120 seconds), It may still get a 503 result code from the Splunk indexer. For that, there is another health check, and it can be called the in-band-health check. | 
+| `In band healthcheck` | This health check targets Indexer object while posting data. If an error code is received, then it will trigger this health check. When this check fails, It will Pause the indexing from the Particular Indexer object for a configurable time using the parameter `Splunk.hec.backoff.threshhold.seconds` and trigger backpressure handling So that event that could not be indexed will be retried again.  | 
 
 
 ## Load balancing
