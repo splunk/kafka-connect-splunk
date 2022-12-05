@@ -96,10 +96,10 @@ def pytest_sessionfinish(session, exitstatus):
         search_query = "index=*"
         logger.info(search_query)
         events = check_events_from_splunk(start_time="-24h@h",
-                                            url=setup["splunkd_url"],
-                                            user=setup["splunk_user"],
+                                            url=config["splunkd_url"],
+                                            user=config["splunk_user"],
                                             query=[f"search {search_query}"],
-                                            password=setup["splunk_password"])
+                                            password=config["splunk_password"])
         myfile = open('events.txt', 'w+')
         for i in events:
             myfile.write("%s\n" % i)
