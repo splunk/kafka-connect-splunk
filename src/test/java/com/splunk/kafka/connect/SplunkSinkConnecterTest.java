@@ -74,6 +74,8 @@ class SplunkSinkConnecterTest {
         final Map<String, String> configs = new HashMap<>();
         addNecessaryConfigs(configs);
         SinkConnector connector = new SplunkSinkConnector();
+        HecInstanceMock clientInstance = new HecInstanceMock();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Config result = connector.validate(configs);
         assertNoErrors(result);
     }
@@ -85,6 +87,8 @@ class SplunkSinkConnecterTest {
         configs.put(KERBEROS_USER_PRINCIPAL_CONF, TEST_KERB_PRINCIPAL);
         configs.put(KERBEROS_KEYTAB_PATH_CONF, TEST_KERB_KEYTAB_PATH);
         SinkConnector connector = new SplunkSinkConnector();
+        HecInstanceMock clientInstance = new HecInstanceMock();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Config result = connector.validate(configs);
         assertNoErrors(result);
     }
@@ -95,6 +99,8 @@ class SplunkSinkConnecterTest {
         addNecessaryConfigs(configs);
         configs.put(KERBEROS_USER_PRINCIPAL_CONF, TEST_KERB_PRINCIPAL);
         SplunkSinkConnector connector = new SplunkSinkConnector();
+        HecInstanceMock clientInstance = new HecInstanceMock();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Config result = connector.validate(configs);
         assertHasErrorMessage(result, KERBEROS_USER_PRINCIPAL_CONF, "must be set");
         assertHasErrorMessage(result, KERBEROS_KEYTAB_PATH_CONF, "must be set");
@@ -106,6 +112,8 @@ class SplunkSinkConnecterTest {
         addNecessaryConfigs(configs);
         configs.put(KERBEROS_KEYTAB_PATH_CONF, TEST_KERB_KEYTAB_PATH);
         SplunkSinkConnector connector = new SplunkSinkConnector();
+        HecInstanceMock clientInstance = new HecInstanceMock();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Config result = connector.validate(configs);
         assertHasErrorMessage(result, KERBEROS_USER_PRINCIPAL_CONF, "must be set");
         assertHasErrorMessage(result, KERBEROS_KEYTAB_PATH_CONF, "must be set");
