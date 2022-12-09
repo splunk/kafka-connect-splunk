@@ -15,37 +15,14 @@
  */
 package com.splunk.kafka.connect;
 
-import com.splunk.hecclient.Event;
-import com.splunk.hecclient.EventBatch;
-import com.splunk.hecclient.Hec;
 import com.splunk.hecclient.HecConfig;
-import com.splunk.hecclient.JsonEvent;
-import com.splunk.hecclient.JsonEventBatch;
-
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.EntityUtils;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.sink.SinkConnector;
 import org.apache.kafka.connect.sink.SinkTask;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -57,7 +34,6 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 public final class SplunkSinkConnectorConfig extends AbstractConfig {
-    private static final Logger log = LoggerFactory.getLogger(SplunkSinkConnectorConfig.class);
     // General
     static final String INDEX = "index";
     static final String SOURCE = "source";
@@ -332,9 +308,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         regex = getString(REGEX_CONF);
         timestampFormat = getString(TIMESTAMP_FORMAT_CONF).trim();
         validateRegexForTimestamp(regex);
-        // healthCheckForSplunkIndexes(splunkURI, indexes, splunkToken);
-
-        
+      
     }
 
    
@@ -579,108 +553,4 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         }
         return false;
     }
-
-
-    // private void healthCheckForSplunkIndexes(String splunkURI, String indexes,String splunkToken)  {
-    //     if (indexes!=""){
-    //         String[] topicIndexes = split(indexes, ",");
-    //         for (String index: topicIndexes){
-    //             healthCheckForSplunkHEC(splunkURI,index,splunkToken);
-    //         }
-    //     }
-            
-        
-    // }
-
-
-    // // private void healthCheckForSplunkHEC(String splunkURI,String index,String splunkToken)   {
-    // //     String endpoint = "/services/collector";
-    // //     URL urlHealthCheck;
-    // //         try {
-    // //             urlHealthCheck = new URL(splunkURI+endpoint);
-    // //             HttpURLConnection httpConn = (HttpURLConnection) urlHealthCheck.openConnection();
-    // //             httpConn.setRequestMethod("POST");
-
-    // //             httpConn.setRequestProperty("Authorization", "Splunk " + splunkToken);
-    // //             httpConn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-
-    // //             httpConn.setDoOutput(true);
-    // //             OutputStreamWriter writer = new OutputStreamWriter(httpConn.getOutputStream());
-    // //             writer.write(String.format("{\"index\":\"%s\"}",index));
-    // //             writer.flush();
-    // //             writer.close();
-    // //             httpConn.getOutputStream().close();
-    // //             InputStream responseStream = httpConn.getResponseCode() / 100 == 2
-    // //                 ? httpConn.getInputStream()
-    // //                 : httpConn.getErrorStream();
-    // //             Scanner s = new Scanner(responseStream).useDelimiter("\\A");
-    // //             String response = s.hasNext() ? s.next() : "";
-    // //             System.out.println(response);
-    // //             if (httpConn.getResponseCode()!=12){
-    // //                 throw new ConfigException(String.format("Bad splunk configurations with status code:%s response:%s",httpConn.getResponseCode(),response));
-    // //             }
-    // //         } catch (MalformedURLException e) {
-    // //             // TODO Auto-generated catch block
-    // //             throw new ConfigException("Invalid Splunk configuration");
-    // //         } catch (ProtocolException e) {
-    // //             throw new ConfigException("Invalid Splunk configuration");
-    // //             // TODO Auto-generated catch block
-               
-    // //         } catch (IOException e) {
-    // //             throw new ConfigException("Invalid Splunk configuration");
-    // //             // TODO Auto-generated catch block
-               
-    // //         }
-
-    // private void healthCheckForSplunkHEC(String splunkURI,String index,String splunkToken)   {
-    //     Header[] headers;
-    //     headers = new Header[1];
-    //     headers[0] = new BasicHeader("Authorization", String.format("Splunk %s", splunkToken));
-    //     String endpoint = "/services/collector";
-    //     String url = splunkURI + endpoint;
-    //     final HttpPost httpPost = new HttpPost(url);
-    //     httpPost.setHeaders(headers);
-    //     EventBatch batch = new JsonEventBatch();
-    //     Event event = new JsonEvent("a:a", null);
-    //     event.setIndex(index);
-    //     batch.add(event);
-    //     httpPost.setEntity(batch.getHttpEntity());
-
-    //         executeHttpRequest(httpPost);
-    // }
-
-	// public void executeHttpRequest(final HttpUriRequest req){
-    //     CloseableHttpResponse resp;
-    //     HttpContext context;
-    //     context = HttpClientContext.create();
-    //     CloseableHttpClient httpClient =  Hec.createHttpClient(getHecConfig());
-    //         try {                
-    //             resp = httpClient.execute(req, context);
-    //         } 
-    //         catch (IOException ex) {
-    //            ex.printStackTrace();
-    //             throw new ConfigException("encountered exception when post data", ex);
-    //         }
-
-    //     String respPayload;
-    //     HttpEntity entity = resp.getEntity();
-    //     try {
-    //         respPayload = EntityUtils.toString(entity, "utf-8");
-    //     } catch (Exception ex) {
-    //         throw new ConfigException("failed to process http response", ex);
-    //     } finally {
-    //         try {
-    //             resp.close();
-    //         } catch (IOException ex) {
-    //             throw new ConfigException("failed to close http response", ex);
-    //         }
-    //     }
-
-    //     int status = resp.getStatusLine().getStatusCode();
-    //     if (status!= 12) {
-    //         throw new ConfigException(String.format("Bad splunk configurations with status code:%s response:%s",status,respPayload));
-
-    //     }
-    // }
-
 }

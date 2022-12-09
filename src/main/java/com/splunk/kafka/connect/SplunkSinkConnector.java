@@ -17,79 +17,52 @@ package com.splunk.kafka.connect;
 
 import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.KERBEROS_KEYTAB_PATH_CONF;
 import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.KERBEROS_USER_PRINCIPAL_CONF;
-import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.URI_CONF;
-import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.TOKEN_CONF;
-import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.INDEX_CONF;
-// import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.SSL_VALIDATE_CERTIFICATES_CONF;
-// import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.SOCKET_TIMEOUT_CONF;;
-// import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.MAX_HTTP_CONNECTION_PER_CHANNEL_CONF;;
-// import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.TOTAL_HEC_CHANNEL_CONF;;
-// import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.EVENT_TIMEOUT_CONF;
-// import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.INDEX_CONF;
-// import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.INDEX_CONF;
-// import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.INDEX_CONF;
-// import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.INDEX_CONF;
-// import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.INDEX_CONF;
 
-import com.splunk.hecclient.Event;
-import com.splunk.hecclient.EventBatch;
-import com.splunk.hecclient.Hec;
-import com.splunk.hecclient.HecConfig;
-import com.splunk.hecclient.JsonEvent;
-import com.splunk.hecclient.JsonEventBatch;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import org.apache.avro.Protocol;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
-import org.apache.kafka.common.config.AbstractConfig;
-import org.apache.kafka.common.config.ConfigDef;
-import org.apache.kafka.common.config.ConfigException;
-import org.apache.kafka.connect.sink.SinkConnector;
-import org.apache.kafka.connect.sink.SinkTask;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.URL;
-import java.net.UnknownHostException;
-
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.common.config.Config;
 import org.apache.kafka.common.config.ConfigDef;
+import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.common.config.ConfigValue;
 import org.apache.kafka.connect.connector.Task;
 import org.apache.kafka.connect.sink.SinkConnector;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.splunk.hecclient.Event;
+import com.splunk.hecclient.EventBatch;
+import com.splunk.hecclient.JsonEvent;
+import com.splunk.hecclient.JsonEventBatch;
+
 public final class SplunkSinkConnector extends SinkConnector {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkConnector.class);
     private Map<String, String> taskConfig;
     private Map<String, ConfigValue> values;
     private List<ConfigValue> validations;
-    private HecClosableClient hecAb = new HecCreateClient();
+    private AbstractClientWrapper hecAb = new HecClientWrapper();
 
 
-    public void setHecInstance(HecClosableClient hecAb){
-        this.hecAb=hecAb;
+    public void setHecInstance(AbstractClientWrapper hecAb) {
+        this.hecAb = hecAb;
     }
 
     @Override
@@ -129,7 +102,6 @@ public final class SplunkSinkConnector extends SinkConnector {
     }
 
 
-    
     @Override
     public Config validate(final Map<String, String> connectorConfigs) {
         Config config = super.validate(connectorConfigs);
@@ -154,9 +126,9 @@ public final class SplunkSinkConnector extends SinkConnector {
         }
 
         String errorMessage = String.format(
-            "Either both or neither '%s' and '%s' must be set for Kerberos authentication. ",
-            KERBEROS_KEYTAB_PATH_CONF,
-            KERBEROS_USER_PRINCIPAL_CONF
+                "Either both or neither '%s' and '%s' must be set for Kerberos authentication. ",
+                KERBEROS_KEYTAB_PATH_CONF,
+                KERBEROS_USER_PRINCIPAL_CONF
         );
         addErrorMessage(KERBEROS_KEYTAB_PATH_CONF, errorMessage);
         addErrorMessage(KERBEROS_USER_PRINCIPAL_CONF, errorMessage);
@@ -174,30 +146,24 @@ public final class SplunkSinkConnector extends SinkConnector {
     }
 
 
-    private void validateHealthCheckForSplunkIndexes(final Map<String, String> configs)  {
-        
-        throw new ConfigException("check");
-        // String splunkURI = configs.getOrDefault(URI_CONF,"");
-        // String indexes = configs.getOrDefault(INDEX_CONF,"");
-        // String splunkToken = configs.getOrDefault(TOKEN_CONF,"");
-        // if (indexes!=""){
-        //     log.info("started", splunkToken);
-        //     System.out.println("started");
-        //     String[] topicIndexes = split(indexes, ",");
-        //     for (String index: topicIndexes){
-        //         healthCheckForSplunkHEC(splunkURI,index,splunkToken,hecAb,configs);
-        //             // throw new ConfigException("encountered exception when post data");
-        //     }
-        // }        
+    private void validateHealthCheckForSplunkIndexes(final Map<String, String> configs) throws ConfigException {
+        SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(configs);
+        String[] indexes = split(connectorConfig.indexes, ",");
+        if(indexes.length == 0) {
+            healthCheckForSplunkHEC(connectorConfig, "");
+        } else {
+            for (String index : indexes) {
+                healthCheckForSplunkHEC(connectorConfig, index);
+            }
+        }
     }
 
-    private void healthCheckForSplunkHEC(String splunkURI,String index,String splunkToken,HecClosableClient clientInstance,final Map<String, String> configs)   {
-        log.info("healthCheckForSplunkHEC", splunkToken, clientInstance);
+    private void healthCheckForSplunkHEC(SplunkSinkConnectorConfig connectorConfig, String index) throws ConfigException {
         Header[] headers;
         headers = new Header[1];
-        headers[0] = new BasicHeader("Authorization", String.format("Splunk %s", splunkToken));
+        headers[0] = new BasicHeader("Authorization", String.format("Splunk %s", connectorConfig.splunkToken));
         String endpoint = "/services/collector";
-        String url = splunkURI + endpoint;
+        String url = connectorConfig.splunkURI + endpoint;
         final HttpPost httpPost = new HttpPost(url);
         httpPost.setHeaders(headers);
         EventBatch batch = new JsonEventBatch();
@@ -205,69 +171,45 @@ public final class SplunkSinkConnector extends SinkConnector {
         event.setIndex(index);
         batch.add(event);
         httpPost.setEntity(batch.getHttpEntity());
-        SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(configs);
-        CloseableHttpClient httpClient = clientInstance.getClient(connectorConfig.getHecConfig());
-        // if (taskConfig!=null){
-        //     SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(taskConfig, hecAb);
-        //     httpClient =  clientInstance.getClient(connectorConfig.getHecConfig());
-        // }
-        // else {
-        // httpClient =  clientInstance.getClient(null);
-        // }
-        
-        try {
-            executeHttpRequest(httpPost,httpClient);
-        } catch (ConfigException e){
 
-        }
-        
-        // if (s!=null){
-        //     addErrorMessage(splunkURI, s);
-        // }
-        return;
+        CloseableHttpClient httpClient = hecAb.getClient(connectorConfig.getHecConfig());
+        executeHttpRequest(httpPost, httpClient);
     }
 
-	
 
-    private String  executeHttpRequest(final HttpUriRequest req,CloseableHttpClient httpClient){
+    private void executeHttpRequest(final HttpUriRequest req, CloseableHttpClient httpClient) throws ConfigException {
         CloseableHttpResponse resp = null;
         HttpContext context;
         context = HttpClientContext.create();
-            try {                
-                resp = httpClient.execute(req, context);
-            } 
-            catch (IOException ex) {
-                throw new ConfigException("Invalid", ex);
-            //    ex.printStackTrace();
-            //     throw new ConfigException("encountered exception when post data", ex);
-            }
-        String respPayload;
-        if (resp !=null){
-            HttpEntity entity = resp.getEntity();
-            try {
-                respPayload = EntityUtils.toString(entity, "utf-8");
-            } catch (Exception ex) {
-                // throw new ConfigException("failed to process http response", ex);
-            } finally {
-                try {
-                    resp.close();
-                } catch (Exception ex) {
-                    // throw new ConfigException("failed to close http response", ex);
-                }
-            }
-            int status = resp.getStatusLine().getStatusCode();
-            log.info(status+"");
-            if (status==201) {
-                return null;
-                // throw new ConfigException(String.format("Bad splunk configurations with status code:%s response:%s",status,respPayload));
-            }
-        }else{
-            return "erorrrrr";
+        try {
+            resp = httpClient.execute(req, context);
+        } catch (ClientProtocolException ex) {
+            throw new ConfigException("Invalid splunk SSL configuration detected while validating configuration",ex);
+        } catch (IOException ex) {
+            throw new ConfigException("Invalid Splunk Configurations",ex);
         }
-
-       return "erorrrrr";
+        try {
+            String respPayload = EntityUtils.toString(resp.getEntity(), "utf-8");
+            if (respPayload.contains("Incorrect index")){
+                throw new ConfigException("Incorrect Index detected while validating configuration");
+            }
+            else if (respPayload.contains("Invalid token")){
+                throw new ConfigException("Incorrect HEC token detected while validating configuration");
+            }
+        } catch(ConfigException ex){
+            throw ex;
+        }
+        catch (Exception ex) {
+            throw new ConfigException("failed to process http payload",ex);
+        } finally {
+            try {
+                resp.close();
+            } catch (Exception ex) {
+                throw new ConfigException("failed to close http response",ex);
+            }
+            
+        }
     }
 
 
- 
 }

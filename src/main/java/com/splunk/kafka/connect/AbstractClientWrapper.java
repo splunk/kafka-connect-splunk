@@ -4,6 +4,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 
 import com.splunk.hecclient.HecConfig;
 
-public abstract class HecClosableClient {
+public abstract class AbstractClientWrapper {
     abstract CloseableHttpClient getClient(HecConfig config);
 }
