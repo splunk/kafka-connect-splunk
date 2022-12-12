@@ -21,7 +21,6 @@ import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.KERBEROS_USER_P
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.apache.avro.Protocol;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.client.ClientProtocolException;
@@ -58,11 +57,11 @@ public final class SplunkSinkConnector extends SinkConnector {
     private Map<String, String> taskConfig;
     private Map<String, ConfigValue> values;
     private List<ConfigValue> validations;
-    private AbstractClientWrapper hecAb = new HecClientWrapper();
+    private AbstractClientWrapper abstractClientWrapper = new HecClientWrapper();
 
 
-    public void setHecInstance(AbstractClientWrapper hecAb) {
-        this.hecAb = hecAb;
+    public void setHecInstance(AbstractClientWrapper abstractClientWrapper) {
+        this.abstractClientWrapper = abstractClientWrapper;
     }
 
     @Override
@@ -109,7 +108,7 @@ public final class SplunkSinkConnector extends SinkConnector {
         values = validations.stream().collect(Collectors.toMap(ConfigValue::name, Function.identity()));
 
         validateKerberosConfigs(connectorConfigs);
-        validateHealthCheckForSplunkIndexes(connectorConfigs);
+        validateSplunkConfigurations(connectorConfigs);
         return new Config(validations);
     }
 
@@ -146,19 +145,19 @@ public final class SplunkSinkConnector extends SinkConnector {
     }
 
 
-    private void validateHealthCheckForSplunkIndexes(final Map<String, String> configs) throws ConfigException {
+    private void validateSplunkConfigurations(final Map<String, String> configs) throws ConfigException {
         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(configs);
         String[] indexes = split(connectorConfig.indexes, ",");
-        if(indexes.length == 0) {
-            healthCheckForSplunkHEC(connectorConfig, "");
+        if(indexes == null || indexes.length == 0) {
+            preparePayloadAndExecuteRequest(connectorConfig, "");
         } else {
             for (String index : indexes) {
-                healthCheckForSplunkHEC(connectorConfig, index);
+                preparePayloadAndExecuteRequest(connectorConfig, index);
             }
         }
     }
 
-    private void healthCheckForSplunkHEC(SplunkSinkConnectorConfig connectorConfig, String index) throws ConfigException {
+    private void preparePayloadAndExecuteRequest(SplunkSinkConnectorConfig connectorConfig, String index) throws ConfigException {
         Header[] headers;
         headers = new Header[1];
         headers[0] = new BasicHeader("Authorization", String.format("Splunk %s", connectorConfig.splunkToken));
@@ -167,14 +166,16 @@ public final class SplunkSinkConnector extends SinkConnector {
         final HttpPost httpPost = new HttpPost(url);
         httpPost.setHeaders(headers);
         EventBatch batch = new JsonEventBatch();
-        Event event = new JsonEvent("a:a", null);
+        Event event = new JsonEvent("Splunk HEC Configuration Check", null);
         event.setIndex(index);
+        event.setSource("kafka-connect");
+        event.setSourcetype("kafka-connect");
         batch.add(event);
         httpPost.setEntity(batch.getHttpEntity());
-
-        CloseableHttpClient httpClient = hecAb.getClient(connectorConfig.getHecConfig());
+        CloseableHttpClient httpClient = abstractClientWrapper.getClient(connectorConfig.getHecConfig());
         executeHttpRequest(httpPost, httpClient);
     }
+
 
 
     private void executeHttpRequest(final HttpUriRequest req, CloseableHttpClient httpClient) throws ConfigException {
@@ -183,31 +184,28 @@ public final class SplunkSinkConnector extends SinkConnector {
         context = HttpClientContext.create();
         try {
             resp = httpClient.execute(req, context);
+            int status = resp.getStatusLine().getStatusCode();
+
+            String respPayload = EntityUtils.toString(resp.getEntity(), "utf-8");
+            if (status > 299){
+                throw new ConfigException(String.format("Bad splunk configurations with status code:%s response:%s",status,respPayload));
+            }
         } catch (ClientProtocolException ex) {
             throw new ConfigException("Invalid splunk SSL configuration detected while validating configuration",ex);
         } catch (IOException ex) {
             throw new ConfigException("Invalid Splunk Configurations",ex);
-        }
-        try {
-            String respPayload = EntityUtils.toString(resp.getEntity(), "utf-8");
-            if (respPayload.contains("Incorrect index")){
-                throw new ConfigException("Incorrect Index detected while validating configuration");
-            }
-            else if (respPayload.contains("Invalid token")){
-                throw new ConfigException("Incorrect HEC token detected while validating configuration");
-            }
-        } catch(ConfigException ex){
+        } catch (ConfigException ex) {
             throw ex;
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             throw new ConfigException("failed to process http payload",ex);
         } finally {
             try {
-                resp.close();
+                if (resp!= null) {
+                    resp.close();
+                }
             } catch (Exception ex) {
                 throw new ConfigException("failed to close http response",ex);
             }
-            
         }
     }
 
