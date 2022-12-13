@@ -22,14 +22,18 @@ import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.URI_CONF;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.kafka.common.config.Config;
 import org.apache.kafka.common.config.ConfigDef;
+import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.common.config.ConfigValue;
 import org.apache.kafka.connect.connector.Task;
 import org.apache.kafka.connect.sink.SinkConnector;
 import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.splunk.hecclient.CloseableHttpClientMock;
 
 import java.util.*;
 
@@ -74,6 +78,10 @@ class SplunkSinkConnecterTest {
         final Map<String, String> configs = new HashMap<>();
         addNecessaryConfigs(configs);
         SinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.indexes", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Config result = connector.validate(configs);
         assertNoErrors(result);
     }
@@ -85,6 +93,10 @@ class SplunkSinkConnecterTest {
         configs.put(KERBEROS_USER_PRINCIPAL_CONF, TEST_KERB_PRINCIPAL);
         configs.put(KERBEROS_KEYTAB_PATH_CONF, TEST_KERB_KEYTAB_PATH);
         SinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.indexes", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Config result = connector.validate(configs);
         assertNoErrors(result);
     }
@@ -95,6 +107,10 @@ class SplunkSinkConnecterTest {
         addNecessaryConfigs(configs);
         configs.put(KERBEROS_USER_PRINCIPAL_CONF, TEST_KERB_PRINCIPAL);
         SplunkSinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.indexes", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Config result = connector.validate(configs);
         assertHasErrorMessage(result, KERBEROS_USER_PRINCIPAL_CONF, "must be set");
         assertHasErrorMessage(result, KERBEROS_KEYTAB_PATH_CONF, "must be set");
@@ -106,9 +122,52 @@ class SplunkSinkConnecterTest {
         addNecessaryConfigs(configs);
         configs.put(KERBEROS_KEYTAB_PATH_CONF, TEST_KERB_KEYTAB_PATH);
         SplunkSinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.indexes", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Config result = connector.validate(configs);
         assertHasErrorMessage(result, KERBEROS_USER_PRINCIPAL_CONF, "must be set");
         assertHasErrorMessage(result, KERBEROS_KEYTAB_PATH_CONF, "must be set");
+    }
+
+    @Test
+    public void testInvalidToken() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.indexes", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        clientInstance.client.setResponse(CloseableHttpClientMock.inValidToken);
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertThrows(ConfigException.class, ()->connector.validate(configs));
+    }
+
+    @Test
+    public void testInvalidIndex() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.indexes", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        clientInstance.client.setResponse(CloseableHttpClientMock.inValidIndex);
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertThrows(ConfigException.class, ()->connector.validate(configs));
+    }
+
+    @Test
+    public void testValidSplunkConfigurations() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.indexes", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        clientInstance.client.setResponse(CloseableHttpClientMock.success);
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertDoesNotThrow(()->connector.validate(configs));
     }
 
     private void addNecessaryConfigs(Map<String, String> configs) {

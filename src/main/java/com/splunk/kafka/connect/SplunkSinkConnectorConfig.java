@@ -308,8 +308,10 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         regex = getString(REGEX_CONF);
         timestampFormat = getString(TIMESTAMP_FORMAT_CONF).trim();
         validateRegexForTimestamp(regex);
+      
     }
 
+   
     public static ConfigDef conf() {
         return new ConfigDef()
                 .define(TOKEN_CONF, ConfigDef.Type.PASSWORD, ConfigDef.Importance.HIGH, TOKEN_DOC)
