@@ -73,4 +73,8 @@ class TestDataEnrichment:
                                           query=[f"search {search_query}"],
                                           password=setup["splunk_password"])
         logger.info("Splunk received %s events in the last hour", len(events))
-        assert events[0]["fields"]["kafka_record_key"] == expected 
+        
+        if(len(events)==1):
+           assert events[0]["fields"]["kafka_record_key"] == expected 
+        else:
+            assert False,"No event found or duplicate events found"

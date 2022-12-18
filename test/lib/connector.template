@@ -50,6 +50,7 @@
             "value.converter.schemas.enable": "{{value_converter_schemas_enable}}",
 			"enable.timestamp.extraction": "{{enable_timestamp_extraction}}",
 			"timestamp.regex": "{{timestamp_regex}}",
-			"timestamp.format": "{{timestamp_format}}"
+			"timestamp.format": "{{timestamp_format}}",
+			"splunk.hec.track.data": "{{splunk_hec_track_data}}"
 		}
 }
