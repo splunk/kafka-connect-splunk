@@ -415,6 +415,7 @@ public class SplunkSinkTaskTest {
                     Assert.assertEquals(String.valueOf(1), event.getFields().get("kafka_partition"));
                     Assert.assertEquals(new UnitUtil(0).configProfile.getTopics(), event.getFields().get("kafka_topic"));
                     Assert.assertEquals(String.valueOf(0), event.getFields().get("kafka_timestamp"));
+                    Assert.assertEquals("test", event.getFields().get("kafka_record_key"));
                     j++;
                 }
 
@@ -441,7 +442,7 @@ public class SplunkSinkTaskTest {
     private Collection<SinkRecord> createSinkRecords(int numOfRecords, int start, String value) {
         List<SinkRecord> records = new ArrayList<>();
         for (int i = start; i < start + numOfRecords; i++) {
-            SinkRecord rec = new SinkRecord(new UnitUtil(0).configProfile.getTopics(), 1, null, null, null, value, i, 0L, TimestampType.NO_TIMESTAMP_TYPE);
+            SinkRecord rec = new SinkRecord(new UnitUtil(0).configProfile.getTopics(), 1, null, "test", null, value, i, 0L, TimestampType.NO_TIMESTAMP_TYPE);
             records.add(rec);
         }
         return records;

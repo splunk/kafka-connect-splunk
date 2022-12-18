@@ -429,6 +429,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             trackMetas.put("kafka_timestamp", String.valueOf(record.timestamp()));
             trackMetas.put("kafka_topic", record.topic());
             trackMetas.put("kafka_partition", String.valueOf(record.kafkaPartition()));
+            trackMetas.put("kafka_record_key", String.valueOf(record.key()));
             if (HOSTNAME != null)
                 trackMetas.put("kafka_connect_host", HOSTNAME);
             event.addFields(trackMetas);
