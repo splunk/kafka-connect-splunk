@@ -30,7 +30,10 @@ jobs:
     needs:
       - workflow_approval
     steps:
-      - uses: actions/checkout@v3
+      - name:  Setup Action
+        uses: actions/checkout@v3
+        with:
+          ref: ${{github.event.pull_request.head.sha}}
       - name: run fossa anlyze and create report
         run: |
           curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install-latest.sh | bash
@@ -56,7 +59,11 @@ jobs:
     name: security-sast-semgrep
     if: github.actor != 'dependabot[bot]'
     steps:
-      - uses: actions/checkout@v3
+      - name:  Setup Action
+        uses: actions/checkout@v3
+        with:
+          ref: ${{github.event.pull_request.head.sha}}
+          repository: ${{github.event.pull_request.head.repo.full_name}}
       - name: Semgrep
         id: semgrep
         uses: returntocorp/semgrep-action@v1
@@ -69,8 +76,11 @@ jobs:
     needs:
       - workflow_approval
     steps:
-      - name: Checkout
+      - name:  Setup Action
         uses: actions/checkout@v2
+        with:
+          ref: ${{github.event.pull_request.head.sha}}
+          repository: ${{github.event.pull_request.head.repo.full_name}}
 
       - name: Get maven dependencies
         run: |
@@ -137,8 +147,11 @@ jobs:
       SCHEMA_REGISTRY_URL: ${{ Secrets.SCHEMA_REGISTRY_URL }}
 
     steps:
-      - name: Checkout
+      - name:  Setup Action
         uses: actions/checkout@v2
+        with:
+          ref: ${{github.event.pull_request.head.sha}}
+          repository: ${{github.event.pull_request.head.repo.full_name}}
 
       - name: Install Splunk
         run: |
