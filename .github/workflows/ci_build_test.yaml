@@ -60,7 +60,7 @@ jobs:
     name: security-sast-semgrep
     if: github.actor != 'dependabot[bot]'
     steps:
-      - name:  Checkout
+      - name: Checkout
         uses: actions/checkout@v3
         with:
           ref: ${{github.event.pull_request.head.sha}}
@@ -77,7 +77,7 @@ jobs:
     needs:
       - workflow_approval
     steps:
-      - name:  Checkout
+      - name: Checkout
         uses: actions/checkout@v2
         with:
           ref: ${{github.event.pull_request.head.sha}}
@@ -148,7 +148,7 @@ jobs:
       SCHEMA_REGISTRY_URL: ${{ Secrets.SCHEMA_REGISTRY_URL }}
 
     steps:
-      - name:  Setup Action
+      - name: Checkout
         uses: actions/checkout@v2
         with:
           ref: ${{github.event.pull_request.head.sha}}
