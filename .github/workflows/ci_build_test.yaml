@@ -30,10 +30,11 @@ jobs:
     needs:
       - workflow_approval
     steps:
-      - name:  Setup Action
+      - name:  Checkout
         uses: actions/checkout@v3
         with:
           ref: ${{github.event.pull_request.head.sha}}
+          repository: ${{github.event.pull_request.head.repo.full_name}}
       - name: run fossa anlyze and create report
         run: |
           curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install-latest.sh | bash
@@ -59,7 +60,7 @@ jobs:
     name: security-sast-semgrep
     if: github.actor != 'dependabot[bot]'
     steps:
-      - name:  Setup Action
+      - name:  Checkout
         uses: actions/checkout@v3
         with:
           ref: ${{github.event.pull_request.head.sha}}
@@ -76,7 +77,7 @@ jobs:
     needs:
       - workflow_approval
     steps:
-      - name:  Setup Action
+      - name:  Checkout
         uses: actions/checkout@v2
         with:
           ref: ${{github.event.pull_request.head.sha}}
