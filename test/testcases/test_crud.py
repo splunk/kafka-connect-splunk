@@ -98,33 +98,3 @@ class TestCrud:
         setup['connectors'].append(test_case)
 
         assert create_kafka_connector(setup, connector_definition_invalid_tasks, success=expected) == expected
-
-    @pytest.mark.parametrize("test_case, config_input, expected", [
-        ("event_enrichment_non_key_value", {"name": "event_enrichment_non_key_value",
-                                            "splunk_hec_json_event_enrichment": "testing-testing non KV"},
-         ["FAILED"]),
-        ("event_enrichment_non_key_value_3_tasks", {"name": "event_enrichment_non_key_value_3_tasks",
-                                                    "tasks_max": "3",
-                                                    "splunk_hec_json_event_enrichment": "testing-testing non KV"},
-         ["FAILED", "FAILED", "FAILED"]),
-        ("event_enrichment_not_separated_by_commas", {"name": "event_enrichment_not_separated_by_commas",
-                                                      "splunk_hec_json_event_enrichment": "key1=value1 key2=value2"},
-         ["FAILED"]),
-        ("event_enrichment_not_separated_by_commas_3_tasks", {"name": "event_enrichment_not_separated_by_commas_3_tasks",
-                                                              "tasks_max": "3",
-                                                              "splunk_hec_json_event_enrichment": "key1=value1 key2=value2"},
-         ["FAILED", "FAILED", "FAILED"])
-
-    ])
-    def test_invalid_crud_event_enrichment_tasks(self, setup, test_case, config_input, expected):
-        '''
-        Test that invalid event_enrichment kafka connect task can be created but task status should be FAILED
-        and no data should enter splunk
-        '''
-        logger.info(f"testing {test_case} input={config_input} expected={expected} ")
-
-        connector_definition_invalid_tasks = generate_connector_content(config_input)
-        setup['connectors'].append(test_case)
-
-        assert create_kafka_connector(setup, connector_definition_invalid_tasks) is True
-        assert get_running_kafka_connector_task_status(setup, connector_definition_invalid_tasks) == expected

@@ -158,7 +158,17 @@ public final class SplunkSinkConnector extends SinkConnector {
     }
 
     private void preparePayloadAndExecuteRequest(SplunkSinkConnectorConfig connectorConfig, String index) throws ConfigException {
-        Header[] headers = new Header[]{new BasicHeader("Authorization", String.format("Splunk %s", connectorConfig.splunkToken))};
+        Header[] headers;
+        if (connectorConfig.ack) {
+            headers = new Header[]{
+                new BasicHeader("Authorization", String.format("Splunk %s", connectorConfig.splunkToken)),
+                new BasicHeader("X-Splunk-Request-Channel", java.util.UUID.randomUUID().toString())
+            };
+        } else {
+            headers = new Header[]{
+                new BasicHeader("Authorization", String.format("Splunk %s", connectorConfig.splunkToken)),
+            };
+        }
         String endpoint = "/services/collector";
         String url = connectorConfig.splunkURI + endpoint;
         final HttpPost httpPost = new HttpPost(url);
