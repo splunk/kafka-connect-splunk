@@ -25,7 +25,7 @@ class TestConfigurations:
         ("test_tasks_max_1_hec_raw_false", "chars::test_tasks_max_1_hec_raw_false", 3),
         # ("test_tasks_max_3_hec_raw_true", "sourcetype::raw_data-tasks_max_3", 1),
         # ("test_tasks_max_3_hec_raw_false", "chars::test_tasks_max_3_hec_raw_false", 3),
-        ("test_tasks_max_null", "chars::test_tasks_max_null", 0)
+        # ("test_tasks_max_null", "chars::test_tasks_max_null", 0)
     ])
     def test_tasks_max(self, setup, test_scenario, test_input, expected):
         logger.info(f"testing {test_scenario} input={test_input} expected={expected} event(s)")

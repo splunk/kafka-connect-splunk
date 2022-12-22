@@ -183,6 +183,18 @@ class SplunkSinkConnecterTest {
     }
 
     @Test
+    public void testNullHecToken() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.hec.token", null);
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertThrows(java.lang.NullPointerException.class, ()->connector.validate(configs));
+    }
+
+    @Test
     public void testInvalidIndex() {
         final Map<String, String> configs = new HashMap<>();
         addNecessaryConfigs(configs);
