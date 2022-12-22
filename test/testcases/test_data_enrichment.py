@@ -61,11 +61,11 @@ class TestDataEnrichment:
                 f'\nActual value: \n{actual_raw_data} \ndoes not match expected value: \n{expected_data}'
 
     @pytest.mark.parametrize("test_scenario, test_input, expected", [
-        ("record_key_extraction", "sourcetype::track_record_key", "record_key_test"),
+        ("record_key_extraction", "sourcetype::track_record_key", "{}"),
     ])
     def test_record_key_data_enrichment(self, setup, test_scenario, test_input, expected):
         logger.info(f"testing {test_scenario} input={test_input} expected={expected} event(s)")
-        search_query = f"index={setup['splunk_index']} | search {test_input}"
+        search_query = f"index={setup['splunk_index']} | search {test_input} | fields *"
         logger.info(search_query)
         events = check_events_from_splunk(start_time="-15m@m",
                                           url=setup["splunkd_url"],
@@ -75,6 +75,6 @@ class TestDataEnrichment:
         logger.info("Splunk received %s events in the last hour", len(events))
         
         if(len(events)==1):
-           assert events[0]["fields"]["kafka_record_key"] == expected 
+           assert events[0]["kafka_record_key"] == expected 
         else:
             assert False,"No event found or duplicate events found"
