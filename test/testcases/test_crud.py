@@ -36,7 +36,7 @@ class TestCrud:
                 "tasks.max": "3",
                 "topics": setup["kafka_topic"],
                 "splunk.indexes": setup["splunk_index"],
-                "splunk.hec.uri": setup["splunk_hec_url"],
+                "splunk.hec.uri": setup["splunkd_url"],
                 "splunk.hec.token": setup["splunk_token"],
                 "splunk.hec.raw": "false",
                 "splunk.hec.ack.enabled": "false",
@@ -56,7 +56,7 @@ class TestCrud:
                 "tasks.max": "5",
                 "topics": setup["kafka_topic"],
                 "splunk.indexes": setup["splunk_index"],
-                "splunk.hec.uri": setup["splunk_hec_url"],
+                "splunk.hec.uri": setup["splunkd_url"],
                 "splunk.hec.token": setup["splunk_token"],
                 "splunk.hec.raw": "false",
                 "splunk.hec.ack.enabled": "false",
@@ -98,3 +98,28 @@ class TestCrud:
         setup['connectors'].append(test_case)
 
         assert create_kafka_connector(setup, connector_definition_invalid_tasks, success=expected) == expected
+
+    @pytest.mark.parametrize("test_case, config_input, expected", [
+        ("event_enrichment_non_key_value", {"name": "event_enrichment_non_key_value",
+                                            "splunk_hec_json_event_enrichment": "testing-testing non KV"}, False),
+        ("event_enrichment_non_key_value_3_tasks", {"name": "event_enrichment_non_key_value_3_tasks",
+                                                    "tasks_max": "3",
+                                                    "splunk_hec_json_event_enrichment": "testing-testing non KV"}, False),
+        ("event_enrichment_not_separated_by_commas", {"name": "event_enrichment_not_separated_by_commas",
+                                                      "splunk_hec_json_event_enrichment": "key1=value1 key2=value2"}, False),
+        ("event_enrichment_not_separated_by_commas_3_tasks", {"name": "event_enrichment_not_separated_by_commas_3_tasks",
+                                                              "tasks_max": "3",
+                                                              "splunk_hec_json_event_enrichment": "key1=value1 key2=value2"}, False)
+
+    ])
+    def test_invalid_crud_event_enrichment_tasks(self, setup, test_case, config_input, expected):
+        '''
+        Test that invalid event_enrichment kafka connect task can be created but task status should be FAILED
+        and no data should enter splunk
+        '''
+        logger.info(f"testing {test_case} input={config_input}")
+
+        connector_definition_invalid_tasks = generate_connector_content(config_input)
+        setup['connectors'].append(test_case)
+
+        assert create_kafka_connector(setup, connector_definition_invalid_tasks) == expected
