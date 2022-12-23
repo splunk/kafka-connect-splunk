@@ -132,6 +132,44 @@ class SplunkSinkConnecterTest {
     }
 
     @Test
+    public void testInvalidJsonEventEnrichmentConfig1() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("tasks_max", "3");
+        configs.put("splunk.hec.json.event.enrichment", "k1=v1 k2=v2");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertThrows(ConfigException.class, ()->connector.validate(configs));
+    }
+
+    @Test
+    public void testInvalidJsonEventEnrichmentConfig2() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.hec.json.event.enrichment", "testing-testing non KV");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertThrows(ConfigException.class, ()->connector.validate(configs));
+    }
+
+    @Test
+    public void testInvalidJsonEventEnrichmentConfig3() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("tasks_max", "3");
+        configs.put("splunk.hec.json.event.enrichment", "k1=v1 k2=v2");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertThrows(ConfigException.class, ()->connector.validate(configs));
+    }
+
+    @Test
     public void testInvalidToken() {
         final Map<String, String> configs = new HashMap<>();
         addNecessaryConfigs(configs);
@@ -142,6 +180,18 @@ class SplunkSinkConnecterTest {
         clientInstance.client.setResponse(CloseableHttpClientMock.inValidToken);
         ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Assertions.assertThrows(ConfigException.class, ()->connector.validate(configs));
+    }
+
+    @Test
+    public void testNullHecToken() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.hec.token", null);
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertThrows(java.lang.NullPointerException.class, ()->connector.validate(configs));
     }
 
     @Test
