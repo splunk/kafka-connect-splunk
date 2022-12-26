@@ -216,6 +216,4 @@ public final class SplunkSinkConnector extends SinkConnector {
             }
         }
     }
-
-
 }

@@ -204,5 +204,10 @@ connect_params = [
      "splunk_hec_raw": False,
      "enable_timestamp_extraction" : "true",
      "timestamp_regex": r"\\\"time\\\":\\s*\\\"(?<time>.*?)\"",
-     "timestamp_format": "epoch"}
+     "timestamp_format": "epoch"},
+     {"name": "test_extracted_record_key",
+     "splunk_sourcetypes": "track_record_key",
+     "topics": "record_key",
+     "splunk_hec_raw": False,
+     "splunk_hec_track_data": "true"}
 ]
