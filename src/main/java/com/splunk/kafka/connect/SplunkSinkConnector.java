@@ -41,6 +41,7 @@ import org.apache.kafka.connect.sink.SinkConnector;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -170,7 +171,8 @@ public final class SplunkSinkConnector extends SinkConnector {
             };
         }
         String endpoint = "/services/collector";
-        String url = connectorConfig.splunkURI + endpoint;
+        List<String> hecURIs = Arrays.asList(connectorConfig.splunkURI.split(","));
+        String url = hecURIs.get(0) + endpoint;
         final HttpPost httpPost = new HttpPost(url);
         httpPost.setHeaders(headers);
         EventBatch batch = new JsonEventBatch();
