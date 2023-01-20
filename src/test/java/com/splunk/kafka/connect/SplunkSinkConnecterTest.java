@@ -208,6 +208,21 @@ class SplunkSinkConnecterTest {
     }
 
     @Test
+    public void testValidMultipleURIs() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.indexes", "b");
+        configs.put("splunk.hec.uri", "https://localhost:8088,https://localhost:8089");
+        configs.put("splunk.hec.ssl.validate.certs", "false");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        clientInstance.client.setResponse(CloseableHttpClientMock.success);
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertDoesNotThrow(()->connector.validate(configs));
+    }
+
+    @Test
     public void testValidSplunkConfigurations() {
         final Map<String, String> configs = new HashMap<>();
         addNecessaryConfigs(configs);
