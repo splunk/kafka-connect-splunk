@@ -46,6 +46,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String SOURCE_CONF = "splunk.sources";
     static final String SOURCETYPE_CONF = "splunk.sourcetypes";
     static final String FLUSH_WINDOW_CONF = "splunk.flush.window";
+    static final String DISABLE_VALIDATION = "splunk.validation.disable";
     static final String TOTAL_HEC_CHANNEL_CONF = "splunk.hec.total.channels";
     static final String MAX_HTTP_CONNECTION_PER_CHANNEL_CONF = "splunk.hec.max.http.connection.per.channel";
     static final String MAX_BATCH_SIZE_CONF = "splunk.hec.max.batch.size"; // record count
@@ -54,7 +55,6 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String SOCKET_TIMEOUT_CONF = "splunk.hec.socket.timeout"; // seconds
     static final String SSL_VALIDATE_CERTIFICATES_CONF = "splunk.hec.ssl.validate.certs";
     static final String ENABLE_COMPRESSSION_CONF = "splunk.hec.enable.compression";
-    static final String DISABLE_VALIDATION = "splunk.validation.disable";
     // Acknowledgement Parameters
     // Use Ack
     static final String ACK_CONF = "splunk.hec.ack.enabled";
@@ -129,7 +129,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String SSL_VALIDATE_CERTIFICATES_DOC = "Valid settings are true or false. Enables or disables HTTPS "
             + "certification validation. By default, this is set to true.";
     static final String ENABLE_COMPRESSSION_DOC = "Valid settings are true or false. Used for enable or disable gzip-compression. By default, this is set to false.";
-    static final String DISABLE_VALIDATION_DOC = "Disable validating splunk configurations before creating task";
+    static final String DISABLE_VALIDATION_DOC = "Disable validating splunk configurations before creating task.";
     // Acknowledgement Parameters
     // Use Ack
     static final String ACK_DOC = "Valid settings are true or false. When set to true Splunk Connect for Kafka will "
