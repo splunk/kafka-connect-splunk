@@ -46,6 +46,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String SOURCE_CONF = "splunk.sources";
     static final String SOURCETYPE_CONF = "splunk.sourcetypes";
     static final String FLUSH_WINDOW_CONF = "splunk.flush.window";
+    static final String DISABLE_VALIDATION = "splunk.validation.disable";
     static final String TOTAL_HEC_CHANNEL_CONF = "splunk.hec.total.channels";
     static final String MAX_HTTP_CONNECTION_PER_CHANNEL_CONF = "splunk.hec.max.http.connection.per.channel";
     static final String MAX_BATCH_SIZE_CONF = "splunk.hec.max.batch.size"; // record count
@@ -128,6 +129,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String SSL_VALIDATE_CERTIFICATES_DOC = "Valid settings are true or false. Enables or disables HTTPS "
             + "certification validation. By default, this is set to true.";
     static final String ENABLE_COMPRESSSION_DOC = "Valid settings are true or false. Used for enable or disable gzip-compression. By default, this is set to false.";
+    static final String DISABLE_VALIDATION_DOC = "Disable validating splunk configurations before creating task.";
     // Acknowledgement Parameters
     // Use Ack
     static final String ACK_DOC = "Valid settings are true or false. When set to true Splunk Connect for Kafka will "
@@ -218,6 +220,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final int socketTimeout;
     final boolean validateCertificates;
     final boolean enableCompression;
+    final boolean disableValidation;
     final int lbPollInterval;
 
     final boolean ack;
@@ -304,6 +307,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         kerberosUserPrincipal = getString(KERBEROS_USER_PRINCIPAL_CONF);
         kerberosKeytabPath = getString(KERBEROS_KEYTAB_PATH_CONF);
         enableCompression = getBoolean(ENABLE_COMPRESSSION_CONF);
+        disableValidation = getBoolean(DISABLE_VALIDATION);
         enableTimestampExtraction = getBoolean(ENABLE_TIMESTAMP_EXTRACTION_CONF);
         regex = getString(REGEX_CONF);
         timestampFormat = getString(TIMESTAMP_FORMAT_CONF).trim();
@@ -351,6 +355,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(HEADER_HOST_CONF, ConfigDef.Type.STRING, "splunk.header.host", ConfigDef.Importance.MEDIUM, HEADER_HOST_DOC)
                 .define(LB_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 120, ConfigDef.Importance.LOW, LB_POLL_INTERVAL_DOC)
                 .define(ENABLE_COMPRESSSION_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.MEDIUM, ENABLE_COMPRESSSION_DOC)
+                .define(DISABLE_VALIDATION, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.MEDIUM, DISABLE_VALIDATION_DOC)
                 .define(KERBEROS_USER_PRINCIPAL_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, KERBEROS_USER_PRINCIPAL_DOC)
                 .define(KERBEROS_KEYTAB_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, KERBEROS_KEYTAB_LOCATION_DOC)
                 .define(ENABLE_TIMESTAMP_EXTRACTION_CONF, ConfigDef.Type.BOOLEAN,  false , ConfigDef.Importance.MEDIUM, ENABLE_TIMESTAMP_EXTRACTION_DOC)
@@ -425,6 +430,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 + "headerSourcetype:" + headerSourcetype + ", "
                 + "headerHost:" + headerHost + ", "
                 + "enableCompression:" + enableCompression + ", "
+                + "disableValidation:" + disableValidation + ", "
                 + "lbPollInterval:" + lbPollInterval;
     }
 

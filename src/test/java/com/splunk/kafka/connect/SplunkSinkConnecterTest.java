@@ -235,6 +235,32 @@ class SplunkSinkConnecterTest {
         Assertions.assertDoesNotThrow(()->connector.validate(configs));
     }
 
+    @Test
+    public void testInvalidSplunkConfigurationsWithValidationDisabled() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+        configs.put("splunk.validation.disable", "true");
+        configs.put("topics", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        clientInstance.client.setResponse(CloseableHttpClientMock.exception);
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertDoesNotThrow(()->connector.validate(configs));
+    }
+
+    @Test
+    public void testInvalidSplunkConfigurationsWithValidationEnabled() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+        configs.put("splunk.validation.disable", "false");
+        configs.put("topics", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        clientInstance.client.setResponse(CloseableHttpClientMock.exception);
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertThrows(ConfigException.class, ()->connector.validate(configs));
+    }
+
     private void addNecessaryConfigs(Map<String, String> configs) {
         configs.put(URI_CONF, TEST_URI);
         configs.put(TOKEN_CONF, "blah");

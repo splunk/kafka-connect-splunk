@@ -148,6 +148,9 @@ public final class SplunkSinkConnector extends SinkConnector {
 
     private void validateSplunkConfigurations(final Map<String, String> configs) throws ConfigException {
         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(configs);
+        if (connectorConfig.disableValidation) {
+            return;
+        }
         String[] indexes = split(connectorConfig.indexes, ",");
         if(indexes == null || indexes.length == 0) {
             preparePayloadAndExecuteRequest(connectorConfig, "");
