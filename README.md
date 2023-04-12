@@ -232,7 +232,7 @@ Use the below schema to configure Splunk Connect for Kafka
 |--------           |----------------------------|-----------------------|
 | `enable.timestamp.extraction` |  To enable timestamp extraction ,set the value of this field to `true`. <br/> **NOTE:** <br/> Applicable only if `splunk.hec.raw` is `false` | `false` |
 | `timestamp.regex` |  Regex for timestamp extraction. <br/> **NOTE:** <br/> Regex must have name captured group `"time"` For eg.: `\\\"time\\\":\\s*\\\"(?<time>.*?)\"` | `""` |
-| `timestamp.format` |  Time-format for timestamp extraction .<br/>For eg.: <br/>If timestamp is `1555209605000` , set `timestamp.format` to `"epoch"` format .<br/> If timestamp is `Jun 13 2010 23:11:52.454 UTC` , set `timestamp.format` to `"MMM dd yyyy HH:mm:ss.SSS zzz"` | `""` |
+| `timestamp.format` |  Time-format for timestamp extraction .<br/>For eg.: <br/>If timestamp is `1555209605000` , set `timestamp.format` to `"epoch"` format.<br/> If timestamp is `Jun 13 2010 23:11:52.454 UTC` , set `timestamp.format` to `"MMM dd yyyy HH:mm:ss.SSS zzz".`. <br/> If timestamp is in ISO8601 format `2022-03-29'T'23:11:52.054` , set `timestamp.format` to `"yyyy-MM-dd'\''T'\''HH:mm:ss.SSS"` | `""` |
 
 ### Out-of-band Health Checks and In-band Health Checks
 | Health Checks                | Description                | 
