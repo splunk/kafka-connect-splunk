@@ -55,6 +55,9 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String SOCKET_TIMEOUT_CONF = "splunk.hec.socket.timeout"; // seconds
     static final String SSL_VALIDATE_CERTIFICATES_CONF = "splunk.hec.ssl.validate.certs";
     static final String ENABLE_COMPRESSSION_CONF = "splunk.hec.enable.compression";
+    // only applicable when "splunk.hec.threads" > 1
+    static final String QUEUE_CAPACITY_CONF = "splunk.hec.concurrent.queue.capacity";
+
     // Acknowledgement Parameters
     // Use Ack
     static final String ACK_CONF = "splunk.hec.ack.enabled";
@@ -192,6 +195,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String HEADER_SOURCETYPE_DOC = "Header to use for Splunk Header Sourcetype";
     static final String HEADER_HOST_DOC = "Header to use for Splunk Header Host";
 
+    static final String QUEUE_CAPACITY_DOC = "This setting controls the queue capacity for concurrency";
     // Load Balancer
     static final String LB_POLL_INTERVAL_DOC = "This setting controls the load balancer polling interval. By default, "
             + "this setting is 120 seconds.";
@@ -257,6 +261,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final boolean enableTimestampExtraction;
     final String regex;
     final String timestampFormat;
+    final int queueCapacity;
 
     SplunkSinkConnectorConfig(Map<String, String> taskConfig) {
         super(conf(), taskConfig);
@@ -312,6 +317,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         regex = getString(REGEX_CONF);
         timestampFormat = getString(TIMESTAMP_FORMAT_CONF).trim();
         validateRegexForTimestamp(regex);
+        queueCapacity = getInt(QUEUE_CAPACITY_CONF);
       
     }
 
@@ -360,7 +366,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(KERBEROS_KEYTAB_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, KERBEROS_KEYTAB_LOCATION_DOC)
                 .define(ENABLE_TIMESTAMP_EXTRACTION_CONF, ConfigDef.Type.BOOLEAN,  false , ConfigDef.Importance.MEDIUM, ENABLE_TIMESTAMP_EXTRACTION_DOC)
                 .define(REGEX_CONF, ConfigDef.Type.STRING,  "" , ConfigDef.Importance.MEDIUM, REGEX_DOC)
-                .define(TIMESTAMP_FORMAT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, TIMESTAMP_FORMAT_DOC);         
+                .define(TIMESTAMP_FORMAT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, TIMESTAMP_FORMAT_DOC)
+                .define(QUEUE_CAPACITY_CONF, ConfigDef.Type.INT, 100, ConfigDef.Importance.LOW, QUEUE_CAPACITY_DOC);       
     }
 
     /**
@@ -384,7 +391,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
               .setTrustStorePassword(trustStorePassword)
               .setHasCustomTrustStore(hasTrustStorePath)
               .setKerberosPrincipal(kerberosUserPrincipal)
-              .setKerberosKeytabPath(kerberosKeytabPath);
+              .setKerberosKeytabPath(kerberosKeytabPath)
+              .setConcurrentHecQueueCapacity(queueCapacity);
         return config;
     }
 
