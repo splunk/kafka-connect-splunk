@@ -55,6 +55,9 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String SOCKET_TIMEOUT_CONF = "splunk.hec.socket.timeout"; // seconds
     static final String SSL_VALIDATE_CERTIFICATES_CONF = "splunk.hec.ssl.validate.certs";
     static final String ENABLE_COMPRESSSION_CONF = "splunk.hec.enable.compression";
+
+    // only applicable when "splunk.hec.threads" > 1
+    static final String QUEUE_CAPACITY_CONF = "splunk.hec.concurrent.queue.capacity";
     // Acknowledgement Parameters
     // Use Ack
     static final String ACK_CONF = "splunk.hec.ack.enabled";
@@ -222,6 +225,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final boolean enableCompression;
     final boolean disableValidation;
     final int lbPollInterval;
+    final int queueCapacity;
 
     final boolean ack;
     final int ackPollInterval;
@@ -307,12 +311,16 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         kerberosUserPrincipal = getString(KERBEROS_USER_PRINCIPAL_CONF);
         kerberosKeytabPath = getString(KERBEROS_KEYTAB_PATH_CONF);
         enableCompression = getBoolean(ENABLE_COMPRESSSION_CONF);
+<<<<<<< Updated upstream
         disableValidation = getBoolean(DISABLE_VALIDATION);
         enableTimestampExtraction = getBoolean(ENABLE_TIMESTAMP_EXTRACTION_CONF);
         regex = getString(REGEX_CONF);
         timestampFormat = getString(TIMESTAMP_FORMAT_CONF).trim();
         validateRegexForTimestamp(regex);
       
+=======
+        queueCapacity = getInt(QUEUE_CAPACITY_CONF);
+>>>>>>> Stashed changes
     }
 
    
@@ -385,6 +393,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
               .setHasCustomTrustStore(hasTrustStorePath)
               .setKerberosPrincipal(kerberosUserPrincipal)
               .setKerberosKeytabPath(kerberosKeytabPath);
+              .setConcurrentHecQueueCapacity(queueCapacity);
         return config;
     }
 
