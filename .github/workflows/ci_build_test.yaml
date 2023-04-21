@@ -15,6 +15,10 @@ on:
         description: Publish token for Semgrep
         required: true
 
+permissions:
+  checks: write
+  pull-requests: write
+
 jobs:
   workflow_approval:
     name: Approve workflow
@@ -99,7 +103,7 @@ jobs:
           path: /tmp/splunk-kafka-connect*.jar
 
       - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action/composite@v1
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
           check_name: Unit Test Results
