@@ -188,7 +188,7 @@ connect_params = [
      "splunk_hec_raw": False,
      "topics": "prototopic",
      "value_converter":"io.confluent.connect.protobuf.ProtobufConverter",
-     "value_converter_schema_registry_url": os.environ["SCHEMA_REGISTRY_URL"],
+     "value_converter_schema_registry_url": "http://localhost:8081",
      "value_converter_schemas_enable":"true"
     },
     {"name": "test_extracted_timestamp_dateformat",

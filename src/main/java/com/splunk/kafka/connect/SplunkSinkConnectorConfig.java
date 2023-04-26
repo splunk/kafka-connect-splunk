@@ -318,7 +318,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         timestampFormat = getString(TIMESTAMP_FORMAT_CONF).trim();
         validateRegexForTimestamp(regex);
         queueCapacity = getInt(QUEUE_CAPACITY_CONF);
-      
+        validateQueueCapacity(queueCapacity);
     }
 
    
@@ -555,6 +555,12 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             if (!getNamedGroupCandidates(regex)) {
                 throw new ConfigException("Named capture group 'time' can't be found for timestamp extraction");
             }
+        }
+    }
+
+    private void validateQueueCapacity(int queueCapacity) {
+        if (queueCapacity <= 0) {
+            throw new ConfigException("queue capacity should be greater than " + queueCapacity);
         }
     }
 
