@@ -37,7 +37,7 @@ public class ConcurrentHec implements HecInf {
     }
 
     public ConcurrentHec(int numberOfThreads, boolean useAck, HecConfig config, PollerCallback cb, LoadBalancerInf loadBalancer) {
-        batches = new LinkedBlockingQueue<>(100);
+        batches = new LinkedBlockingQueue<>(config.getConcurrentHecQueueCapacity());
         ThreadFactory e = (Runnable r) -> new Thread(r, "Concurrent-HEC-worker");
         executorService = Executors.newFixedThreadPool(numberOfThreads, e);
         initHec(numberOfThreads, useAck, config, cb, loadBalancer);
