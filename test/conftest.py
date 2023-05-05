@@ -77,6 +77,7 @@ def pytest_configure():
     protobuf_producer.flush()
     timestamp_producer.flush()
     
+    
     # Launch all connectors for tests
     for param in connect_params:
         connector_content = generate_connector_content(param)
