@@ -231,8 +231,9 @@ jobs:
       - name: Register the protobuf schema
         working-directory: /tmp/confluent-7.1.1
         run: |
-          echo echo "{\n  \"schemaType\": \"PROTOBUF\",\n  \"schema\": \"syntax = \\\"proto3\\\";\\npackage com.mycorp.mynamespace;\\n\\nmessage MyRecord {\\n  string id = 1;\\n  float amount = 2;\\n  string customer_id = 3;\\n}\\n\"\n}" > proto.json
-          curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \ --data @proto.json http://localhost:8081/subjects/schema1/versions
+          sudo echo "{\n  \"schemaType\": \"PROTOBUF\",\n  \"schema\": \"syntax = \\\"proto3\\\";\\npackage com.mycorp.mynamespace;\\n\\nmessage MyRecord {\\n  string id = 1;\\n  float amount = 2;\\n  string customer_id = 3;\\n}\\n\"\n}" > proto_2.json
+          sudo chmod 777 proto_2.json
+          curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" --data @proto_2.json http://localhost:8081/subjects/schema1/versions
 
       - name: Test kafka connect upgrade
         run: |
