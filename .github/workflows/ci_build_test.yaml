@@ -225,13 +225,10 @@ jobs:
         run: |
           cd /tmp && wget https://packages.confluent.io/archive/7.1/confluent-community-7.1.1.tar.gz
           sudo tar xzf confluent-community-7.1.1.tar.gz
-          sudo mkdir -p /usr/local/confluent-7.1.1
-          mv confluent-7.1.1 /usr/local/confluent-7.1.1
           cd confluent-7.1.1
           bin/schema-registry-start ./etc/schema-registry/schema-registry.properties &
 
       - name: Register the protobuf schema
-        working-directory: /usr/local/confluent-7.1.1
         run: |
           curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" --data "{\"schemaType\": \"PROTOBUF\",\"schema\": \"syntax = \\\"proto3\\\";\\npackage com.mycorp.mynamespace;\\n\\nmessage MyRecord {\\n  string id = 1;\\n  float amount = 2;\\n  string customer_id = 3;\\n}\\n\"}" http://localhost:8081/subjects/schema1/versions
 
