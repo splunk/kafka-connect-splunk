@@ -231,7 +231,7 @@ jobs:
       - name: Register the protobuf schema
         run: |
           sleep 10
-          curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" --data "{\"schemaType\": \"PROTOBUF\",\"schema\": \"syntax = \\\"proto3\\\";\\npackage com.mycorp.mynamespace;\\n\\nmessage MyRecord {\\n  string id = 1;\\n  float amount = 2;\\n  string customer_id = 3;\\n}\\n\"}" http://localhost:8081/subjects/schema1/versions
+          curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" --data "{\"schemaType\": \"PROTOBUF\",\"schema\": \"syntax = \\\"proto3\\\";\\npackage com.mycorp.mynamespace;\\n\\nmessage MyRecord {\\n  string id = 1;\\n  float amount = 2;\\n  string customer_id = 3;\\n}\\n\"}" http://localhost:8081/subjects/prototopic-value/versions
 
       - name: Test kafka connect upgrade
         run: |
