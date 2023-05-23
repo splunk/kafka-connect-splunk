@@ -1,5 +1,5 @@
 pytest
-requests == 2.28.2
+requests == 2.31.0
 kafka-python
 pyyaml == 5.4.1
 jinja2
