@@ -34,10 +34,12 @@ public final class HecConfig {
     private boolean enableChannelTracking = false;
     private boolean hasCustomTrustStore = false;
     private String trustStorePath;
+    private String trustStoreType = "JKS";
     private String trustStorePassword;
     private int lbPollInterval = 120; // in seconds
     private String kerberosPrincipal;
     private String kerberosKeytabPath;
+    private int concurrentHecQueueCapacity = 100;
 
     public HecConfig(List<String> uris, String token) {
         this.uris = uris;
@@ -100,9 +102,15 @@ public final class HecConfig {
         return backoffThresholdSeconds;
     }
 
+    public int getConcurrentHecQueueCapacity() {
+        return concurrentHecQueueCapacity;
+    }
+
     public boolean getHasCustomTrustStore() { return hasCustomTrustStore; }
 
     public String getTrustStorePath() { return trustStorePath; }
+
+    public String getTrustStoreType() { return trustStoreType; }
 
     public String getTrustStorePassword() { return trustStorePassword; }
 
@@ -161,6 +169,11 @@ public final class HecConfig {
         return this;
     }
 
+    public HecConfig setTrustStoreType(String type) {
+        trustStoreType = type;
+        return this;
+    }
+
     public HecConfig setTrustStorePassword(String pass) {
         trustStorePassword = pass;
         return this;
@@ -196,6 +209,11 @@ public final class HecConfig {
 
     public HecConfig setKerberosKeytabPath(String kerberosKeytabPath) {
         this.kerberosKeytabPath = kerberosKeytabPath;
+        return this;
+    }
+
+    public HecConfig setConcurrentHecQueueCapacity(int concurrentHecQueueCapacity) {
+        this.concurrentHecQueueCapacity = concurrentHecQueueCapacity;
         return this;
     }
 

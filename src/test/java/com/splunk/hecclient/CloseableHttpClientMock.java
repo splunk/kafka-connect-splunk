@@ -31,6 +31,8 @@ public class CloseableHttpClientMock extends CloseableHttpClient {
     public static final String serverBusy = "{\"text\":\"Server busy\",\"code\":1}";
     public static final String noDataError = "{\"text\":\"No data\",\"code\":5}";
     public static final String invalidDataFormat = "{\"text\":\"Invalid data format\",\"code\":6}";
+    public static final String inValidToken = "{\"text\":\"Invalid token\",\"code\":4}";
+    public static final String inValidIndex = "{\"text\":\"Incorrect index\",\"code\":4,\"invalid-event-number\":1}";
     public static final String exception = "excpetion";
 
     private String resp = "";
@@ -48,6 +50,10 @@ public class CloseableHttpClientMock extends CloseableHttpClient {
         } else if (resp.equals(serverBusy)) {
             return createResponse(resp, 503);
         } else if (resp.equals(noDataError)) {
+            return createResponse(resp, 400);
+        }else if (resp.equals(inValidToken)) {
+            return createResponse(resp, 400);
+        }else if (resp.equals(inValidIndex)) {
             return createResponse(resp, 400);
         } else {
             return createResponse(success, 201);

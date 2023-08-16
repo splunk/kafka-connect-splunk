@@ -38,7 +38,8 @@ def generate_connector_content(input_disc=None):
             "value_converter_schemas_enable": "false",
             "enable_timestamp_extraction": "false",
             "regex": "",
-            "timestamp_format": ""
+            "timestamp_format": "",
+            "splunk_hec_track_data": "false"
         }
 
     if input_disc:

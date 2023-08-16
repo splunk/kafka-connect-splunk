@@ -52,7 +52,19 @@ public class HttpClientBuilderTest {
                 .setSocketSendBufferSize(1024)
                 .setSocketTimeout(120)
                 .setDisableSSLCertVerification(false)
-                .setSslContext(Hec.loadCustomSSLContext("./src/test/resources/keystoretest.jks","Notchangeme"))
+                .setSslContext(Hec.loadCustomSSLContext("./src/test/resources/keystoretest.jks", "JKS", "Notchangeme"))
+                .build();
+        Assert.assertNotNull(client);
+    }
+    @Test
+    public void buildSecureCustomKeystorePkcs12() {
+        HttpClientBuilder builder = new HttpClientBuilder();
+        CloseableHttpClient client = builder.setMaxConnectionPoolSizePerDestination(1)
+                .setMaxConnectionPoolSize(2)
+                .setSocketSendBufferSize(1024)
+                .setSocketTimeout(120)
+                .setDisableSSLCertVerification(false)
+                .setSslContext(Hec.loadCustomSSLContext("./src/test/resources/keystoretest.p12", "PKCS12", "Notchangeme"))
                 .build();
         Assert.assertNotNull(client);
     }

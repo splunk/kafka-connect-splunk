@@ -22,14 +22,18 @@ import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.URI_CONF;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.kafka.common.config.Config;
 import org.apache.kafka.common.config.ConfigDef;
+import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.common.config.ConfigValue;
 import org.apache.kafka.connect.connector.Task;
 import org.apache.kafka.connect.sink.SinkConnector;
 import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.splunk.hecclient.CloseableHttpClientMock;
 
 import java.util.*;
 
@@ -74,6 +78,10 @@ class SplunkSinkConnecterTest {
         final Map<String, String> configs = new HashMap<>();
         addNecessaryConfigs(configs);
         SinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.indexes", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Config result = connector.validate(configs);
         assertNoErrors(result);
     }
@@ -85,6 +93,10 @@ class SplunkSinkConnecterTest {
         configs.put(KERBEROS_USER_PRINCIPAL_CONF, TEST_KERB_PRINCIPAL);
         configs.put(KERBEROS_KEYTAB_PATH_CONF, TEST_KERB_KEYTAB_PATH);
         SinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.indexes", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Config result = connector.validate(configs);
         assertNoErrors(result);
     }
@@ -95,6 +107,10 @@ class SplunkSinkConnecterTest {
         addNecessaryConfigs(configs);
         configs.put(KERBEROS_USER_PRINCIPAL_CONF, TEST_KERB_PRINCIPAL);
         SplunkSinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.indexes", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Config result = connector.validate(configs);
         assertHasErrorMessage(result, KERBEROS_USER_PRINCIPAL_CONF, "must be set");
         assertHasErrorMessage(result, KERBEROS_KEYTAB_PATH_CONF, "must be set");
@@ -106,9 +122,171 @@ class SplunkSinkConnecterTest {
         addNecessaryConfigs(configs);
         configs.put(KERBEROS_KEYTAB_PATH_CONF, TEST_KERB_KEYTAB_PATH);
         SplunkSinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.indexes", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Config result = connector.validate(configs);
         assertHasErrorMessage(result, KERBEROS_USER_PRINCIPAL_CONF, "must be set");
         assertHasErrorMessage(result, KERBEROS_KEYTAB_PATH_CONF, "must be set");
+    }
+
+    @Test
+    public void testInvalidJsonEventEnrichmentConfig1() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("tasks_max", "3");
+        configs.put("splunk.hec.json.event.enrichment", "k1=v1 k2=v2");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertThrows(ConfigException.class, ()->connector.validate(configs));
+    }
+
+    @Test
+    public void testInvalidJsonEventEnrichmentConfig2() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.hec.json.event.enrichment", "testing-testing non KV");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertThrows(ConfigException.class, ()->connector.validate(configs));
+    }
+
+    @Test
+    public void testInvalidJsonEventEnrichmentConfig3() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("tasks_max", "3");
+        configs.put("splunk.hec.json.event.enrichment", "k1=v1 k2=v2");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertThrows(ConfigException.class, ()->connector.validate(configs));
+    }
+
+    @Test
+    public void testInvalidToken() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.indexes", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        clientInstance.client.setResponse(CloseableHttpClientMock.inValidToken);
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertThrows(ConfigException.class, ()->connector.validate(configs));
+    }
+
+    @Test
+    public void testNullHecToken() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.hec.token", null);
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertThrows(java.lang.NullPointerException.class, ()->connector.validate(configs));
+    }
+
+    @Test
+    public void testInvalidIndex() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.indexes", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        clientInstance.client.setResponse(CloseableHttpClientMock.inValidIndex);
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertThrows(ConfigException.class, ()->connector.validate(configs));
+    }
+
+    @Test
+    public void testValidMultipleURIs() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.indexes", "b");
+        configs.put("splunk.hec.uri", "https://localhost:8088,https://localhost:8089");
+        configs.put("splunk.hec.ssl.validate.certs", "false");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        clientInstance.client.setResponse(CloseableHttpClientMock.success);
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertDoesNotThrow(()->connector.validate(configs));
+    }
+
+    @Test
+    public void testValidSplunkConfigurations() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.indexes", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        clientInstance.client.setResponse(CloseableHttpClientMock.success);
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertDoesNotThrow(()->connector.validate(configs));
+    }
+
+    @Test
+    public void testInvalidSplunkConfigurationsWithValidationDisabled() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+        configs.put("splunk.validation.disable", "true");
+        configs.put("topics", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        clientInstance.client.setResponse(CloseableHttpClientMock.exception);
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertDoesNotThrow(()->connector.validate(configs));
+    }
+
+    @Test
+    public void testInvalidSplunkConfigurationsWithValidationEnabled() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+        configs.put("splunk.validation.disable", "false");
+        configs.put("topics", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        clientInstance.client.setResponse(CloseableHttpClientMock.exception);
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertThrows(ConfigException.class, ()->connector.validate(configs));
+    }
+
+    @Test
+    public void testValidQueueCapacity() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+        configs.put("splunk.hec.concurrent.queue.capacity", "100");
+        configs.put("topics", "b");
+        configs.put("splunk.indexes", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        clientInstance.client.setResponse(CloseableHttpClientMock.success);
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertDoesNotThrow(()->connector.validate(configs));
+    }
+
+    @Test
+    public void testInvalidQueueCapacity() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+        configs.put("splunk.hec.concurrent.queue.capacity", "-1");
+        configs.put("topics", "b");
+        configs.put("splunk.indexes", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        clientInstance.client.setResponse(CloseableHttpClientMock.success);
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Assertions.assertThrows(ConfigException.class, ()->connector.validate(configs));
     }
 
     private void addNecessaryConfigs(Map<String, String> configs) {

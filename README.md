@@ -6,9 +6,10 @@ Splunk Connect for Kafka is a Kafka Connect Sink for Splunk with the following f
 * In-flight data transformation and enrichment.
 
 ## Requirements
-1. Kafka version 1.0.0 and above.
+1. Kafka version 1.0.0 and above. 
+   * Tested with following versions: 1.1.1, 2.0.0, 2.1.0, 2.6.0, 2.7.1, 2.8.0, 3.0.0, 3.1.0, 3.3.1
 2. Java 8 and above.
-3. A Splunk environment of version 7.1 and above, configured with valid HTTP Event Collector (HEC) tokens.
+3. A Splunk environment of version 8.0.0 and above, configured with valid HTTP Event Collector (HEC) tokens.
 
 	* HEC token settings should be the same on all Splunk Indexers and Heavy Forwarders in your environment.
 	* Task configuration parameters will vary depending on acknowledgement setting (See the [Configuration](#configuration) section for details).
@@ -161,6 +162,7 @@ Use the below schema to configure Splunk Connect for Kafka
 | `splunk.sources` |  Splunk event source metadata for Kafka topic data. The same configuration rules as indexes can be applied. If left unconfigured, the default source binds to the HEC token. | `""` |
 | `splunk.sourcetypes` | Splunk event sourcetype metadata for Kafka topic data. The same configuration rules as indexes can be applied here. If left unconfigured, the default sourcetype binds to the HEC token. | `""` |
 | `splunk.flush.window` | The interval in seconds at which the events from kafka connect will be flushed to Splunk. | `30` |
+| `splunk.validation.disable` | Disable validating splunk configurations before creating task. | `false` |
 | `splunk.hec.ssl.validate.certs` | Valid settings are `true` or `false`. Enables or disables HTTPS certification validation. |`true`|
 | `splunk.hec.http.keepalive` | Valid settings are `true` or `false`. Enables or disables HTTP connection keep-alive. |`true`|
 | `splunk.hec.max.http.connection.per.channel` | Controls how many HTTP connections will be created and cached in the HTTP pool for one HEC channel. |`2`|
@@ -173,7 +175,7 @@ Use the below schema to configure Splunk Connect for Kafka
 | `splunk.hec.json.event.formatted` | Set to `true` for events that are already in HEC format. Valid settings are `true` or `false`. |`false`|
 | `splunk.hec.max.outstanding.events` | Maximum amount of un-acknowledged events kept in memory by connector. Will trigger back-pressure event to slow down collection if reached. | `1000000` |
 | `splunk.hec.max.retries` | Amount of times a failed batch will attempt to resend before dropping events completely. Warning: This will result in data loss, default is `-1` which will retry indefinitely  | `-1` |
-| `splunk.hec.backoff.threshhold.seconds` | The amount of time Splunk Connect for Kafka waits to attempt resending after errors from a HEC endpoint." | `60` |
+| `splunk.hec.backoff.threshhold.seconds` | The amount of duration the Indexer object will be stopped after getting error code while posting the data.</br> **NOTE:** <br/>  Other Indexer won't get affected." | `60` |
 | `splunk.hec.lb.poll.interval`  |  Specify this parameter(in seconds) to control the polling interval(increase to do less polling, decrease to do more frequent polling, set `-1` to disable polling) |  `120` |
 | `splunk.hec.enable.compression` | Valid settings are true or false. Used for enable or disable gzip-compression. |`false`|
 ### Acknowledgement Parameters
@@ -230,7 +232,14 @@ Use the below schema to configure Splunk Connect for Kafka
 |--------           |----------------------------|-----------------------|
 | `enable.timestamp.extraction` |  To enable timestamp extraction ,set the value of this field to `true`. <br/> **NOTE:** <br/> Applicable only if `splunk.hec.raw` is `false` | `false` |
 | `timestamp.regex` |  Regex for timestamp extraction. <br/> **NOTE:** <br/> Regex must have name captured group `"time"` For eg.: `\\\"time\\\":\\s*\\\"(?<time>.*?)\"` | `""` |
-| `timestamp.format` |  Time-format for timestamp extraction .<br/>For eg.: <br/>If timestamp is `1555209605000` , set `timestamp.format` to `"epoch"` format .<br/> If timestamp is `Jun 13 2010 23:11:52.454 UTC` , set `timestamp.format` to `"MMM dd yyyy HH:mm:ss.SSS zzz"` | `""` |
+| `timestamp.format` |  Time-format for timestamp extraction .<br/>For eg.: <br/>If timestamp is `1555209605000` , set `timestamp.format` to `"epoch"` format.<br/> If timestamp is `Jun 13 2010 23:11:52.454 UTC` , set `timestamp.format` to `"MMM dd yyyy HH:mm:ss.SSS zzz".`. <br/> If timestamp is in ISO8601 format `2022-03-29'T'23:11:52.054` , set `timestamp.format` to `"yyyy-MM-dd'\''T'\''HH:mm:ss.SSS"` | `""` |
+
+### Out-of-band Health Checks and In-band Health Checks
+| Health Checks                | Description                | 
+|--------               |----------------------------|
+| `Out of  band health check` |  This health check targets Loadbalancer and aims to remove all the unhealthy channels from the pool; all unhealthy channels are released for the configurable period using the parameter `splunk.hec.lb.poll.interval`, Although this is configurable (by default 120 seconds), It may still get a 503 result code from the Splunk indexer. For that, there is another health check, and it can be called the in-band-health check. | 
+| `In band healthcheck` | This health check targets Indexer object while posting data. If an error code is received, then it will trigger this health check. When this check fails, It will Pause the indexing from the Particular Indexer object for a configurable time using the parameter `Splunk.hec.backoff.threshhold.seconds` and trigger backpressure handling So that event that could not be indexed will be retried again.  | 
+
 
 ## Load balancing
 

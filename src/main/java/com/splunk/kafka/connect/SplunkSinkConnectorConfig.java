@@ -46,6 +46,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String SOURCE_CONF = "splunk.sources";
     static final String SOURCETYPE_CONF = "splunk.sourcetypes";
     static final String FLUSH_WINDOW_CONF = "splunk.flush.window";
+    static final String DISABLE_VALIDATION = "splunk.validation.disable";
     static final String TOTAL_HEC_CHANNEL_CONF = "splunk.hec.total.channels";
     static final String MAX_HTTP_CONNECTION_PER_CHANNEL_CONF = "splunk.hec.max.http.connection.per.channel";
     static final String MAX_BATCH_SIZE_CONF = "splunk.hec.max.batch.size"; // record count
@@ -54,6 +55,9 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String SOCKET_TIMEOUT_CONF = "splunk.hec.socket.timeout"; // seconds
     static final String SSL_VALIDATE_CERTIFICATES_CONF = "splunk.hec.ssl.validate.certs";
     static final String ENABLE_COMPRESSSION_CONF = "splunk.hec.enable.compression";
+    // only applicable when "splunk.hec.threads" > 1
+    static final String QUEUE_CAPACITY_CONF = "splunk.hec.concurrent.queue.capacity";
+
     // Acknowledgement Parameters
     // Use Ack
     static final String ACK_CONF = "splunk.hec.ack.enabled";
@@ -74,6 +78,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String HEC_EVENT_FORMATTED_CONF = "splunk.hec.json.event.formatted";
     // Trust store
     static final String SSL_TRUSTSTORE_PATH_CONF = "splunk.hec.ssl.trust.store.path";
+    static final String SSL_TRUSTSTORE_TYPE_CONF = "splunk.hec.ssl.trust.store.type";
     static final String SSL_TRUSTSTORE_PASSWORD_CONF = "splunk.hec.ssl.trust.store.password";
     //Headers
     static final String HEADER_SUPPORT_CONF = "splunk.header.support";
@@ -127,6 +132,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String SSL_VALIDATE_CERTIFICATES_DOC = "Valid settings are true or false. Enables or disables HTTPS "
             + "certification validation. By default, this is set to true.";
     static final String ENABLE_COMPRESSSION_DOC = "Valid settings are true or false. Used for enable or disable gzip-compression. By default, this is set to false.";
+    static final String DISABLE_VALIDATION_DOC = "Disable validating splunk configurations before creating task.";
     // Acknowledgement Parameters
     // Use Ack
     static final String ACK_DOC = "Valid settings are true or false. When set to true Splunk Connect for Kafka will "
@@ -178,6 +184,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             + "correctly by Splunk.";
     // TBD
     static final String SSL_TRUSTSTORE_PATH_DOC = "Path on the local disk to the certificate trust store.";
+    static final String SSL_TRUSTSTORE_TYPE_DOC = "Type of the trust store (JKS, PKCS12, ...).";
     static final String SSL_TRUSTSTORE_PASSWORD_DOC = "Password for the trust store.";
 
     static final String HEADER_SUPPORT_DOC = "Setting will enable Kafka Record headers to be used for meta data override";
@@ -188,6 +195,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String HEADER_SOURCETYPE_DOC = "Header to use for Splunk Header Sourcetype";
     static final String HEADER_HOST_DOC = "Header to use for Splunk Header Host";
 
+    static final String QUEUE_CAPACITY_DOC = "This setting controls the queue capacity for concurrency";
     // Load Balancer
     static final String LB_POLL_INTERVAL_DOC = "This setting controls the load balancer polling interval. By default, "
             + "this setting is 120 seconds.";
@@ -216,6 +224,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final int socketTimeout;
     final boolean validateCertificates;
     final boolean enableCompression;
+    final boolean disableValidation;
     final int lbPollInterval;
 
     final boolean ack;
@@ -236,6 +245,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
 
     final boolean hasTrustStorePath;
     final String trustStorePath;
+    final String trustStoreType;
     final String trustStorePassword;
 
     final boolean headerSupport;
@@ -251,6 +261,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final boolean enableTimestampExtraction;
     final String regex;
     final String timestampFormat;
+    final int queueCapacity;
 
     SplunkSinkConnectorConfig(Map<String, String> taskConfig) {
         super(conf(), taskConfig);
@@ -265,6 +276,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         validateCertificates = getBoolean(SSL_VALIDATE_CERTIFICATES_CONF);
         trustStorePath = getString(SSL_TRUSTSTORE_PATH_CONF);
         hasTrustStorePath = StringUtils.isNotBlank(trustStorePath);
+        trustStoreType = getString(SSL_TRUSTSTORE_TYPE_CONF);
         trustStorePassword = getPassword(SSL_TRUSTSTORE_PASSWORD_CONF).value();
         validateHttpsConfig(splunkURI);
         eventBatchTimeout = getInt(EVENT_TIMEOUT_CONF);
@@ -300,12 +312,16 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         kerberosUserPrincipal = getString(KERBEROS_USER_PRINCIPAL_CONF);
         kerberosKeytabPath = getString(KERBEROS_KEYTAB_PATH_CONF);
         enableCompression = getBoolean(ENABLE_COMPRESSSION_CONF);
+        disableValidation = getBoolean(DISABLE_VALIDATION);
         enableTimestampExtraction = getBoolean(ENABLE_TIMESTAMP_EXTRACTION_CONF);
         regex = getString(REGEX_CONF);
         timestampFormat = getString(TIMESTAMP_FORMAT_CONF).trim();
         validateRegexForTimestamp(regex);
+        queueCapacity = getInt(QUEUE_CAPACITY_CONF);
+        validateQueueCapacity(queueCapacity);
     }
 
+   
     public static ConfigDef conf() {
         return new ConfigDef()
                 .define(TOKEN_CONF, ConfigDef.Type.PASSWORD, ConfigDef.Importance.HIGH, TOKEN_DOC)
@@ -318,6 +334,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(HTTP_KEEPALIVE_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, HTTP_KEEPALIVE_DOC)
                 .define(SSL_VALIDATE_CERTIFICATES_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, SSL_VALIDATE_CERTIFICATES_DOC)
                 .define(SSL_TRUSTSTORE_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PATH_DOC)
+                .define(SSL_TRUSTSTORE_TYPE_CONF, ConfigDef.Type.STRING, "JKS", ConfigDef.Importance.LOW, SSL_TRUSTSTORE_TYPE_DOC)
                 .define(SSL_TRUSTSTORE_PASSWORD_CONF, ConfigDef.Type.PASSWORD, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PASSWORD_DOC)
                 .define(EVENT_TIMEOUT_CONF, ConfigDef.Type.INT, 300, ConfigDef.Importance.MEDIUM, EVENT_TIMEOUT_DOC)
                 .define(ACK_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 10, ConfigDef.Importance.MEDIUM, ACK_POLL_INTERVAL_DOC)
@@ -344,11 +361,13 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(HEADER_HOST_CONF, ConfigDef.Type.STRING, "splunk.header.host", ConfigDef.Importance.MEDIUM, HEADER_HOST_DOC)
                 .define(LB_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 120, ConfigDef.Importance.LOW, LB_POLL_INTERVAL_DOC)
                 .define(ENABLE_COMPRESSSION_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.MEDIUM, ENABLE_COMPRESSSION_DOC)
+                .define(DISABLE_VALIDATION, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.MEDIUM, DISABLE_VALIDATION_DOC)
                 .define(KERBEROS_USER_PRINCIPAL_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, KERBEROS_USER_PRINCIPAL_DOC)
                 .define(KERBEROS_KEYTAB_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, KERBEROS_KEYTAB_LOCATION_DOC)
                 .define(ENABLE_TIMESTAMP_EXTRACTION_CONF, ConfigDef.Type.BOOLEAN,  false , ConfigDef.Importance.MEDIUM, ENABLE_TIMESTAMP_EXTRACTION_DOC)
                 .define(REGEX_CONF, ConfigDef.Type.STRING,  "" , ConfigDef.Importance.MEDIUM, REGEX_DOC)
-                .define(TIMESTAMP_FORMAT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, TIMESTAMP_FORMAT_DOC);         
+                .define(TIMESTAMP_FORMAT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, TIMESTAMP_FORMAT_DOC)
+                .define(QUEUE_CAPACITY_CONF, ConfigDef.Type.INT, 100, ConfigDef.Importance.LOW, QUEUE_CAPACITY_DOC);       
     }
 
     /**
@@ -368,10 +387,12 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
               .setEnableChannelTracking(trackData)
               .setBackoffThresholdSeconds(backoffThresholdSeconds)
               .setTrustStorePath(trustStorePath)
+              .setTrustStoreType(trustStoreType)
               .setTrustStorePassword(trustStorePassword)
               .setHasCustomTrustStore(hasTrustStorePath)
               .setKerberosPrincipal(kerberosUserPrincipal)
-              .setKerberosKeytabPath(kerberosKeytabPath);
+              .setKerberosKeytabPath(kerberosKeytabPath)
+              .setConcurrentHecQueueCapacity(queueCapacity);
         return config;
     }
 
@@ -393,6 +414,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 + "httpKeepAlive:" + httpKeepAlive + ", "
                 + "validateCertificates:" + validateCertificates + ", "
                 + "trustStorePath:" + trustStorePath + ", "
+                + "trustStoreType:" + trustStoreType + ", "
                 + "socketTimeout:" + socketTimeout + ", "
                 + "eventBatchTimeout:" + eventBatchTimeout + ", "
                 + "ackPollInterval:" + ackPollInterval + ", "
@@ -416,6 +438,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 + "headerSourcetype:" + headerSourcetype + ", "
                 + "headerHost:" + headerHost + ", "
                 + "enableCompression:" + enableCompression + ", "
+                + "disableValidation:" + disableValidation + ", "
                 + "lbPollInterval:" + lbPollInterval;
     }
 
@@ -532,6 +555,12 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             if (!getNamedGroupCandidates(regex)) {
                 throw new ConfigException("Named capture group 'time' can't be found for timestamp extraction");
             }
+        }
+    }
+
+    private void validateQueueCapacity(int queueCapacity) {
+        if (queueCapacity <= 0) {
+            throw new ConfigException("queue capacity should be greater than " + queueCapacity);
         }
     }
 

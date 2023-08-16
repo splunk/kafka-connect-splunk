@@ -25,7 +25,7 @@ class TestConfigurations:
         ("test_tasks_max_1_hec_raw_false", "chars::test_tasks_max_1_hec_raw_false", 3),
         # ("test_tasks_max_3_hec_raw_true", "sourcetype::raw_data-tasks_max_3", 1),
         # ("test_tasks_max_3_hec_raw_false", "chars::test_tasks_max_3_hec_raw_false", 3),
-        ("test_tasks_max_null", "chars::test_tasks_max_null", 0)
+        # ("test_tasks_max_null", "chars::test_tasks_max_null", 0)
     ])
     def test_tasks_max(self, setup, test_scenario, test_input, expected):
         logger.info(f"testing {test_scenario} input={test_input} expected={expected} event(s)")
@@ -132,21 +132,6 @@ class TestConfigurations:
         logger.info(f"testing {test_scenario} input={test_input} expected={expected} event(s)")
 
         search_query = f"index={setup['kafka_header_index']} | search \"{setup['timestamp']}\" {test_input}"
-        logger.info(search_query)
-        events = check_events_from_splunk(start_time="-15m@m",
-                                          url=setup["splunkd_url"],
-                                          user=setup["splunk_user"],
-                                          query=[f"search {search_query}"],
-                                          password=setup["splunk_password"])
-        logger.info("Splunk received %s events in the last 15m", len(events))
-        assert len(events) == expected
-
-    @pytest.mark.parametrize("test_case, test_input, expected", [
-        ("test_incorrect_hec_token", "chars::test_incorrect_hec_token", 0),
-        ("test_empty_hec_token", "chars::test_empty_hec_token", 0)
-    ])
-    def test_create_connector_with_incorrect_hec_token(self, setup, test_case, test_input, expected):
-        search_query = f"index={setup['kafka_header_index']} | search timestamp=\"{setup['timestamp']}\" {test_input}"
         logger.info(search_query)
         events = check_events_from_splunk(start_time="-15m@m",
                                           url=setup["splunkd_url"],
