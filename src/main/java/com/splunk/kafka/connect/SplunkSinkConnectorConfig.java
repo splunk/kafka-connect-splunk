@@ -55,6 +55,9 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String SOCKET_TIMEOUT_CONF = "splunk.hec.socket.timeout"; // seconds
     static final String SSL_VALIDATE_CERTIFICATES_CONF = "splunk.hec.ssl.validate.certs";
     static final String ENABLE_COMPRESSSION_CONF = "splunk.hec.enable.compression";
+    // only applicable when "splunk.hec.threads" > 1
+    static final String QUEUE_CAPACITY_CONF = "splunk.hec.concurrent.queue.capacity";
+
     // Acknowledgement Parameters
     // Use Ack
     static final String ACK_CONF = "splunk.hec.ack.enabled";
@@ -193,6 +196,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String HEADER_SOURCETYPE_DOC = "Header to use for Splunk Header Sourcetype";
     static final String HEADER_HOST_DOC = "Header to use for Splunk Header Host";
 
+    static final String QUEUE_CAPACITY_DOC = "This setting controls the queue capacity for concurrency";
     // Load Balancer
     static final String LB_POLL_INTERVAL_DOC = "This setting controls the load balancer polling interval. By default, "
             + "this setting is 120 seconds.";
@@ -259,6 +263,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final boolean enableTimestampExtraction;
     final String regex;
     final String timestampFormat;
+    final int queueCapacity;
 
     final String timeZone;
 
@@ -317,7 +322,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         timestampFormat = getString(TIMESTAMP_FORMAT_CONF).trim();
         timeZone = getString(TIMESTAMP_TIMEZONE_CONF);
         validateRegexForTimestamp(regex);
-      
+        queueCapacity = getInt(QUEUE_CAPACITY_CONF);
+        validateQueueCapacity(queueCapacity);
     }
 
    
@@ -366,7 +372,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(ENABLE_TIMESTAMP_EXTRACTION_CONF, ConfigDef.Type.BOOLEAN,  false , ConfigDef.Importance.MEDIUM, ENABLE_TIMESTAMP_EXTRACTION_DOC)
                 .define(REGEX_CONF, ConfigDef.Type.STRING,  "" , ConfigDef.Importance.MEDIUM, REGEX_DOC)
                 .define(TIMESTAMP_FORMAT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, TIMESTAMP_FORMAT_DOC)
-                .define(TIMESTAMP_TIMEZONE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, TIMESTAMP_TIMEZONE_DOC);
+                .define(TIMESTAMP_TIMEZONE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, TIMESTAMP_TIMEZONE_DOC)
+                .define(QUEUE_CAPACITY_CONF, ConfigDef.Type.INT, 100, ConfigDef.Importance.LOW, QUEUE_CAPACITY_DOC);
     }
 
     /**
@@ -390,7 +397,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
               .setTrustStorePassword(trustStorePassword)
               .setHasCustomTrustStore(hasTrustStorePath)
               .setKerberosPrincipal(kerberosUserPrincipal)
-              .setKerberosKeytabPath(kerberosKeytabPath);
+              .setKerberosKeytabPath(kerberosKeytabPath)
+              .setConcurrentHecQueueCapacity(queueCapacity);
         return config;
     }
 
@@ -553,6 +561,12 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             if (!getNamedGroupCandidates(regex)) {
                 throw new ConfigException("Named capture group 'time' can't be found for timestamp extraction");
             }
+        }
+    }
+
+    private void validateQueueCapacity(int queueCapacity) {
+        if (queueCapacity <= 0) {
+            throw new ConfigException("queue capacity should be greater than " + queueCapacity);
         }
     }
 

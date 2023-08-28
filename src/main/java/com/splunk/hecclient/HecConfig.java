@@ -39,6 +39,7 @@ public final class HecConfig {
     private int lbPollInterval = 120; // in seconds
     private String kerberosPrincipal;
     private String kerberosKeytabPath;
+    private int concurrentHecQueueCapacity = 100;
 
     public HecConfig(List<String> uris, String token) {
         this.uris = uris;
@@ -99,6 +100,10 @@ public final class HecConfig {
 
     public int getBackoffThresholdSeconds() {
         return backoffThresholdSeconds;
+    }
+
+    public int getConcurrentHecQueueCapacity() {
+        return concurrentHecQueueCapacity;
     }
 
     public boolean getHasCustomTrustStore() { return hasCustomTrustStore; }
@@ -204,6 +209,11 @@ public final class HecConfig {
 
     public HecConfig setKerberosKeytabPath(String kerberosKeytabPath) {
         this.kerberosKeytabPath = kerberosKeytabPath;
+        return this;
+    }
+
+    public HecConfig setConcurrentHecQueueCapacity(int concurrentHecQueueCapacity) {
+        this.concurrentHecQueueCapacity = concurrentHecQueueCapacity;
         return this;
     }
 
