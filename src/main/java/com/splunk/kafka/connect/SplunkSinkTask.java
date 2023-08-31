@@ -313,7 +313,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         } catch (Exception ex) {
             batch.fail();
             onEventFailure(Arrays.asList(batch), ex);
-            log.error("failed to send batch {}" ,batch.getUUID(), ex);
+            log.error(String.format("failed to send batch %s", batch.getUUID()), ex);
         }
     }
 
