@@ -257,7 +257,6 @@ public class SplunkSinkTaskTest {
         config.put(SplunkSinkConnectorConfig.ENABLE_TIMESTAMP_EXTRACTION_CONF, String.valueOf(true));
         config.put(SplunkSinkConnectorConfig.REGEX_CONF, "\\\"time\\\":\\s*\\\"(?<time>.*?)\"");
         config.put(SplunkSinkConnectorConfig.TIMESTAMP_FORMAT_CONF, "MMM dd yyyy HH:mm:ss.SSS zzz");
-//        config.put(SplunkSinkConnectorConfig.TIMESTAMP_TIMEZONE_CONF, "Asis/Seoul");
         HecMock hec = new HecMock(task);
         hec.setSendReturnResult(HecMock.success);
         task.setHec(hec);
