@@ -257,7 +257,7 @@ public class SplunkSinkTaskTest {
         config.put(SplunkSinkConnectorConfig.ENABLE_TIMESTAMP_EXTRACTION_CONF, String.valueOf(true));
         config.put(SplunkSinkConnectorConfig.REGEX_CONF, "\\\"time\\\":\\s*\\\"(?<time>.*?)\"");
         config.put(SplunkSinkConnectorConfig.TIMESTAMP_FORMAT_CONF, "MMM dd yyyy HH:mm:ss.SSS zzz");
-//        config.put(SplunkSinkConnectorConfig.TIMESTAMP_TIMEZONE_CONF, "");
+//        config.put(SplunkSinkConnectorConfig.TIMESTAMP_TIMEZONE_CONF, "Asis/Seoul");
         HecMock hec = new HecMock(task);
         hec.setSendReturnResult(HecMock.success);
         task.setHec(hec);
@@ -275,7 +275,69 @@ public class SplunkSinkTaskTest {
         }  
         task.stop();
     }
-    
+
+    @Test
+    public void checkExtractedTimestampWithTimezone() {
+        SplunkSinkTask task = new SplunkSinkTask();
+        Collection<SinkRecord> record = createSinkRecords(1,"{\"id\": \"19\",\"host\":\"host-01\",\"source\":\"bu\",\"fields\":{\"hn\":\"hostname1\",\"CLASS\":\"class1\",\"cust_id\":\"000013934\",\"REQ_TIME\": \"20230904133016993\",\"category\":\"IFdata\",\"ifname\":\"LoopBack7\",\"IFdata.Bits received\":\"0\",\"IFdata.Bits sent\":\"0\"}");
+
+        UnitUtil uu = new UnitUtil(0);
+        Map<String, String> config = uu.createTaskConfig();
+        config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
+        config.put(SplunkSinkConnectorConfig.ENABLE_TIMESTAMP_EXTRACTION_CONF, String.valueOf(true));
+        config.put(SplunkSinkConnectorConfig.REGEX_CONF, "\\\"REQ_TIME\\\":\\s*\\\"(?<time>.*?)\"");
+        config.put(SplunkSinkConnectorConfig.TIMESTAMP_FORMAT_CONF, "yyyyMMddHHmmssSSS");
+        config.put(SplunkSinkConnectorConfig.TIMESTAMP_TIMEZONE_CONF, "Asis/Seoul");
+        HecMock hec = new HecMock(task);
+        hec.setSendReturnResult(HecMock.success);
+        task.setHec(hec);
+        task.start(config);
+        task.put(record);
+
+        List<EventBatch> batches = hec.getBatches();
+        for (Iterator<EventBatch> iter = batches.listIterator(); iter.hasNext();) {
+            EventBatch batch = iter.next();
+            List<Event> event_list = batch.getEvents();
+            Iterator<Event> iterator = event_list.listIterator() ;
+            Event event = iterator.next();
+
+            Assert.assertEquals(1.693834216993E9, event.getTime(), 0);
+            break;
+        }
+        task.stop();
+    }
+
+    @Test
+    public void checkExtractedTimestampWithoutTimezoneAsUTC() {
+        SplunkSinkTask task = new SplunkSinkTask();
+        Collection<SinkRecord> record = createSinkRecords(1,"{\"id\": \"19\",\"host\":\"host-01\",\"source\":\"bu\",\"fields\":{\"hn\":\"hostname1\",\"CLASS\":\"class1\",\"cust_id\":\"000013934\",\"REQ_TIME\": \"20230904133016993\",\"category\":\"IFdata\",\"ifname\":\"LoopBack7\",\"IFdata.Bits received\":\"0\",\"IFdata.Bits sent\":\"0\"}");
+
+        UnitUtil uu = new UnitUtil(0);
+        Map<String, String> config = uu.createTaskConfig();
+        config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
+        config.put(SplunkSinkConnectorConfig.ENABLE_TIMESTAMP_EXTRACTION_CONF, String.valueOf(true));
+        config.put(SplunkSinkConnectorConfig.REGEX_CONF, "\\\"REQ_TIME\\\":\\s*\\\"(?<time>.*?)\"");
+        config.put(SplunkSinkConnectorConfig.TIMESTAMP_FORMAT_CONF, "yyyyMMddHHmmssSSS");
+        config.put(SplunkSinkConnectorConfig.TIMESTAMP_TIMEZONE_CONF, "");
+        HecMock hec = new HecMock(task);
+        hec.setSendReturnResult(HecMock.success);
+        task.setHec(hec);
+        task.start(config);
+        task.put(record);
+
+        List<EventBatch> batches = hec.getBatches();
+        for (Iterator<EventBatch> iter = batches.listIterator(); iter.hasNext();) {
+            EventBatch batch = iter.next();
+            List<Event> event_list = batch.getEvents();
+            Iterator<Event> iterator = event_list.listIterator() ;
+            Event event = iterator.next();
+
+            Assert.assertEquals(1.693801816993E9, event.getTime(), 0);
+            break;
+        }
+        task.stop();
+    }
+
     @Test(expected = ConfigException.class)
     public void emptyRegex() {
         SplunkSinkTask task = new SplunkSinkTask();

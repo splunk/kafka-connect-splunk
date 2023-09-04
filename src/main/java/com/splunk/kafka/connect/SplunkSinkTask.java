@@ -578,7 +578,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
                 log.warn("Could not set the time", e);
             }
         } else {
-            SimpleDateFormat df = new SimpleDateFormat(connectorConfig.timestampFormat,Locale.ENGLISH);
+            SimpleDateFormat df = new SimpleDateFormat(connectorConfig.timestampFormat);
             Date date;
             try {
                 if(!connectorConfig.timeZone.isEmpty())
