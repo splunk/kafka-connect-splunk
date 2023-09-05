@@ -286,7 +286,7 @@ public class SplunkSinkTaskTest {
         config.put(SplunkSinkConnectorConfig.ENABLE_TIMESTAMP_EXTRACTION_CONF, String.valueOf(true));
         config.put(SplunkSinkConnectorConfig.REGEX_CONF, "\\\"REQ_TIME\\\":\\s*\\\"(?<time>.*?)\"");
         config.put(SplunkSinkConnectorConfig.TIMESTAMP_FORMAT_CONF, "yyyyMMddHHmmssSSS");
-        config.put(SplunkSinkConnectorConfig.TIMESTAMP_TIMEZONE_CONF, "Asis/Seoul");
+        config.put(SplunkSinkConnectorConfig.TIMESTAMP_TIMEZONE_CONF, "Asia/Seoul");
         HecMock hec = new HecMock(task);
         hec.setSendReturnResult(HecMock.success);
         task.setHec(hec);
@@ -300,7 +300,7 @@ public class SplunkSinkTaskTest {
             Iterator<Event> iterator = event_list.listIterator() ;
             Event event = iterator.next();
 
-            Assert.assertEquals(1.693834216993E9, event.getTime(), 0);
+            Assert.assertEquals(1.693801816993E9, event.getTime(), 0);
             break;
         }
         task.stop();
@@ -331,7 +331,7 @@ public class SplunkSinkTaskTest {
             Iterator<Event> iterator = event_list.listIterator() ;
             Event event = iterator.next();
 
-            Assert.assertEquals(1.693801816993E9, event.getTime(), 0);
+            Assert.assertEquals(1.693834216993E9, event.getTime(), 0);
             break;
         }
         task.stop();
