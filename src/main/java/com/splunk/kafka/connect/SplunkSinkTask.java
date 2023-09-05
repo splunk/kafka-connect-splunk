@@ -579,7 +579,6 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             }
         } else {
             SimpleDateFormat df = new SimpleDateFormat(connectorConfig.timestampFormat);
-            df.setTimeZone(TimeZone.getTimeZone("UTC"));
             Date date;
             try {
                 if(!connectorConfig.timeZone.isEmpty())
