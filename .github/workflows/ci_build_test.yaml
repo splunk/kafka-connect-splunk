@@ -136,6 +136,10 @@ jobs:
             kafka_package: "kafka_2.13-3.1.0.tgz"
           - kafka_version: "3.3.1"
             kafka_package: "kafka_2.13-3.3.1.tgz"
+          - kafka_version: "3.4.1"
+            kafka_package: "kafka_2.13-3.4.1.tgz"
+          - kafka_version: "3.5.1"
+            kafka_package: "kafka_2.13-3.5.1.tgz"
     env:
       CI_SPLUNK_VERSION: "9.0.2"
       CI_SPLUNK_FILENAME: splunk-9.0.2-17e00c557dc1-Linux-x86_64.tgz
