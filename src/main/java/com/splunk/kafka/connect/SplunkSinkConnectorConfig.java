@@ -98,6 +98,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
      static final String ENABLE_TIMESTAMP_EXTRACTION_CONF = "enable.timestamp.extraction";
      static final String REGEX_CONF = "timestamp.regex";
      static final String TIMESTAMP_FORMAT_CONF = "timestamp.format";
+     static final String TIMESTAMP_TIMEZONE_CONF = "timestamp.timezone";
 
     // Kafka configuration description strings
     // Required Parameters
@@ -206,6 +207,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String ENABLE_TIMESTAMP_EXTRACTION_DOC = "Set to true if you want to extract the timestamp";
     static final String REGEX_DOC = "Regex";
     static final String TIMESTAMP_FORMAT_DOC = "Timestamp format";
+    static final String TIMESTAMP_TIMEZONE_DOC = "Timestamp timezone";
 
     final String splunkToken;
     final String splunkURI;
@@ -263,6 +265,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final String timestampFormat;
     final int queueCapacity;
 
+    final String timeZone;
+
     SplunkSinkConnectorConfig(Map<String, String> taskConfig) {
         super(conf(), taskConfig);
         splunkToken = getPassword(TOKEN_CONF).value();
@@ -316,6 +320,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         enableTimestampExtraction = getBoolean(ENABLE_TIMESTAMP_EXTRACTION_CONF);
         regex = getString(REGEX_CONF);
         timestampFormat = getString(TIMESTAMP_FORMAT_CONF).trim();
+        timeZone = getString(TIMESTAMP_TIMEZONE_CONF);
         validateRegexForTimestamp(regex);
         queueCapacity = getInt(QUEUE_CAPACITY_CONF);
         validateQueueCapacity(queueCapacity);
@@ -367,7 +372,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(ENABLE_TIMESTAMP_EXTRACTION_CONF, ConfigDef.Type.BOOLEAN,  false , ConfigDef.Importance.MEDIUM, ENABLE_TIMESTAMP_EXTRACTION_DOC)
                 .define(REGEX_CONF, ConfigDef.Type.STRING,  "" , ConfigDef.Importance.MEDIUM, REGEX_DOC)
                 .define(TIMESTAMP_FORMAT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, TIMESTAMP_FORMAT_DOC)
-                .define(QUEUE_CAPACITY_CONF, ConfigDef.Type.INT, 100, ConfigDef.Importance.LOW, QUEUE_CAPACITY_DOC);       
+                .define(TIMESTAMP_TIMEZONE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, TIMESTAMP_TIMEZONE_DOC)
+                .define(QUEUE_CAPACITY_CONF, ConfigDef.Type.INT, 100, ConfigDef.Importance.LOW, QUEUE_CAPACITY_DOC);
     }
 
     /**
