@@ -4,7 +4,7 @@
   <groupId>com.github.splunk.kafka.connect</groupId>
   <artifactId>splunk-kafka-connect</artifactId>
   <name>splunk-kafka-connect</name>
-  <version>v2.1.1</version>
+  <version>v2.1.2</version>
   <build>
     <plugins>
       <plugin>
@@ -107,6 +107,12 @@
       </plugin>
     </plugins>
   </build>
+  <repositories>
+    <repository>
+      <id>confluent</id>
+      <url>https://packages.confluent.io/maven/</url>
+    </repository>
+  </repositories>
   <dependencies>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
