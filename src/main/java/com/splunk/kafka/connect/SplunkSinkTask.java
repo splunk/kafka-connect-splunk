@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 
 public final class SplunkSinkTask extends SinkTask implements PollerCallback {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkTask.class);
-    private static long flushWindow = 30 * 1000; // 30 seconds
+    private static long flushWindow = Long.valueOf(30) * 1000; // 30 seconds
     private static final String HEADERTOKEN = "$$$";
 
     private HecInf hec;
@@ -571,8 +571,8 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             try {
                 double epoch;
                 epoch = ((Double.parseDouble(timestamp)));
-                long long_epoch = (new Double(epoch)).longValue();
-                event.setTime(epoch / (Math.pow(10, Long.toString(long_epoch).length()-10)));
+                long long_epoch = Double.valueOf(epoch).longValue();
+                event.setTime(epoch / (Math.pow(10, Long.toString(long_epoch).length()-10.00)));
                 
             } catch (Exception e) {
                 log.warn("Could not set the time", e);

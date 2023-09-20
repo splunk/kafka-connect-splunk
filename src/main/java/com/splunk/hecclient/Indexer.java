@@ -62,13 +62,12 @@ final class Indexer implements IndexerInf {
     private Poller poller;
     private long backPressure;
     private long lastBackPressure;
-    private long backPressureThreshold = 60 * 1000; // 1 min
+    private long backPressureThreshold = Long.valueOf(60) * 1000; // 1 min
 
     // Indexer doesn't own client, ack poller
     public Indexer(String baseUrl,CloseableHttpClient client,Poller poller,HecConfig config) {
         this.httpClient = client;
         this.baseUrl = baseUrl;
-        this.hecToken = hecToken;
         this.hecConfig = config;
         this.hecToken = config.getToken();
         this.poller = poller;
@@ -242,7 +241,7 @@ final class Indexer implements IndexerInf {
             try {
                 resp.close();
             } catch (IOException ex) {
-                throw new HecException("failed to close http response", ex);
+                new HecException("failed to close http response", ex);
             }
         }
         

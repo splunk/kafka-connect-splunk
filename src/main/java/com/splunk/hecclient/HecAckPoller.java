@@ -131,7 +131,7 @@ public final class HecAckPoller implements Poller {
             return;
         }
         
-        if (resp.getText() == "Invalid data format") {
+        if (resp.getText().equals("Invalid data format")) {
             log.warn("Invalid Splunk HEC data format. Ignoring events. channel={} index={} events={}", channel, channel.getIndexer(), batch.toString());
             batch.commit();
             List<EventBatch> committedBatches = new ArrayList<>();
