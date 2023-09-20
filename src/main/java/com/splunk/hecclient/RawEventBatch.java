@@ -20,8 +20,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.http.client.utils.URIBuilder;
 
 public final class RawEventBatch extends EventBatch {
-    public static final String endpoint = "/services/collector/raw";
-    public static final String contentType = "text/plain; profile=urn:splunk:event:1.0; charset=utf-8";
+    public static final String ENDPOINT = "/services/collector/raw";
+    public static final String CONTENT_TYPE = "text/plain; profile=urn:splunk:event:1.0; charset=utf-8";
 
     private String index;
     private String source;
@@ -111,12 +111,12 @@ public final class RawEventBatch extends EventBatch {
 
     @Override
     public final String getRestEndpoint() {
-        return  endpoint + getMetadataParams();
+        return  ENDPOINT + getMetadataParams();
     }
 
     @Override
     public String getContentType() {
-        return contentType;
+        return CONTENT_TYPE;
     }
 
     @Override

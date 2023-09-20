@@ -18,8 +18,8 @@ package com.splunk.hecclient;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public final class JsonEventBatch extends EventBatch {
-    public static final String endpoint = "/services/collector/event";
-    public static final String contentType = "application/json; profile=urn:splunk:event:1.0; charset=utf-8";
+    public static final String ENDPOINT = "/services/collector/event";
+    public static final String CONTENT_TYPE = "application/json; profile=urn:splunk:event:1.0; charset=utf-8";
 
     @Override
     public void add(Event event) {
@@ -33,12 +33,12 @@ public final class JsonEventBatch extends EventBatch {
 
     @Override
     public final String getRestEndpoint() {
-        return endpoint;
+        return ENDPOINT;
     }
 
     @Override
     public String getContentType() {
-        return contentType;
+        return CONTENT_TYPE;
     }
 
     @Override

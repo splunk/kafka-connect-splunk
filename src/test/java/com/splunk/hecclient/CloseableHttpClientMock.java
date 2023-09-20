@@ -27,13 +27,13 @@ import java.io.IOException;
 
 @SuppressWarnings( "deprecation")
 public class CloseableHttpClientMock extends CloseableHttpClient {
-    public static final String success = "{\"text\":\"Success\",\"code\":0,\"ackId\":2}";
-    public static final String serverBusy = "{\"text\":\"Server busy\",\"code\":1}";
-    public static final String noDataError = "{\"text\":\"No data\",\"code\":5}";
-    public static final String invalidDataFormat = "{\"text\":\"Invalid data format\",\"code\":6}";
-    public static final String inValidToken = "{\"text\":\"Invalid token\",\"code\":4}";
-    public static final String inValidIndex = "{\"text\":\"Incorrect index\",\"code\":4,\"invalid-event-number\":1}";
-    public static final String exception = "excpetion";
+    public static final String SUCCESS = "{\"text\":\"Success\",\"code\":0,\"ackId\":2}";
+    public static final String SERVER_BUSY = "{\"text\":\"Server busy\",\"code\":1}";
+    public static final String NO_DATA_ERROR = "{\"text\":\"No data\",\"code\":5}";
+    public static final String INVALID_DATA_FORMAT = "{\"text\":\"Invalid data format\",\"code\":6}";
+    public static final String INVALID_TOKEN = "{\"text\":\"Invalid token\",\"code\":4}";
+    public static final String INVALID_INDEX = "{\"text\":\"Incorrect index\",\"code\":4,\"invalid-event-number\":1}";
+    public static final String EXCEPTION = "excpetion";
 
     private String resp = "";
     private boolean throwOnClose = false;
@@ -41,22 +41,22 @@ public class CloseableHttpClientMock extends CloseableHttpClient {
 
     protected CloseableHttpResponse doExecute(HttpHost target, HttpRequest request,
             HttpContext context) throws IOException {
-        if (resp == exception) {
+        if (resp == EXCEPTION) {
             throw new IOException("mocked up");
         }
 
-        if (resp.equals(success)) {
+        if (resp.equals(SUCCESS)) {
             return createResponse(resp, 200);
-        } else if (resp.equals(serverBusy)) {
+        } else if (resp.equals(SERVER_BUSY)) {
             return createResponse(resp, 503);
-        } else if (resp.equals(noDataError)) {
+        } else if (resp.equals(NO_DATA_ERROR)) {
             return createResponse(resp, 400);
-        }else if (resp.equals(inValidToken)) {
+        }else if (resp.equals(INVALID_TOKEN)) {
             return createResponse(resp, 400);
-        }else if (resp.equals(inValidIndex)) {
+        }else if (resp.equals(INVALID_INDEX)) {
             return createResponse(resp, 400);
         } else {
-            return createResponse(success, 201);
+            return createResponse(SUCCESS, 201);
         }
     }
 
