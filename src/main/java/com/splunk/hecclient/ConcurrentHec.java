@@ -74,7 +74,6 @@ public class ConcurrentHec implements HecInf {
         }
 
         stopped = true;
-        // executorService.shutdownNow();
         executorService.shutdown();
     }
 

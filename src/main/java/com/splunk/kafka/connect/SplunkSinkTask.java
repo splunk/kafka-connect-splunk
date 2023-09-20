@@ -71,7 +71,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         tracker = new KafkaRecordTracker();
         bufferedRecords = new ArrayList<>();
         if(connectorConfig.flushWindow > 0) {
-            flushWindow = connectorConfig.flushWindow * 1000; // Flush window set to user configured value (Multiply by 1000 as all the calculations are done in milliseconds)
+            flushWindow = connectorConfig.flushWindow * Long.valueOf(1000); // Flush window set to user configured value (Multiply by 1000 as all the calculations are done in milliseconds)
         }
 
         log.info("kafka-connect-splunk task starts with config={}", connectorConfig);
@@ -569,8 +569,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
         if (connectorConfig.timestampFormat.equalsIgnoreCase("epoch")) {
             try {
-                double epoch;
-                epoch = ((Double.parseDouble(timestamp)));
+                double epoch = (Double.parseDouble(timestamp));
                 long long_epoch = Double.valueOf(epoch).longValue();
                 event.setTime(epoch / (Math.pow(10, Long.toString(long_epoch).length()-10.00)));
                 

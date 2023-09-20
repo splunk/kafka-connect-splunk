@@ -272,7 +272,7 @@ final class Indexer implements IndexerInf {
             
             String respText = (jsonNode.has("text")) ? jsonNode.get("text").asText() : null;
 
-            if (respText == "Invalid data format") {
+            if (respText.equals("Invalid data format")) {
                 ObjectNode objNode = jsonMapper.createObjectNode();
                 objNode.put("text", "Invalid data format");
                 objNode.put("code", 0); // Mark it as success

@@ -57,7 +57,7 @@ public final class JsonEventBatch extends EventBatch {
     public boolean equals(Object obj) {
         if (obj instanceof JsonEventBatch) {
             final JsonEventBatch other = (JsonEventBatch) obj;
-            return endpoint.equals(endpoint);
+            return obj.equals(other);
         }
         return false;
     }
