@@ -49,7 +49,7 @@ public class RawEventBatchTest {
     public void getRestEndpoint() {
         // Without metadata
         EventBatch batch = RawEventBatch.factory().build();
-        Assert.assertEquals(batch.getRestEndpoint(), RawEventBatch.endpoint);
+        Assert.assertEquals(batch.getRestEndpoint(), RawEventBatch.ENDPOINT);
 
         // With all metadata
         EventBatch rawBatch = RawEventBatch.factory()
@@ -83,7 +83,7 @@ public class RawEventBatchTest {
     @Test
     public void getContentType() {
         EventBatch batch = RawEventBatch.factory().build();
-        Assert.assertEquals(batch.getContentType(), RawEventBatch.contentType);
+        Assert.assertEquals(batch.getContentType(), RawEventBatch.CONTENT_TYPE);
     }
 
     @Test

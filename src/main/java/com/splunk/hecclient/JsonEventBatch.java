@@ -49,7 +49,7 @@ public final class JsonEventBatch extends EventBatch {
     @Override
     public int hashCode() {
         return new HashCodeBuilder()
-        .append(endpoint)
+        .append(ENDPOINT)
         .toHashCode();
     }
 

@@ -29,7 +29,7 @@ public class LoadBalancerTest {
         String token = "mytoken";
         HecConfig config = new HecConfig(Arrays.asList(uri), token);
         CloseableHttpClientMock client = new CloseableHttpClientMock();
-        client.setResponse(CloseableHttpClientMock.success);
+        client.setResponse(CloseableHttpClientMock.SUCCESS);
         LoadBalancer lb = new LoadBalancer(config, client);
 
         int numberOfChannels = 3;
@@ -48,7 +48,7 @@ public class LoadBalancerTest {
         String token = "mytoken";
         HecConfig config = new HecConfig(Arrays.asList(uri), token);
         CloseableHttpClientMock client = new CloseableHttpClientMock();
-        client.setResponse(CloseableHttpClientMock.success);
+        client.setResponse(CloseableHttpClientMock.SUCCESS);
         LoadBalancer lb = new LoadBalancer(config, client);        List<IndexerMock> indexers = new ArrayList<>();
 
         int numberOfChannels = 3;
@@ -76,7 +76,7 @@ public class LoadBalancerTest {
         String token = "mytoken";
         HecConfig config = new HecConfig(Arrays.asList(uri), token);
         CloseableHttpClientMock client = new CloseableHttpClientMock();
-        client.setResponse(CloseableHttpClientMock.success);
+        client.setResponse(CloseableHttpClientMock.SUCCESS);
         LoadBalancer lb = new LoadBalancer(config, client);
         List<IndexerMock> indexers = new ArrayList<>();
 
@@ -98,7 +98,7 @@ public class LoadBalancerTest {
         String token = "mytoken";
         HecConfig config = new HecConfig(Arrays.asList(uri), token);
         CloseableHttpClientMock client = new CloseableHttpClientMock();
-        client.setResponse(CloseableHttpClientMock.success);
+        client.setResponse(CloseableHttpClientMock.SUCCESS);
         LoadBalancer lb = new LoadBalancer(config, client);
         List<IndexerMock> indexers = new ArrayList<>();
 
@@ -127,7 +127,7 @@ public class LoadBalancerTest {
         String token = "mytoken";
         HecConfig config = new HecConfig(Arrays.asList(uri), token);
         CloseableHttpClientMock client = new CloseableHttpClientMock();
-        client.setResponse(CloseableHttpClientMock.success);
+        client.setResponse(CloseableHttpClientMock.SUCCESS);
         LoadBalancer lb = new LoadBalancer(config, client);
         List<IndexerMock> indexers = new ArrayList<>();
 
@@ -158,7 +158,7 @@ public class LoadBalancerTest {
         String token = "mytoken";
         HecConfig config = new HecConfig(Arrays.asList(uri), token);
         CloseableHttpClientMock client = new CloseableHttpClientMock();
-        client.setResponse(CloseableHttpClientMock.success);
+        client.setResponse(CloseableHttpClientMock.SUCCESS);
         LoadBalancer lb = new LoadBalancer(config, client);
         lb.send(UnitUtil.createBatch());
     }
@@ -169,7 +169,7 @@ public class LoadBalancerTest {
         String token = "mytoken";
         HecConfig config = new HecConfig(Arrays.asList(uri), token);
         CloseableHttpClientMock client = new CloseableHttpClientMock();
-        client.setResponse(CloseableHttpClientMock.success);
+        client.setResponse(CloseableHttpClientMock.SUCCESS);
         LoadBalancer lb = new LoadBalancer(config, client);
         List<HecChannel> channels = new ArrayList<>();
 
@@ -194,7 +194,7 @@ public class LoadBalancerTest {
         String token = "mytoken";
         HecConfig config = new HecConfig(Arrays.asList(uri), token);
         CloseableHttpClientMock client = new CloseableHttpClientMock();
-        client.setResponse(CloseableHttpClientMock.success);
+        client.setResponse(CloseableHttpClientMock.SUCCESS);
         LoadBalancer lb = new LoadBalancer(config, client);
         Assert.assertEquals(0, lb.size());
     }
