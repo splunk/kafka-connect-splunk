@@ -63,7 +63,9 @@ public class PollerMock implements Poller {
     }
 
     @Override
-    public void stickySessionHandler(HecChannel channel) {}
+    public void stickySessionHandler(HecChannel channel) {
+        // Not required for mock
+    }
 
     public boolean isStarted() {
         return started;

@@ -224,40 +224,32 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
         if(indexHeader != null) {
             headerString.append(indexHeader.value().toString());
-        } else {
-            if(metas != null) {
-                headerString.append(metas.get("index"));
-            }
+        } else if (metas != null) {
+            headerString.append(metas.get("index"));
         }
 
         headerString.append(insertHeaderToken());
 
         if(hostHeader != null) {
             headerString.append(hostHeader.value().toString());
-        } else {
-            if(metas != null) {
-                headerString.append("default-host");
-            }
+        } else if (metas != null) {
+            headerString.append("default-host");
         }
 
         headerString.append(insertHeaderToken());
 
         if(sourceHeader != null) {
             headerString.append(sourceHeader.value().toString());
-        } else {
-            if(metas != null) {
-                headerString.append(metas.get("source"));
-            }
+        } else if (metas != null) {
+            headerString.append(metas.get("source"));
         }
 
         headerString.append(insertHeaderToken());
 
         if(sourcetypeHeader != null) {
             headerString.append(sourcetypeHeader.value().toString());
-        } else {
-            if(metas != null) {
-                headerString.append(metas.get("sourcetype"));
-            }
+        } else if (metas != null) {
+            headerString.append(metas.get("sourcetype"));
         }
 
         headerString.append(insertHeaderToken());
@@ -441,7 +433,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
     private Event addHeaders(Event event, SinkRecord record) {
         Headers headers = record.headers();
-        if(headers.isEmpty() &&  connectorConfig.headerCustom.isEmpty()) {
+        if (headers.isEmpty() && connectorConfig.headerCustom.isEmpty()) {
             return event;
         }
 
@@ -469,13 +461,10 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
             String[] customHeaders = connectorConfig.headerCustom.split(",\\s?");
             Map<String, String> headerMap = new HashMap<>();
             for (String header : customHeaders) {
-                    Header customHeader = headers.lastWithName(header);
+                Header customHeader = headers.lastWithName(header);
                 if (customHeader != null) {
-                    if (customHeader.value() == null) {
-                        headerMap.put(header, null);
-                    } else {
-                        headerMap.put(header, customHeader.value().toString());
-                    }
+                    String value = customHeader.value() == null ? null : customHeader.value().toString(); 
+                    headerMap.put(header, value);
                 }
             }
             event.addFields(headerMap);

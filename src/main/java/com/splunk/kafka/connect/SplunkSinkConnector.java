@@ -217,7 +217,7 @@ public final class SplunkSinkConnector extends SinkConnector {
                     resp.close();
                 }
             } catch (Exception ex) {
-                throw new ConfigException("failed to close http response",ex);
+                throw new ConfigException("failed to close http response",ex); // NOSONAR
             }
         }
     }
