@@ -33,7 +33,7 @@ public final class HecAckPoller implements Poller {
     private static final Logger log = LoggerFactory.getLogger(HecAckPoller.class);
     private static final ObjectMapper jsonMapper = new ObjectMapper();
 
-    private static final String ackEndpoint = "/services/collector/ack";
+    private static final String ACK_ENDPOINT = "/services/collector/ack";
 
     private ConcurrentHashMap<HecChannel, ConcurrentHashMap<Long, EventBatch>> outstandingEventBatches;
     private AtomicLong totalOutstandingEventBatches;
@@ -382,7 +382,7 @@ public final class HecAckPoller implements Poller {
 
         entity.setContentType("application/json; profile=urn:splunk:event:1.0; charset=utf-8");
 
-        String url = ch.getIndexer().getBaseUrl() + ackEndpoint;
+        String url = ch.getIndexer().getBaseUrl() + ACK_ENDPOINT;
         final HttpPost httpPost = new HttpPost(url);
         httpPost.setHeaders(ch.getIndexer().getHeaders());
         httpPost.setEntity(entity);

@@ -7,7 +7,7 @@ splunk-kafka-connect,com.splunk.hecclient,Hec,38,298,4,14,10,74,4,20,0,15
 splunk-kafka-connect,com.splunk.hecclient,ConcurrentHec,23,196,1,13,6,50,1,16,0,10
 splunk-kafka-connect,com.splunk.hecclient,HecException,0,9,0,0,0,4,0,2,0,2
 splunk-kafka-connect,com.splunk.hecclient,LoadBalancer,48,362,8,24,12,87,7,23,1,13
-splunk-kafka-connect,com.splunk.hecclient,HecAckPoller,122,711,11,45,34,160,9,44,0,25
+splunk-kafka-connect,com.splunk.hecclient,HecAckPoller,122,711,12,44,34,160,10,43,0,25
 splunk-kafka-connect,com.splunk.hecclient,HecAckPoller.RunAckQuery,21,26,0,0,3,8,0,2,0,2
 splunk-kafka-connect,com.splunk.hecclient,HttpClientBuilder,69,132,0,4,16,46,2,13,2,11
 splunk-kafka-connect,com.splunk.hecclient,RawEvent,11,63,0,8,3,17,0,8,0,4
@@ -38,4 +38,4 @@ splunk-kafka-connect,com.splunk.kafka.connect,SplunkSinkRecord,74,188,14,14,22,4
 splunk-kafka-connect,com.splunk.kafka.connect,SplunkSinkConnectorConfig,5,1255,6,72,1,195,6,47,0,14
 splunk-kafka-connect,com.splunk.kafka.connect,SplunkSinkConnector,57,338,3,25,11,79,4,26,1,15
 splunk-kafka-connect,com.splunk.kafka.connect,AbstractClientWrapper,0,3,0,0,0,1,0,1,0,1
-splunk-kafka-connect,com.splunk.kafka.connect,SplunkSinkTask,670,858,66,60,135,194,49,47,8,25
+splunk-kafka-connect,com.splunk.kafka.connect,SplunkSinkTask,668,858,66,60,134,194,49,47,8,25

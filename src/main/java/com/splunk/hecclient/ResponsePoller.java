@@ -32,14 +32,18 @@ public final class ResponsePoller implements Poller {
     }
 
     @Override
-    public void stickySessionHandler(HecChannel channel) {}
+    public void stickySessionHandler(HecChannel channel) {
+        // Only required while acknowledgement=true
+    }
 
     @Override
     public void start() {
+        // Only required while acknowledgement=true
     }
 
     @Override
     public void stop() {
+        // Only required while acknowledgement=true
     }
 
     @Override
@@ -68,7 +72,7 @@ public final class ResponsePoller implements Poller {
                 fail(channel, batch, new HecException(response.getText()));
                 return;
             }
-            if (response.getText() == "Invalid data format") {
+            if (response.getText().equals("Invalid data format")) {
                 log.warn("Invalid Splunk HEC data format. Ignoring events. channel={} index={} events={}", channel, channel.getIndexer(), batch.toString());
             }
         } catch (Exception ex) {
