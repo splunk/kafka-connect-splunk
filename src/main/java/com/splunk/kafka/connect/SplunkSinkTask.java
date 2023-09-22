@@ -569,7 +569,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
         if (connectorConfig.timestampFormat.equalsIgnoreCase("epoch")) {
             try {
-                double epoch = (Double.parseDouble(timestamp));
+                double epoch = Double.parseDouble(timestamp);
                 long long_epoch = Double.valueOf(epoch).longValue();
                 event.setTime(epoch / (Math.pow(10, Long.toString(long_epoch).length()-10.00)));
                 
