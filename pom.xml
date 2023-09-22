@@ -21,7 +21,7 @@
         <jackson.version>2.14.2</jackson.version>
         <kafka.version>3.4.0</kafka.version>
         <slf4j.version>2.0.7</slf4j.version>
-        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/coverage-reports/jacoco-ut/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencies>
@@ -296,7 +296,7 @@
                         </goals>
                         <configuration>
                             <!-- Sets the path to the file which contains the execution data. -->
-                            <destFile>${project.build.directory}/coverage-reports/jacoco-ut.exec
+                            <destFile>${project.build.directory}/site/jacoco-ut.exec
                             </destFile>
                             <!--
                                 Sets the name of the property containing the settings
@@ -317,10 +317,10 @@
                         </goals>
                         <configuration>
                             <!-- Sets the path to the file which contains the execution data. -->
-                            <dataFile>${project.build.directory}/coverage-reports/jacoco-ut.exec
+                            <dataFile>${project.build.directory}/site/jacoco-ut.exec
                             </dataFile>
                             <!-- Sets the output directory for the code coverage report. -->
-                            <outputDirectory>${project.build.directory}/coverage-reports/jacoco-ut
+                            <outputDirectory>${project.build.directory}/site/jacoco
                             </outputDirectory>
                         </configuration>
                     </execution>

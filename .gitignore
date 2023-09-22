@@ -35,3 +35,8 @@ pom.xml.versionsBackup
 **/__pycache__/*
 test/venv/
 venv
+
+!target/site/
+target/site/jacoco/*.html
+target/site/jacoco/*/*
+target/site/*.exec

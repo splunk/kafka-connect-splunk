@@ -241,7 +241,7 @@ final class Indexer implements IndexerInf {
             try {
                 resp.close();
             } catch (IOException ex) {
-                throw new HecException("failed to close http response", ex);
+                throw new HecException("failed to close http response", ex); // NOSONAR
             }
         }
         
