@@ -21,6 +21,7 @@
         <jackson.version>2.14.2</jackson.version>
         <kafka.version>3.4.0</kafka.version>
         <slf4j.version>2.0.7</slf4j.version>
+        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/coverage-reports/jacoco-ut/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencies>
@@ -194,6 +195,11 @@
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.jacoco</groupId> 
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.9</version>
+        </dependency>
 
     </dependencies>
 
@@ -319,6 +325,12 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>3.10.0.2594</version>
             </plugin>
 
             <plugin>

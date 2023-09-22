@@ -177,7 +177,7 @@ class SplunkSinkConnecterTest {
         configs.put("topics", "b");
         configs.put("splunk.indexes", "b");
         MockHecClientWrapper clientInstance = new MockHecClientWrapper();
-        clientInstance.client.setResponse(CloseableHttpClientMock.inValidToken);
+        clientInstance.client.setResponse(CloseableHttpClientMock.INVALID_TOKEN);
         ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Assertions.assertThrows(ConfigException.class, ()->connector.validate(configs));
     }
@@ -202,7 +202,7 @@ class SplunkSinkConnecterTest {
         configs.put("topics", "b");
         configs.put("splunk.indexes", "b");
         MockHecClientWrapper clientInstance = new MockHecClientWrapper();
-        clientInstance.client.setResponse(CloseableHttpClientMock.inValidIndex);
+        clientInstance.client.setResponse(CloseableHttpClientMock.INVALID_INDEX);
         ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Assertions.assertThrows(ConfigException.class, ()->connector.validate(configs));
     }
@@ -217,7 +217,7 @@ class SplunkSinkConnecterTest {
         configs.put("splunk.hec.uri", "https://localhost:8088,https://localhost:8089");
         configs.put("splunk.hec.ssl.validate.certs", "false");
         MockHecClientWrapper clientInstance = new MockHecClientWrapper();
-        clientInstance.client.setResponse(CloseableHttpClientMock.success);
+        clientInstance.client.setResponse(CloseableHttpClientMock.SUCCESS);
         ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Assertions.assertDoesNotThrow(()->connector.validate(configs));
     }
@@ -230,7 +230,7 @@ class SplunkSinkConnecterTest {
         configs.put("topics", "b");
         configs.put("splunk.indexes", "b");
         MockHecClientWrapper clientInstance = new MockHecClientWrapper();
-        clientInstance.client.setResponse(CloseableHttpClientMock.success);
+        clientInstance.client.setResponse(CloseableHttpClientMock.SUCCESS);
         ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Assertions.assertDoesNotThrow(()->connector.validate(configs));
     }
@@ -243,7 +243,7 @@ class SplunkSinkConnecterTest {
         configs.put("splunk.validation.disable", "true");
         configs.put("topics", "b");
         MockHecClientWrapper clientInstance = new MockHecClientWrapper();
-        clientInstance.client.setResponse(CloseableHttpClientMock.exception);
+        clientInstance.client.setResponse(CloseableHttpClientMock.EXCEPTION);
         ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Assertions.assertDoesNotThrow(()->connector.validate(configs));
     }
@@ -256,7 +256,7 @@ class SplunkSinkConnecterTest {
         configs.put("splunk.validation.disable", "false");
         configs.put("topics", "b");
         MockHecClientWrapper clientInstance = new MockHecClientWrapper();
-        clientInstance.client.setResponse(CloseableHttpClientMock.exception);
+        clientInstance.client.setResponse(CloseableHttpClientMock.EXCEPTION);
         ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Assertions.assertThrows(ConfigException.class, ()->connector.validate(configs));
     }
@@ -270,7 +270,7 @@ class SplunkSinkConnecterTest {
         configs.put("topics", "b");
         configs.put("splunk.indexes", "b");
         MockHecClientWrapper clientInstance = new MockHecClientWrapper();
-        clientInstance.client.setResponse(CloseableHttpClientMock.success);
+        clientInstance.client.setResponse(CloseableHttpClientMock.SUCCESS);
         ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Assertions.assertDoesNotThrow(()->connector.validate(configs));
     }
@@ -284,7 +284,7 @@ class SplunkSinkConnecterTest {
         configs.put("topics", "b");
         configs.put("splunk.indexes", "b");
         MockHecClientWrapper clientInstance = new MockHecClientWrapper();
-        clientInstance.client.setResponse(CloseableHttpClientMock.success);
+        clientInstance.client.setResponse(CloseableHttpClientMock.SUCCESS);
         ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
         Assertions.assertThrows(ConfigException.class, ()->connector.validate(configs));
     }

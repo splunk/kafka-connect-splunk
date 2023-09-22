@@ -100,7 +100,7 @@ public class IndexerTest {
         for (int i = 0; i < 2; i++) {
             CloseableHttpClientMock client = new CloseableHttpClientMock();
             if (i == 0) {
-                client.setResponse(CloseableHttpClientMock.success);
+                client.setResponse(CloseableHttpClientMock.SUCCESS);
             }
             PollerMock poller = new PollerMock();
 
@@ -112,14 +112,14 @@ public class IndexerTest {
             Assert.assertNull(poller.getFailedBatch());
             Assert.assertNull(poller.getException());
             Assert.assertEquals(indexer.getChannel(), poller.getChannel());
-            Assert.assertEquals(CloseableHttpClientMock.success, poller.getResponse());
+            Assert.assertEquals(CloseableHttpClientMock.SUCCESS, poller.getResponse());
         }
     }
 
     @Test
     public void sendWithInvalidData() {
         CloseableHttpClientMock client = new CloseableHttpClientMock();
-        client.setResponse(CloseableHttpClientMock.invalidDataFormat);
+        client.setResponse(CloseableHttpClientMock.INVALID_DATA_FORMAT);
         PollerMock poller = new PollerMock();
 
         Indexer indexer = new Indexer(baseUrl, client, poller, hecConfig);
@@ -130,14 +130,14 @@ public class IndexerTest {
         Assert.assertNull(poller.getFailedBatch());
         Assert.assertNull(poller.getException());
         Assert.assertEquals(indexer.getChannel(), poller.getChannel());
-        Assert.assertEquals(CloseableHttpClientMock.success, poller.getResponse());
+        Assert.assertEquals(CloseableHttpClientMock.SUCCESS, poller.getResponse());
     }
 
 
     @Test
     public void sendWithServerBusy() {
         CloseableHttpClientMock client = new CloseableHttpClientMock();
-        client.setResponse(CloseableHttpClientMock.serverBusy);
+        client.setResponse(CloseableHttpClientMock.SERVER_BUSY);
 
         Indexer indexer = assertFailure(client);
         Assert.assertTrue(indexer.hasBackPressure());
@@ -151,7 +151,7 @@ public class IndexerTest {
     @Test
     public void ConfirmShortBackPressureConfig() {
         CloseableHttpClientMock client = new CloseableHttpClientMock();
-        client.setResponse(CloseableHttpClientMock.serverBusy);
+        client.setResponse(CloseableHttpClientMock.SERVER_BUSY);
 
         Indexer indexer = assertFailure(client);
         Assert.assertTrue(indexer.hasBackPressure());
@@ -165,14 +165,14 @@ public class IndexerTest {
     @Test
     public void sendWithIOError() {
         CloseableHttpClientMock client = new CloseableHttpClientMock();
-        client.setResponse(CloseableHttpClientMock.exception);
+        client.setResponse(CloseableHttpClientMock.EXCEPTION);
         assertFailure(client);
     }
 
     @Test
     public void sendWithCloseError() {
         CloseableHttpClientMock client = new CloseableHttpClientMock();
-        client.setResponse(CloseableHttpClientMock.success);
+        client.setResponse(CloseableHttpClientMock.SUCCESS);
         client.setThrowOnClose(true);
         assertFailure(client);
     }
@@ -180,7 +180,7 @@ public class IndexerTest {
     @Test
     public void sendWithReadError() {
         CloseableHttpClientMock client = new CloseableHttpClientMock();
-        client.setResponse(CloseableHttpClientMock.success);
+        client.setResponse(CloseableHttpClientMock.SUCCESS);
         client.setThrowOnGetContent(true);
         assertFailure(client);
     }
@@ -204,7 +204,7 @@ public class IndexerTest {
         for (int i = 0; i < 2; i++) {
             CloseableHttpClientMock client = new CloseableHttpClientMock();
             if (i == 0) {
-                client.setResponse(CloseableHttpClientMock.success);
+                client.setResponse(CloseableHttpClientMock.SUCCESS);
             }
             PollerMock poller = new PollerMock();
 
@@ -217,7 +217,7 @@ public class IndexerTest {
             Assert.assertNull(poller.getFailedBatch());
             Assert.assertNull(poller.getException());
             Assert.assertEquals(indexer.getChannel(), poller.getChannel());
-            Assert.assertEquals(CloseableHttpClientMock.success, poller.getResponse());
+            Assert.assertEquals(CloseableHttpClientMock.SUCCESS, poller.getResponse());
         }
     }
 
@@ -226,7 +226,7 @@ public class IndexerTest {
         for (int i = 0; i < 2; i++) {
             CloseableHttpClientMock client = new CloseableHttpClientMock();
             if (i == 0) {
-                client.setResponse(CloseableHttpClientMock.success);
+                client.setResponse(CloseableHttpClientMock.SUCCESS);
             }
             PollerMock poller = new PollerMock();
 
@@ -239,7 +239,7 @@ public class IndexerTest {
             Assert.assertNull(poller.getFailedBatch());
             Assert.assertNull(poller.getException());
             Assert.assertEquals(indexer.getChannel(), poller.getChannel());
-            Assert.assertEquals(CloseableHttpClientMock.success, poller.getResponse());
+            Assert.assertEquals(CloseableHttpClientMock.SUCCESS, poller.getResponse());
         }
     }
 }

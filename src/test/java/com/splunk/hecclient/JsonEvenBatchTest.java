@@ -51,13 +51,13 @@ public class JsonEvenBatchTest {
     @Test
     public void getRestEndpoint() {
         EventBatch batch = new JsonEventBatch();
-        Assert.assertEquals(batch.getRestEndpoint(), JsonEventBatch.endpoint);
+        Assert.assertEquals(batch.getRestEndpoint(), JsonEventBatch.ENDPOINT);
     }
 
     @Test
     public void getContentType() {
         EventBatch batch = new JsonEventBatch();
-        Assert.assertEquals(batch.getContentType(), JsonEventBatch.contentType);
+        Assert.assertEquals(batch.getContentType(), JsonEventBatch.CONTENT_TYPE);
     }
 
     @Test

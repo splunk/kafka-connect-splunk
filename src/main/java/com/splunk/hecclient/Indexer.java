@@ -62,13 +62,12 @@ final class Indexer implements IndexerInf {
     private Poller poller;
     private long backPressure;
     private long lastBackPressure;
-    private long backPressureThreshold = 60 * 1000; // 1 min
+    private long backPressureThreshold = Long.valueOf(60) * 1000; // 1 min
 
     // Indexer doesn't own client, ack poller
     public Indexer(String baseUrl,CloseableHttpClient client,Poller poller,HecConfig config) {
         this.httpClient = client;
         this.baseUrl = baseUrl;
-        this.hecToken = hecToken;
         this.hecConfig = config;
         this.hecToken = config.getToken();
         this.poller = poller;
@@ -273,7 +272,7 @@ final class Indexer implements IndexerInf {
             
             String respText = (jsonNode.has("text")) ? jsonNode.get("text").asText() : null;
 
-            if (respText == "Invalid data format") {
+            if (respText.equals("Invalid data format")) {
                 ObjectNode objNode = jsonMapper.createObjectNode();
                 objNode.put("text", "Invalid data format");
                 objNode.put("code", 0); // Mark it as success
