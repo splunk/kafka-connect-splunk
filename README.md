@@ -107,6 +107,7 @@ Use the below schema to configure Splunk Connect for Kafka
    "splunk.hec.raw": "<true|false>",
    "splunk.hec.raw.line.breaker": "<line breaker separator>",
    "splunk.hec.json.event.enrichment": "<key value pairs separated by comma, only applicable to /event HEC>",
+   "splunk.hec.auto.extract.timestamp": "<true|false>",
    "value.converter": "<converter class used to convert between Kafka Connect format and the serialized form that is written to Kafka>",
    "value.converter.schema.registry.url": "<Schema-Registry-URL>",
    "value.converter.schemas.enable": "<true|false>",
@@ -196,10 +197,11 @@ Use the below schema to configure Splunk Connect for Kafka
 |--------           |----------------------------|-----------------------|
 | `splunk.hec.raw.line.breaker` | Only applicable to /raw HEC endpoint. The setting is used to specify a custom line breaker to help Splunk separate the events correctly.</br> **NOTE:** <br/> For example, you can specify `"#####"` as a special line breaker. Internally, the Splunk Kafka Connector will append this line breaker to every Kafka record to form a clear event boundary. The connector performs data injection in batch mode. On the Splunk platform side, you can configure **`props.conf`** to set up line breaker for the sourcetypes. Then the Splunk software will correctly break events for data flowing through /raw HEC endpoint. For questions on how and when to specify line breaker, go to the FAQ section.|`""`|
 ##### /event endpoint only
-| Name              | Description                | Default Value  |
-|--------           |----------------------------|-----------------------|
-| `splunk.hec.json.event.enrichment` |  Only applicable to /event HEC endpoint. This setting is used to enrich raw data with extra metadata fields. It contains a list of key value pairs separated by ",". The configured enrichment metadata will be indexed along with raw event data by Splunk software. </br> **NOTE:** <br/> Data enrichment for /event HEC endpoint is only available in Splunk Enterprise 6.5 and above. By default, this setting is empty. See ([Documentation](http://dev.splunk.com/view/event-collector/SP-CAAAE8Y#indexedfield)) for more information. <br/>**Example:** `org=fin,bu=south-east-us`||
-| `splunk.hec.track.data` |  When set to `true`, data loss and data injection latency metadata will be indexed along with raw data. This setting only works in conjunction with /event HEC endpoint (`"splunk.hec.raw" : "false"`). Valid settings are `true` or `false`. |`false`|
+| Name              | Description                | Default Value |
+|--------           |----------------------------|---------------|
+| `splunk.hec.json.event.enrichment` |  Only applicable to /event HEC endpoint. This setting is used to enrich raw data with extra metadata fields. It contains a list of key value pairs separated by ",". The configured enrichment metadata will be indexed along with raw event data by Splunk software. </br> **NOTE:** <br/> Data enrichment for /event HEC endpoint is only available in Splunk Enterprise 6.5 and above. By default, this setting is empty. See ([Documentation](http://dev.splunk.com/view/event-collector/SP-CAAAE8Y#indexedfield)) for more information. <br/>**Example:** `org=fin,bu=south-east-us`|               |
+| `splunk.hec.track.data` |  When set to `true`, data loss and data injection latency metadata will be indexed along with raw data. This setting only works in conjunction with /event HEC endpoint (`"splunk.hec.raw" : "false"`). Valid settings are `true` or `false`. | `false`       |
+| `splunk.hec.auto.extract.timestamp` |  Sends timestamped events to HTTP Event Collector using the Splunk platform JSON event protocol when auto_extract_timestamp is set to `true` in the /event URL. | `unset`       |
 
 ### Headers Parameters
 #### Use Headers
