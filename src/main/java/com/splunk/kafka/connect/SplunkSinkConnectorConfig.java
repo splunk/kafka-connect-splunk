@@ -80,6 +80,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String SSL_TRUSTSTORE_PATH_CONF = "splunk.hec.ssl.trust.store.path";
     static final String SSL_TRUSTSTORE_TYPE_CONF = "splunk.hec.ssl.trust.store.type";
     static final String SSL_TRUSTSTORE_PASSWORD_CONF = "splunk.hec.ssl.trust.store.password";
+    static final String AUTO_EXTRACT_TIMESTAMP_CONF = "splunk.hec.auto.extract.timestamp";
+
     //Headers
     static final String HEADER_SUPPORT_CONF = "splunk.header.support";
     static final String HEADER_CUSTOM_CONF = "splunk.header.custom";
@@ -187,6 +189,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String SSL_TRUSTSTORE_PATH_DOC = "Path on the local disk to the certificate trust store.";
     static final String SSL_TRUSTSTORE_TYPE_DOC = "Type of the trust store (JKS, PKCS12, ...).";
     static final String SSL_TRUSTSTORE_PASSWORD_DOC = "Password for the trust store.";
+    static final String AUTO_EXTRACT_TIMESTAMP_DOC = "Sends timestamped events to HTTP Event Collector using the Splunk platform JSON event protocol when auto_extract_timestamp is set to \"true\" in the /event URL.";
 
     static final String HEADER_SUPPORT_DOC = "Setting will enable Kafka Record headers to be used for meta data override";
     static final String HEADER_CUSTOM_DOC = "Setting will enable look for Record headers with these values and add them"
@@ -264,8 +267,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final String regex;
     final String timestampFormat;
     final int queueCapacity;
-
     final String timeZone;
+    final Boolean autoExtractTimestamp;
 
     SplunkSinkConnectorConfig(Map<String, String> taskConfig) {
         super(conf(), taskConfig);
@@ -324,6 +327,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         validateRegexForTimestamp(regex);
         queueCapacity = getInt(QUEUE_CAPACITY_CONF);
         validateQueueCapacity(queueCapacity);
+        autoExtractTimestamp = getBoolean(AUTO_EXTRACT_TIMESTAMP_CONF);
     }
 
    
@@ -341,6 +345,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(SSL_TRUSTSTORE_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PATH_DOC)
                 .define(SSL_TRUSTSTORE_TYPE_CONF, ConfigDef.Type.STRING, "JKS", ConfigDef.Importance.LOW, SSL_TRUSTSTORE_TYPE_DOC)
                 .define(SSL_TRUSTSTORE_PASSWORD_CONF, ConfigDef.Type.PASSWORD, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PASSWORD_DOC)
+                .define(AUTO_EXTRACT_TIMESTAMP_CONF, ConfigDef.Type.BOOLEAN, null, ConfigDef.Importance.LOW, AUTO_EXTRACT_TIMESTAMP_DOC)
                 .define(EVENT_TIMEOUT_CONF, ConfigDef.Type.INT, 300, ConfigDef.Importance.MEDIUM, EVENT_TIMEOUT_DOC)
                 .define(ACK_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 10, ConfigDef.Importance.MEDIUM, ACK_POLL_INTERVAL_DOC)
                 .define(ACK_POLL_THREADS_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.MEDIUM, ACK_POLL_THREADS_DOC)
@@ -398,7 +403,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
               .setHasCustomTrustStore(hasTrustStorePath)
               .setKerberosPrincipal(kerberosUserPrincipal)
               .setKerberosKeytabPath(kerberosKeytabPath)
-              .setConcurrentHecQueueCapacity(queueCapacity);
+              .setConcurrentHecQueueCapacity(queueCapacity)
+              .setAutoExtractTimestamp(autoExtractTimestamp);
         return config;
     }
 

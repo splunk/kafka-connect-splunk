@@ -40,6 +40,7 @@ public final class HecConfig {
     private String kerberosPrincipal;
     private String kerberosKeytabPath;
     private int concurrentHecQueueCapacity = 100;
+    private Boolean autoExtractTimestamp;
 
     public HecConfig(List<String> uris, String token) {
         this.uris = uris;
@@ -113,6 +114,8 @@ public final class HecConfig {
     public String getTrustStoreType() { return trustStoreType; }
 
     public String getTrustStorePassword() { return trustStorePassword; }
+
+    public Boolean getAutoExtractTimestamp() { return autoExtractTimestamp; }
 
     public HecConfig setDisableSSLCertVerification(boolean disableVerfication) {
         disableSSLCertVerification = disableVerfication;
@@ -214,6 +217,11 @@ public final class HecConfig {
 
     public HecConfig setConcurrentHecQueueCapacity(int concurrentHecQueueCapacity) {
         this.concurrentHecQueueCapacity = concurrentHecQueueCapacity;
+        return this;
+    }
+
+    public HecConfig setAutoExtractTimestamp(Boolean autoExtractTimestamp) {
+        this.autoExtractTimestamp = autoExtractTimestamp;
         return this;
     }
 
