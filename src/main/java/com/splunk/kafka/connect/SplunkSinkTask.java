@@ -222,7 +222,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
         StringBuilder headerString = new StringBuilder();
 
-        if(indexHeader != null) {
+        if(indexHeader != null && indexHeader.value() != null) {
             headerString.append(indexHeader.value().toString());
         } else if (metas != null) {
             headerString.append(metas.get("index"));
@@ -230,7 +230,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
         headerString.append(insertHeaderToken());
 
-        if(hostHeader != null) {
+        if(hostHeader != null && hostHeader.value() != null) {
             headerString.append(hostHeader.value().toString());
         } else if (metas != null) {
             headerString.append("default-host");
@@ -238,7 +238,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
         headerString.append(insertHeaderToken());
 
-        if(sourceHeader != null) {
+        if(sourceHeader != null && sourceHeader.value() != null) {
             headerString.append(sourceHeader.value().toString());
         } else if (metas != null) {
             headerString.append(metas.get("source"));
@@ -246,7 +246,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
         headerString.append(insertHeaderToken());
 
-        if(sourcetypeHeader != null) {
+        if(sourcetypeHeader != null && sourcetypeHeader.value() != null) {
             headerString.append(sourcetypeHeader.value().toString());
         } else if (metas != null) {
             headerString.append(metas.get("sourcetype"));
@@ -442,16 +442,16 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         Header headerSource = headers.lastWithName(connectorConfig.headerSource);
         Header headerSourcetype = headers.lastWithName(connectorConfig.headerSourcetype);
 
-        if (headerIndex != null) {
+        if (headerIndex != null && headerIndex.value() != null) {
             event.setIndex(headerIndex.value().toString());
         }
-        if (headerHost != null) {
+        if (headerHost != null && headerHost.value() != null) {
             event.setHost(headerHost.value().toString());
         }
-        if (headerSource != null) {
+        if (headerSource != null && headerSource.value() != null) {
             event.setSource(headerSource.value().toString());
         }
-        if (headerSourcetype != null) {
+        if (headerSourcetype != null && headerSourcetype.value() != null) {
             event.setSourcetype(headerSourcetype.value().toString());
         }
 
