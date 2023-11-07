@@ -189,7 +189,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String SSL_TRUSTSTORE_PATH_DOC = "Path on the local disk to the certificate trust store.";
     static final String SSL_TRUSTSTORE_TYPE_DOC = "Type of the trust store (JKS, PKCS12, ...).";
     static final String SSL_TRUSTSTORE_PASSWORD_DOC = "Password for the trust store.";
-    static final String AUTO_EXTRACT_TIMESTAMP_DOC = "Sends timestamped events to HTTP Event Collector using the Splunk platform JSON event protocol when auto_extract_timestamp is set to \"true\" in the /event URL.";
+    static final String AUTO_EXTRACT_TIMESTAMP_DOC = "When set to true, it forces Splunk HEC to extract the timestamp from event envelope/event data.";
 
     static final String HEADER_SUPPORT_DOC = "Setting will enable Kafka Record headers to be used for meta data override";
     static final String HEADER_CUSTOM_DOC = "Setting will enable look for Record headers with these values and add them"
