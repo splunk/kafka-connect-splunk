@@ -17,19 +17,17 @@ package com.splunk.kafka.connect;
 
 import com.splunk.hecclient.Event;
 import com.splunk.hecclient.EventBatch;
-import com.splunk.hecclient.JsonEvent;
 import com.splunk.hecclient.RawEventBatch;
-import org.apache.commons.logging.Log;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.config.ConfigException;
+import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.record.TimestampType;
 import org.apache.kafka.connect.errors.RetriableException;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.text.ParseException;
 import java.util.*;
 
 public class SplunkSinkTaskTest {
@@ -239,6 +237,25 @@ public class SplunkSinkTaskTest {
         task.start(config);
         task.put(createNullSinkRecord());
         Assert.assertEquals(0, hec.getBatches().size());
+        task.stop();
+    }
+
+    @Test
+    public void putWithNullIndexHeaderValue() {
+        UnitUtil uu = new UnitUtil(0);
+        Map<String, String> config = uu.createTaskConfig();
+        config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(true));
+        config.put(SplunkSinkConnectorConfig.ACK_CONF, String.valueOf(true));
+        config.put(SplunkSinkConnectorConfig.MAX_BATCH_SIZE_CONF, String.valueOf(1));
+        config.put(SplunkSinkConnectorConfig.HEADER_SUPPORT_CONF, String.valueOf("true"));
+        config.put(SplunkSinkConnectorConfig.HEADER_INDEX_CONF, "index");
+        SplunkSinkTask task = new SplunkSinkTask();
+        HecMock hec = new HecMock(task);
+        hec.setSendReturnResult(HecMock.success);
+        task.setHec(hec);
+        task.start(config);
+        task.put(createSinkRecordWithNullIndexHeaderValue());
+        Assert.assertEquals(1, hec.getBatches().size());
         task.stop();
     }
 
@@ -514,6 +531,12 @@ public class SplunkSinkTaskTest {
         List<SinkRecord> records = new ArrayList<>();
         SinkRecord rec = null;
         records.add(rec);
+        return records;
+    }
+
+    private Collection<SinkRecord> createSinkRecordWithNullIndexHeaderValue() {
+        List<SinkRecord> records = new ArrayList<>(createSinkRecords(1));
+        records.get(0).headers().add("index", null, null);
         return records;
     }
 
