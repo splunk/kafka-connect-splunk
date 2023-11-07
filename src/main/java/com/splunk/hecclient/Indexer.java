@@ -20,6 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.splunk.kafka.connect.VersionUtils;
 import com.sun.security.auth.module.Krb5LoginModule;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.Principal;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
@@ -37,6 +40,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
@@ -51,6 +55,8 @@ final class Indexer implements IndexerInf {
     private static final ObjectMapper jsonMapper = new ObjectMapper();
 
     private HecConfig hecConfig;
+
+    private HecURIBuilder hecURIBuilder;
     private Configuration config;
     private CloseableHttpClient httpClient;
     private HttpContext context;
@@ -72,6 +78,7 @@ final class Indexer implements IndexerInf {
         this.hecToken = config.getToken();
         this.poller = poller;
         this.context = HttpClientContext.create();
+        this.hecURIBuilder = new HecURIBuilder(baseUrl, hecConfig);
         backPressure = 0;
 
         channel = new HecChannel(this);
@@ -132,8 +139,8 @@ final class Indexer implements IndexerInf {
     @Override
     public boolean send(final EventBatch batch) {
         String endpoint = batch.getRestEndpoint();
-        String url = baseUrl + endpoint;
-        final HttpPost httpPost = new HttpPost(url);
+        URI uri = hecURIBuilder.getURI(endpoint);
+        final HttpPost httpPost = new HttpPost(uri);
         httpPost.setHeaders(headers);
         if (batch.isEnableCompression()) {
             httpPost.setHeader("Content-Encoding", "gzip");

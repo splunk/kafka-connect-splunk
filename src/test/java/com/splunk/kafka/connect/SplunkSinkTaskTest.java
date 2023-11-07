@@ -28,6 +28,9 @@ import org.apache.kafka.connect.sink.SinkRecord;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.*;
 
 public class SplunkSinkTaskTest {
@@ -266,14 +269,27 @@ public class SplunkSinkTaskTest {
 
     @Test
     public void checkExtractedTimestamp() {
+
+
         SplunkSinkTask task = new SplunkSinkTask();
-        Collection<SinkRecord> record = createSinkRecords(1,"{\"id\": \"19\",\"host\":\"host-01\",\"source\":\"bu\",\"fields\":{\"hn\":\"hostname1\",\"CLASS\":\"class1\",\"cust_id\":\"000013934\",\"time\": \"Jun 13 2010 23:11:52.454 UTC\",\"category\":\"IFdata\",\"ifname\":\"LoopBack7\",\"IFdata.Bits received\":\"0\",\"IFdata.Bits sent\":\"0\"}");
         UnitUtil uu = new UnitUtil(0);
         Map<String, String> config = uu.createTaskConfig();
         config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
         config.put(SplunkSinkConnectorConfig.ENABLE_TIMESTAMP_EXTRACTION_CONF, String.valueOf(true));
         config.put(SplunkSinkConnectorConfig.REGEX_CONF, "\\\"time\\\":\\s*\\\"(?<time>.*?)\"");
         config.put(SplunkSinkConnectorConfig.TIMESTAMP_FORMAT_CONF, "MMM dd yyyy HH:mm:ss.SSS zzz");
+        config.put(SplunkSinkConnectorConfig.TIMESTAMP_TIMEZONE_CONF, "UTC");
+
+        SimpleDateFormat df = new SimpleDateFormat(config.get(SplunkSinkConnectorConfig.TIMESTAMP_FORMAT_CONF));
+        df.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        double instantDouble = 1.276470712454E12;
+        String formattedDate = df.format(Date.from(Instant.ofEpochMilli(Double.valueOf(instantDouble).longValue())));
+
+        Collection<SinkRecord> record = createSinkRecords(1,"{\"id\": \"19\",\"host\":\"host-01\",\"source\":\"bu\",\"fields\":{\"hn\":\"hostname1\",\"CLASS\":\"class1\",\"cust_id\":\"000013934\",\"time\": \"" +
+                formattedDate +
+                "\",\"category\":\"IFdata\",\"ifname\":\"LoopBack7\",\"IFdata.Bits received\":\"0\",\"IFdata.Bits sent\":\"0\"}");
+
         HecMock hec = new HecMock(task);
         hec.setSendReturnResult(HecMock.success);
         task.setHec(hec);
@@ -286,7 +302,7 @@ public class SplunkSinkTaskTest {
             List<Event> event_list = batch.getEvents();
             Iterator<Event> iterator = event_list.listIterator() ;
             Event event = iterator.next();
-            Assert.assertEquals(1.276470712454E9, event.getTime(), 0);
+            Assert.assertEquals(instantDouble / 1000, event.getTime(), 0);
             break;       
         }  
         task.stop();
