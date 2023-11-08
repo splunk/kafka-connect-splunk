@@ -74,6 +74,9 @@ public final class HttpClientBuilder {
                 .setSoTimeout(socketTimeout * 1000)
                 .build();
         RequestConfig requestConfig = RequestConfig.custom()
+                .setSocketTimeout(socketTimeout)
+                .setConnectionRequestTimeout(socketTimeout)
+                .setConnectTimeout(socketTimeout)
                 .setCookieSpec(CookieSpecs.STANDARD)
                 .build();
 
