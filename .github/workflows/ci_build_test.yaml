@@ -350,6 +350,7 @@ jobs:
 
       - name: Install kafka connect
         run: |
+          sudo kill $(sudo lsof -t -i:8083) && sleep 2
           sudo rm -f /usr/local/share/kafka/plugins/splunk-kafka-connect*.jar
           sudo cp /tmp/splunk-kafka-connect*.jar /usr/local/share/kafka/plugins/
           sudo /usr/local/kafka/bin/connect-distributed.sh $GITHUB_WORKSPACE/config/connect-distributed-quickstart.properties &
