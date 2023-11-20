@@ -74,7 +74,9 @@ jobs:
           repository: ${{github.event.pull_request.head.repo.full_name}}
       - name: Semgrep
         id: semgrep
-        run: semgrep ci
+        run: |
+          semgrep login
+          semgrep ci
         env:
           # Connect to Semgrep Cloud Platform through your SEMGREP_APP_TOKEN.
           # Generate a token from Semgrep Cloud Platform > Settings
