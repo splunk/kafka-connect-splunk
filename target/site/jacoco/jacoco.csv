@@ -19,11 +19,12 @@ splunk-kafka-connect,com.splunk.hecclient,EventBatch,0,236,0,12,0,60,0,28,0,22
 splunk-kafka-connect,com.splunk.hecclient,HecNullEventException,5,4,0,0,2,2,1,1,1,1
 splunk-kafka-connect,com.splunk.hecclient,Event,3,204,0,6,1,67,1,29,1,26
 splunk-kafka-connect,com.splunk.hecclient,RawEventBatch.Builder,0,45,0,0,0,13,0,7,0,7
-splunk-kafka-connect,com.splunk.hecclient,Indexer,179,417,9,19,40,95,10,23,3,16
+splunk-kafka-connect,com.splunk.hecclient,Indexer,179,420,9,19,40,96,10,23,3,16
 splunk-kafka-connect,com.splunk.hecclient,EventBatch.GzipDataContentProducer,0,21,0,0,0,6,0,2,0,2
 splunk-kafka-connect,com.splunk.hecclient,HecAckPollResponse,0,43,0,4,0,9,0,5,0,3
-splunk-kafka-connect,com.splunk.hecclient,HecConfig,5,219,1,1,1,78,2,41,1,41
+splunk-kafka-connect,com.splunk.hecclient,HecConfig,5,227,1,1,1,81,2,43,1,43
 splunk-kafka-connect,com.splunk.hecclient,Indexer.new Configuration() {...},21,0,0,0,4,0,2,0,2,0
+splunk-kafka-connect,com.splunk.hecclient,HecURIBuilder,6,32,0,2,2,9,0,3,0,2
 splunk-kafka-connect,com.splunk.hecclient,DoubleSerializer,0,15,0,0,0,4,0,2,0,2
 splunk-kafka-connect,com.splunk.hecclient,PostResponse,0,37,0,2,0,13,0,8,0,7
 splunk-kafka-connect,com.splunk.hecclient,ResponsePoller,33,80,1,7,7,23,3,11,2,8
@@ -35,7 +36,7 @@ splunk-kafka-connect,com.splunk.kafka.connect,JacksonStructModule.StructSerializ
 splunk-kafka-connect,com.splunk.kafka.connect,VersionUtils,11,86,0,10,4,26,1,11,1,6
 splunk-kafka-connect,com.splunk.kafka.connect,JacksonStructModule,0,10,0,0,0,3,0,1,0,1
 splunk-kafka-connect,com.splunk.kafka.connect,SplunkSinkRecord,74,188,14,14,22,47,18,9,5,8
-splunk-kafka-connect,com.splunk.kafka.connect,SplunkSinkConnectorConfig,5,1255,6,72,1,195,6,47,0,14
+splunk-kafka-connect,com.splunk.kafka.connect,SplunkSinkConnectorConfig,5,1269,6,72,1,198,6,47,0,14
 splunk-kafka-connect,com.splunk.kafka.connect,SplunkSinkConnector,57,338,3,25,11,79,4,26,1,15
 splunk-kafka-connect,com.splunk.kafka.connect,AbstractClientWrapper,0,3,0,0,0,1,0,1,0,1
-splunk-kafka-connect,com.splunk.kafka.connect,SplunkSinkTask,668,858,66,60,134,194,49,47,8,25
+splunk-kafka-connect,com.splunk.kafka.connect,SplunkSinkTask,416,1134,58,84,68,260,48,56,3,30
