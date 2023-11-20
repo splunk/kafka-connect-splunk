@@ -275,6 +275,8 @@ public class Hec implements HecInf {
                     .setMaxConnectionPoolSizePerDestination(poolSizePerDest)
                     .setMaxConnectionPoolSize(poolSizePerDest * config.getUris().size())
                     .setSocketTimeout(config.getSocketTimeout())
+                    .setConnectionTimeout(config.getConnectionTimeout())
+                    .setConnectionRequestTimeout(config.getConnectionRequestTimeout())
                     .build();
         }
 

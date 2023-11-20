@@ -29,6 +29,8 @@ public final class HecConfig {
     private int ackPollInterval = 10; // in seconds
     private int ackPollThreads = 2;
     private int socketTimeout = 60; // in seconds
+    private int connectionTimeout = 60; // in seconds
+    private int connectionRequestTimeout = 60; // in seconds
     private int socketSendBufferSize = 8 * 1024 * 1024; // in byte
     private int backoffThresholdSeconds = 60 * 1000;
     private boolean enableChannelTracking = false;
@@ -60,6 +62,14 @@ public final class HecConfig {
 
     public int getSocketTimeout() {
         return socketTimeout;
+    }
+
+    public int getConnectionTimeout() {
+        return connectionTimeout;
+    }
+
+    public int getConnectionRequestTimeout() {
+        return connectionRequestTimeout;
     }
 
     public int getSocketSendBufferSize() {
@@ -116,6 +126,16 @@ public final class HecConfig {
 
     public HecConfig setSocketTimeout(int timeout /*seconds*/) {
         socketTimeout = timeout;
+        return this;
+    }
+
+    public HecConfig setConnectionTimeout(int timeout /*seconds*/) {
+        connectionTimeout = timeout;
+        return this;
+    }
+
+    public HecConfig setConnectionRequestTimeout(int timeout /*seconds*/) {
+        connectionRequestTimeout = timeout;
         return this;
     }
 
