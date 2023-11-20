@@ -63,6 +63,9 @@ jobs:
       - workflow_approval
     name: security-sast-semgrep
     if: github.actor != 'dependabot[bot]'
+    container:
+      # A Docker image with Semgrep installed. Do not change this.
+      image: returntocorp/semgrep
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -71,9 +74,14 @@ jobs:
           repository: ${{github.event.pull_request.head.repo.full_name}}
       - name: Semgrep
         id: semgrep
-        uses: returntocorp/semgrep-action@v1
-        with:
-          publishToken: ${{ secrets.SEMGREP_PUBLISH_TOKEN }}
+        run: semgrep ci
+        env:
+          # Connect to Semgrep Cloud Platform through your SEMGREP_APP_TOKEN.
+          # Generate a token from Semgrep Cloud Platform > Settings
+          # and add it to your GitHub secrets.
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+
 
   build-unit-test:
     name: build and run unit test
