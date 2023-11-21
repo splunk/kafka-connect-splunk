@@ -290,6 +290,8 @@ public class Hec implements HecInf {
                 .setMaxConnectionPoolSize(poolSizePerDest * config.getUris().size())
                 .setSslContext(context)
                 .setSocketTimeout(config.getSocketTimeout())
+                .setConnectionTimeout(config.getConnectionTimeout())
+                .setConnectionRequestTimeout(config.getConnectionRequestTimeout())
                 .build();
         }
         else {
