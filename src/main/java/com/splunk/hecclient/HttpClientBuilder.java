@@ -33,6 +33,8 @@ public final class HttpClientBuilder {
     private int maxConnectionPoolSizePerDestination = 4;
     private int maxConnectionPoolSize = 4 * 2;
     private int socketTimeout = 60; // in seconds
+    private int connectionRequestTimeout = 60; // in seconds
+    private int connectionTimeout = 60; // in seconds
     private int socketSendBufferSize = 8 * 1024 * 1024; // in bytes
     private boolean disableSSLCertVerification = false;
     private SSLContext sslContext = null;
@@ -49,6 +51,16 @@ public final class HttpClientBuilder {
 
     public HttpClientBuilder setSocketTimeout(int timeout /*seconds*/) {
         this.socketTimeout = timeout;
+        return this;
+    }
+
+    public HttpClientBuilder setConnectionRequestTimeout(int timeout /*seconds*/) {
+        this.connectionRequestTimeout = timeout;
+        return this;
+    }
+
+    public HttpClientBuilder setConnectionTimeout(int timeout /*seconds*/) {
+        this.connectionTimeout = timeout;
         return this;
     }
 
@@ -74,6 +86,9 @@ public final class HttpClientBuilder {
                 .setSoTimeout(socketTimeout * 1000)
                 .build();
         RequestConfig requestConfig = RequestConfig.custom()
+                .setSocketTimeout(socketTimeout * 1000)
+                .setConnectionRequestTimeout(connectionRequestTimeout * 1000)
+                .setConnectTimeout(connectionTimeout * 1000)
                 .setCookieSpec(CookieSpecs.STANDARD)
                 .build();
 
