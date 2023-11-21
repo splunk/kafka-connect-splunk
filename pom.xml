@@ -6,7 +6,7 @@
 
     <groupId>com.github.splunk.kafka.connect</groupId>
     <artifactId>splunk-kafka-connect</artifactId>
-    <version>v2.1.2</version>
+    <version>v2.2.0</version>
     <name>splunk-kafka-connect</name>
 
     <properties>
@@ -191,14 +191,26 @@
         <dependency>
             <groupId>org.xerial.snappy</groupId>
             <artifactId>snappy-java</artifactId>
-            <version>1.1.10.1</version>
+            <version>1.1.10.4</version>
             <type>jar</type>
             <scope>compile</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.avro/avro -->
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+            <version>1.11.3</version>
         </dependency>
         <dependency>
             <groupId>org.jacoco</groupId> 
             <artifactId>jacoco-maven-plugin</artifactId>
             <version>0.8.9</version>
+            </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-compress -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.24.0</version>
         </dependency>
 
     </dependencies>
