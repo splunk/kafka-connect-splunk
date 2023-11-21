@@ -47,8 +47,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String HTTP_KEEPALIVE_CONF = "splunk.hec.http.keepalive";
     static final String HEC_THREDS_CONF = "splunk.hec.threads";
     static final String SOCKET_TIMEOUT_CONF = "splunk.hec.socket.timeout"; // seconds
-    static final String CONENCTION_TIMEOUT_CONF = "splunk.hec.connection.timeout"; // seconds
-    static final String CONENCTION_REQUEST_TIMEOUT_CONF = "splunk.hec.connection.request.timeout"; // seconds
+    static final String CONNECTION_TIMEOUT_CONF = "splunk.hec.connection.timeout"; // seconds
+    static final String CONNECTION_REQUEST_TIMEOUT_CONF = "splunk.hec.connection.request.timeout"; // seconds
     static final String SSL_VALIDATE_CERTIFICATES_CONF = "splunk.hec.ssl.validate.certs";
     static final String ENABLE_COMPRESSSION_CONF = "splunk.hec.enable.compression";
     // Acknowledgement Parameters
@@ -251,8 +251,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         flushWindow = getInt(FLUSH_WINDOW_CONF);
         totalHecChannels = getInt(TOTAL_HEC_CHANNEL_CONF);
         socketTimeout = getInt(SOCKET_TIMEOUT_CONF);
-        connectionTimeout = getInt(CONENCTION_TIMEOUT_CONF);
-        connectionRequestTimeout = getInt(CONENCTION_REQUEST_TIMEOUT_CONF);
+        connectionTimeout = getInt(CONNECTION_TIMEOUT_CONF);
+        connectionRequestTimeout = getInt(CONNECTION_REQUEST_TIMEOUT_CONF);
         enrichments = parseEnrichments(getString(ENRICHMENT_CONF));
         trackData = getBoolean(TRACK_DATA_CONF);
         useRecordTimestamp = getBoolean(USE_RECORD_TIMESTAMP_CONF);
@@ -295,7 +295,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(TOTAL_HEC_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.HIGH, TOTAL_HEC_CHANNEL_DOC)
                 .define(SOCKET_TIMEOUT_CONF, ConfigDef.Type.INT, 60, ConfigDef.Importance.LOW, SOCKET_TIMEOUT_DOC)
                 .define(CONNECTION_TIMEOUT_CONF, ConfigDef.Type.INT, 60, ConfigDef.Importance.LOW, SOCKET_TIMEOUT_DOC)
-                .define(CONENCTION_REQUEST_TIMEOUT_CONF, ConfigDef.Type.INT, 60, ConfigDef.Importance.LOW, SOCKET_TIMEOUT_DOC)
+                .define(CONNECTION_REQUEST_TIMEOUT_CONF, ConfigDef.Type.INT, 60, ConfigDef.Importance.LOW, SOCKET_TIMEOUT_DOC)
                 .define(ENRICHMENT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.LOW, ENRICHMENT_DOC)
                 .define(TRACK_DATA_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.LOW, TRACK_DATA_DOC)
                 .define(USE_RECORD_TIMESTAMP_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, USE_RECORD_TIMESTAMP_DOC)
