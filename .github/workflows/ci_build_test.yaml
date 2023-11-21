@@ -1,6 +1,7 @@
 name: CI Build Test
 
 on:
+  workflow_dispatch:
   pull_request_target:
     branches-ignore:
       - /^release\/.*/
