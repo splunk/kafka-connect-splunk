@@ -44,6 +44,19 @@ public class HttpClientBuilderTest {
                 .build();
         Assert.assertNotNull(client);
     }
+
+    @Test
+    public void buildWithDisabledHostnameVerification() {
+        HttpClientBuilder builder = new HttpClientBuilder();
+        CloseableHttpClient client = builder.setMaxConnectionPoolSizePerDestination(1)
+            .setMaxConnectionPoolSize(2)
+            .setSocketSendBufferSize(1024)
+            .setSocketTimeout(120)
+            .setDisableSSLCertVerification(false)
+            .setDisableHostnameVerification(true)
+            .build();
+        Assert.assertNotNull(client);
+    }
     @Test
     public void buildSecureCustomKeystore() {
         HttpClientBuilder builder = new HttpClientBuilder();

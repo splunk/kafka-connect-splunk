@@ -38,6 +38,7 @@ public final class HecConfig {
     private String trustStorePath;
     private String trustStorePassword;
     private int lbPollInterval = 120; // in seconds
+    private Boolean disableHostnameVerification;
 
     public HecConfig(List<String> uris, String token) {
         this.uris = uris;
@@ -197,5 +198,13 @@ public final class HecConfig {
     public HecConfig setBackoffThresholdSeconds(int backoffSeconds) {
         backoffThresholdSeconds = backoffSeconds * 1000;
         return this;
+    }
+
+    public boolean getDisableHostnameVerification() {
+        return this.disableHostnameVerification;
+    }
+
+    public void setDisableHostnameVerification(Boolean disableHostnameVerification) {
+        this.disableHostnameVerification = disableHostnameVerification;
     }
 }

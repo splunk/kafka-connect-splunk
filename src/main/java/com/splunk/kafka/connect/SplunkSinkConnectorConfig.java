@@ -72,6 +72,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     // Trust store
     static final String SSL_TRUSTSTORE_PATH_CONF = "splunk.hec.ssl.trust.store.path";
     static final String SSL_TRUSTSTORE_PASSWORD_CONF = "splunk.hec.ssl.trust.store.password";
+    static final String DISABLE_HOSTNAME_VERIFICATION_CONF = "splunk.disable.hostname.verification";
     //Headers
     static final String HEADER_SUPPORT_CONF = "splunk.header.support";
     static final String HEADER_CUSTOM_CONF = "splunk.header.custom";
@@ -81,6 +82,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String HEADER_HOST_CONF = "splunk.header.host";
     // Load Balancer
     static final String LB_POLL_INTERVAL_CONF = "splunk.hec.lb.poll.interval";
+
 
     // Kafka configuration description strings
     // Required Parameters
@@ -167,6 +169,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     // TBD
     static final String SSL_TRUSTSTORE_PATH_DOC = "Path on the local disk to the certificate trust store.";
     static final String SSL_TRUSTSTORE_PASSWORD_DOC = "Password for the trust store.";
+    static final String DISABLE_HOSTNAME_VERIFICATION_DOC = "Whether to disable hostname verification in case of SSL Configs being used.";
 
     static final String HEADER_SUPPORT_DOC = "Setting will enable Kafka Record headers to be used for meta data override";
     static final String HEADER_CUSTOM_DOC = "Setting will enable look for Record headers with these values and add them"
@@ -218,6 +221,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final boolean trackData;
 
     final boolean hasTrustStorePath;
+    final boolean disableHostnameVerification;
     final String trustStorePath;
     final String trustStorePassword;
 
@@ -238,6 +242,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         sourcetypes = getString(SOURCETYPE_CONF);
         sources = getString(SOURCE_CONF);
         httpKeepAlive = getBoolean(HTTP_KEEPALIVE_CONF);
+        disableHostnameVerification = getBoolean(DISABLE_HOSTNAME_VERIFICATION_CONF);
         validateCertificates = getBoolean(SSL_VALIDATE_CERTIFICATES_CONF);
         trustStorePath = getString(SSL_TRUSTSTORE_PATH_CONF);
         hasTrustStorePath = StringUtils.isNotBlank(trustStorePath);
@@ -287,6 +292,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(SSL_VALIDATE_CERTIFICATES_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, SSL_VALIDATE_CERTIFICATES_DOC)
                 .define(SSL_TRUSTSTORE_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PATH_DOC)
                 .define(SSL_TRUSTSTORE_PASSWORD_CONF, ConfigDef.Type.PASSWORD, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PASSWORD_DOC)
+                .define(DISABLE_HOSTNAME_VERIFICATION_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.LOW, DISABLE_HOSTNAME_VERIFICATION_DOC)
                 .define(EVENT_TIMEOUT_CONF, ConfigDef.Type.INT, 300, ConfigDef.Importance.MEDIUM, EVENT_TIMEOUT_DOC)
                 .define(ACK_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 10, ConfigDef.Importance.MEDIUM, ACK_POLL_INTERVAL_DOC)
                 .define(ACK_POLL_THREADS_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.MEDIUM, ACK_POLL_THREADS_DOC)
@@ -336,7 +342,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
               .setBackoffThresholdSeconds(backoffThresholdSeconds)
               .setTrustStorePath(trustStorePath)
               .setTrustStorePassword(trustStorePassword)
-              .setHasCustomTrustStore(hasTrustStorePath);
+              .setHasCustomTrustStore(hasTrustStorePath)
+              .setDisableHostnameVerification(disableHostnameVerification);
         return config;
     }
 
