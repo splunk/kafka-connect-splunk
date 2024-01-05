@@ -18,7 +18,6 @@ package com.splunk.hecclient;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.SocketConfig;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -38,7 +37,6 @@ public final class HttpClientBuilder {
     private int connectionTimeout = 60; // in seconds
     private int socketSendBufferSize = 8 * 1024 * 1024; // in bytes
     private boolean disableSSLCertVerification = false;
-    private boolean disableHostnameVerification = false;
     private SSLContext sslContext = null;
 
     public HttpClientBuilder setMaxConnectionPoolSizePerDestination(int connections) {
@@ -74,15 +72,6 @@ public final class HttpClientBuilder {
     public HttpClientBuilder setDisableSSLCertVerification(boolean disableVerification) {
         disableSSLCertVerification = disableVerification;
         return this;
-    }
-
-    public HttpClientBuilder setDisableHostnameVerification(boolean disableHostnameVerification) {
-        this.disableHostnameVerification = disableHostnameVerification;
-        return this;
-    }
-
-    public Boolean getDisableHostnameVerification() {
-        return this.disableHostnameVerification;
     }
 
     public HttpClientBuilder setSslContext(SSLContext context) {
@@ -149,9 +138,6 @@ public final class HttpClientBuilder {
         if (this.sslContext == null) {
             return null; // use system default one
         } else {
-            if (this.getDisableHostnameVerification()) {
-                return new SSLConnectionSocketFactory(this.sslContext, NoopHostnameVerifier.INSTANCE);
-            }
             return new SSLConnectionSocketFactory(this.sslContext);
         }
     }
