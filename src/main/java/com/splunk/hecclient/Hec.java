@@ -277,7 +277,6 @@ public class Hec implements HecInf {
                     .setSocketTimeout(config.getSocketTimeout())
                     .setConnectionTimeout(config.getConnectionTimeout())
                     .setConnectionRequestTimeout(config.getConnectionRequestTimeout())
-                    .setDisableHostnameVerification(config.getDisableHostnameVerification())
                     .build();
         }
 
@@ -293,7 +292,6 @@ public class Hec implements HecInf {
                 .setSocketTimeout(config.getSocketTimeout())
                 .setConnectionTimeout(config.getConnectionTimeout())
                 .setConnectionRequestTimeout(config.getConnectionRequestTimeout())
-                .setDisableHostnameVerification(config.getDisableHostnameVerification())
                 .build();
         }
         else {

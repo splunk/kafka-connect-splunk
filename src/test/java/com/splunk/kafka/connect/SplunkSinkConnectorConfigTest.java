@@ -75,22 +75,6 @@ public class SplunkSinkConnectorConfigTest {
     }
 
     @Test
-    public void getDisableHostnameVerificationConfig() {
-            UnitUtil uu = new UnitUtil(0);
-            Map<String, String> taskConfig = uu.createTaskConfig();
-            taskConfig.put(SplunkSinkConnectorConfig.DISABLE_HOSTNAME_VERIFICATION_CONF, String.valueOf(false));
-            SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
-            HecConfig config = connectorConfig.getHecConfig();
-            Assert.assertEquals(false, config.getDisableSSLCertVerification());
-
-            taskConfig.put(SplunkSinkConnectorConfig.DISABLE_HOSTNAME_VERIFICATION_CONF, String.valueOf(true));
-            connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
-            config = connectorConfig.getHecConfig();
-            Assert.assertEquals(true, config.getDisableSSLCertVerification());
-
-    }
-
-    @Test
     public void getHecConfigCustomKeystore() {
         UnitUtil uu = new UnitUtil(1);
 
