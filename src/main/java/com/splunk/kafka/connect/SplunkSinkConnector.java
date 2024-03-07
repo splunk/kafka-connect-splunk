@@ -15,9 +15,6 @@
  */
 package com.splunk.kafka.connect;
 
-import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.KERBEROS_KEYTAB_PATH_CONF;
-import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.KERBEROS_USER_PRINCIPAL_CONF;
-
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -52,6 +49,8 @@ import com.splunk.hecclient.Event;
 import com.splunk.hecclient.EventBatch;
 import com.splunk.hecclient.JsonEvent;
 import com.splunk.hecclient.JsonEventBatch;
+
+import static com.splunk.kafka.connect.SplunkSinkConnectorConfig.*;
 
 public final class SplunkSinkConnector extends SinkConnector {
     private static final Logger log = LoggerFactory.getLogger(SplunkSinkConnector.class);
@@ -147,10 +146,10 @@ public final class SplunkSinkConnector extends SinkConnector {
 
 
     private void validateSplunkConfigurations(final Map<String, String> configs) throws ConfigException {
-        SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(configs);
-        if (connectorConfig.disableValidation) {
+        if (configs.containsKey(DISABLE_VALIDATION) && Boolean.parseBoolean(configs.get(DISABLE_VALIDATION))) {
             return;
         }
+        SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(configs);
         String[] indexes = split(connectorConfig.indexes, ",");
         if(indexes == null || indexes.length == 0) {
             preparePayloadAndExecuteRequest(connectorConfig, "");
