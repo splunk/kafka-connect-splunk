@@ -249,6 +249,17 @@ class SplunkSinkConnecterTest {
     }
 
     @Test
+    public void testInvalidSplunkConfigurationWithMandatoryFieldMissingWithValidationDisabled() {
+        final Map<String, String> configs = new HashMap<>();
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+        configs.put("splunk.validation.disable", "true");
+        configs.put("topics", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        clientInstance.client.setResponse(CloseableHttpClientMock.EXCEPTION);
+        Assertions.assertDoesNotThrow(()->connector.validate(configs));
+    }
+
+    @Test
     public void testInvalidSplunkConfigurationsWithValidationEnabled() {
         final Map<String, String> configs = new HashMap<>();
         addNecessaryConfigs(configs);
