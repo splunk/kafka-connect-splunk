@@ -72,7 +72,19 @@ class SplunkSinkConnecterTest {
         ConfigDef config = connector.config();
         Assert.assertNotNull(config);
     }
-    
+    @Test
+    public void testErrorWithoutUriConf() {
+        final Map<String, String> configs = new HashMap<>();
+        SinkConnector connector = new SplunkSinkConnector();
+        configs.put("topics", "b");
+        configs.put("splunk.indexes", "b");
+        MockHecClientWrapper clientInstance = new MockHecClientWrapper();
+        ((SplunkSinkConnector) connector).setHecInstance(clientInstance);
+        Config result = connector.validate(configs);
+        assertHasErrorMessage(result, URI_CONF, "Either one of 'splunk.hec.token' or 'splunk.hec.uri' must be set for Splunk validation check.", 1);
+        assertHasErrorMessage(result, TOKEN_CONF, "Either one of 'splunk.hec.token' or 'splunk.hec.uri' must be set for Splunk validation check.", 1);
+    }
+
     @Test
     public void testValidKerberosBothEmpty() {
         final Map<String, String> configs = new HashMap<>();
@@ -304,12 +316,15 @@ class SplunkSinkConnecterTest {
         configs.put(URI_CONF, TEST_URI);
         configs.put(TOKEN_CONF, "blah");
     }
-
     private void assertHasErrorMessage(Config config, String property, String msg) {
+        assertHasErrorMessage(config, property, msg, 0);
+    }
+    private void assertHasErrorMessage(Config config, String property, String msg, int idx) {
         for (ConfigValue configValue : config.configValues()) {
             if (configValue.name().equals(property)) {
+                System.out.print(configValue.errorMessages());
                 assertFalse(configValue.errorMessages().isEmpty());
-                assertTrue(configValue.errorMessages().get(0).contains(msg));
+                assertTrue(configValue.errorMessages().get(idx).contains(msg));
             }
         }
     }

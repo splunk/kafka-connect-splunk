@@ -149,6 +149,17 @@ public final class SplunkSinkConnector extends SinkConnector {
         if (configs.containsKey(DISABLE_VALIDATION) && Boolean.parseBoolean(configs.get(DISABLE_VALIDATION))) {
             return;
         }
+        if (configs.getOrDefault(TOKEN_CONF,"").equals("")
+        || configs.getOrDefault(URI_CONF,"").equals("")) {
+            String errorMessage = String.format(
+                "Either one of '%s' or '%s' must be set for Splunk validation check.",
+                TOKEN_CONF,
+                URI_CONF
+            );
+            addErrorMessage(TOKEN_CONF, errorMessage);
+            addErrorMessage(URI_CONF, errorMessage);
+            return;
+        }
         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(configs);
         String[] indexes = split(connectorConfig.indexes, ",");
         if(indexes == null || indexes.length == 0) {
