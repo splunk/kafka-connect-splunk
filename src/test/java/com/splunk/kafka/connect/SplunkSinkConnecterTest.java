@@ -322,7 +322,6 @@ class SplunkSinkConnecterTest {
     private void assertHasErrorMessage(Config config, String property, String msg, int idx) {
         for (ConfigValue configValue : config.configValues()) {
             if (configValue.name().equals(property)) {
-                System.out.print(configValue.errorMessages());
                 assertFalse(configValue.errorMessages().isEmpty());
                 assertTrue(configValue.errorMessages().get(idx).contains(msg));
             }
