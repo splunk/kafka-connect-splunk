@@ -268,6 +268,42 @@ public class SplunkSinkTaskTest {
     }
 
     @Test
+    public void checkFormattedEvent() {
+
+        SplunkSinkTask task = new SplunkSinkTask();
+        UnitUtil uu = new UnitUtil(0);
+        Map<String, String> config = uu.createTaskConfig();
+        config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
+        config.put(SplunkSinkConnectorConfig.HEC_EVENT_FORMATTED_CONF, String.valueOf(true));
+
+        Collection<SinkRecord> record = createSinkRecords(
+            1, "{" +
+            "\"host\":\"host-01\"," +
+            "\"source\":\"bu\"," +
+            "\"fields\":{\"foo\":\"bar\",\"CLASS\":\"class1\",\"cust_id\":\"000013934\"}}"
+        );
+
+        HecMock hec = new HecMock(task);
+        hec.setSendReturnResult(HecMock.success);
+        task.setHec(hec);
+        task.start(config);
+        task.put(record);
+
+        List<EventBatch> batches = hec.getBatches();
+        for (Iterator<EventBatch> iter = batches.listIterator(); iter.hasNext();) {
+            EventBatch batch = iter.next();
+            List<Event> event_list = batch.getEvents();
+            Iterator<Event> iterator = event_list.listIterator() ;
+            Event event = iterator.next();
+
+            Assert.assertEquals("host-01", event.getHost());
+            Assert.assertEquals("bar", event.getFields().get("foo"));
+            break;
+        }
+        task.stop();
+    }
+
+    @Test
     public void checkExtractedTimestamp() {
 
 
