@@ -22,7 +22,7 @@ import java.util.Map;
 
 final class HecChannel {
     private String id;
-    private Map<String, String> chField;
+    private Map<String, Object> chField;
     private IndexerInf indexer;
     private boolean isAvailable;
 

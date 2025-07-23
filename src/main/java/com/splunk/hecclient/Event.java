@@ -240,15 +240,15 @@ public abstract class Event {
         return tied;
     }
 
-    public Event addFields(final Map<String, String> fields) {
+    public Event addFields(final Map<String, Object> fields) {
         return this;
     }
 
-    public Event setFields(final Map<String, String> fields) {
+    public Event setFields(final Map<String, Object> fields) {
         return this;
     }
 
-    public Map<String, String> getFields() {
+    public Map<String, Object> getFields() {
         return null;
     }
 
