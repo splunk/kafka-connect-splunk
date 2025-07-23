@@ -191,7 +191,7 @@ public class RawEventTest {
     @Test
     public void getterSetter() {
         Event event = new RawEvent("ni", null);
-        Map<String, String> m = new HashMap<String, String>();
+        Map<String, Object> m = new HashMap<>();
         m.put("hello", "world");
         event.setFields(m);
         Assert.assertNull(event.getFields()); // we ignore extra fields for raw event

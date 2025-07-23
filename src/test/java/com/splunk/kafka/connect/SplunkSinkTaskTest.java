@@ -21,14 +21,12 @@ import com.splunk.hecclient.RawEventBatch;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.config.ConfigException;
-import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.record.TimestampType;
 import org.apache.kafka.connect.errors.RetriableException;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.*;
@@ -280,7 +278,7 @@ public class SplunkSinkTaskTest {
             1, "{" +
             "\"host\":\"host-01\"," +
             "\"source\":\"bu\"," +
-            "\"fields\":{\"foo\":\"bar\",\"CLASS\":\"class1\",\"cust_id\":\"000013934\"}}"
+            "\"fields\":{\"foo\":\"bar\",\"CLASS\":\"class1\",\"cust_id\":[\"000013934\",\"000013935\"]}}"
         );
 
         HecMock hec = new HecMock(task);
@@ -297,7 +295,15 @@ public class SplunkSinkTaskTest {
             Event event = iterator.next();
 
             Assert.assertEquals("host-01", event.getHost());
+
             Assert.assertEquals("bar", event.getFields().get("foo"));
+
+            Object custIdObject = event.getFields().get("cust_id");
+            Assert.assertTrue(custIdObject instanceof List);
+            @SuppressWarnings("unchecked")
+            List<String> custIdList = (List<String>) custIdObject;
+            final List<String> expectedCustIdList = Arrays.asList("000013934", "000013935");
+            Assert.assertEquals(expectedCustIdList, custIdList);
             break;
         }
         task.stop();

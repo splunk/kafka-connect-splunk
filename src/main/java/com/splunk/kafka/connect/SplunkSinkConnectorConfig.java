@@ -245,7 +245,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
 
     final String lineBreaker;
     final boolean useRecordTimestamp;
-    final Map<String, String> enrichments;
+    final Map<String, Object> enrichments;
     final boolean trackData;
 
     final boolean hasTrustStorePath;
@@ -461,13 +461,13 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         return null;
     }
 
-    private static Map<String, String> parseEnrichments(String enrichment) {
+    private static Map<String, Object> parseEnrichments(String enrichment) {
         String[] kvs = split(enrichment, ",");
         if (kvs == null) {
             return null;
         }
 
-        Map<String, String> enrichmentKvs = new HashMap<>();
+        Map<String, Object> enrichmentKvs = new HashMap<>();
         for (final String kv : kvs) {
             String[] kvPairs = split(kv, "=");
             if (kvPairs.length != 2) {

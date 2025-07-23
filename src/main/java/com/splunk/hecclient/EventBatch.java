@@ -47,7 +47,7 @@ public abstract class EventBatch {
     public abstract void add(Event event);
     public abstract EventBatch createFromThis();
 
-    public final void addExtraFields(final Map<String, String> fields) {
+    public final void addExtraFields(final Map<String, Object> fields) {
         // recalculate the batch length since we inject more meta data to each event
         int newLength = 0;
         for (final Event event: events) {

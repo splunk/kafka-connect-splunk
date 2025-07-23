@@ -33,7 +33,7 @@ import java.util.Map;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public final class JsonEvent extends Event {
-    private Map<String, String> fields;
+    private Map<String, Object> fields;
 
     /**
      * Creates a new json event.
@@ -67,7 +67,7 @@ public final class JsonEvent extends Event {
      * @since              1.0
      */
     @Override
-    public JsonEvent addFields(final Map<String, String> extraFields) {
+    public JsonEvent addFields(final Map<String, Object> extraFields) {
         if (extraFields == null || extraFields.isEmpty()) {
             return this;
         }
@@ -93,7 +93,7 @@ public final class JsonEvent extends Event {
      * @since              1.0
      */
     @Override
-    public JsonEvent setFields(final Map<String, String> extraFields) {
+    public JsonEvent setFields(final Map<String, Object> extraFields) {
         fields = extraFields;
         invalidate();
         return this;
@@ -108,7 +108,7 @@ public final class JsonEvent extends Event {
      * @since              1.0
      */
     @Override
-    public Map<String, String> getFields() {
+    public Map<String, Object> getFields() {
         return fields;
     }
 
