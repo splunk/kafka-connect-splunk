@@ -276,6 +276,8 @@ public class SplunkSinkTaskTest {
 
         Collection<SinkRecord> record = createSinkRecords(
             1, "{" +
+            "\"index\":\"main\"," +
+            "\"event\":\"Hello, world!\"," +
             "\"host\":\"host-01\"," +
             "\"source\":\"bu\"," +
             "\"fields\":{\"foo\":\"bar\",\"CLASS\":\"class1\",\"cust_id\":[\"000013934\",\"000013935\"]}}"
