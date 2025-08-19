@@ -166,6 +166,7 @@ jobs:
       CI_KAFKA_HEADER_INDEX: kafka
       CI_DATAGEN_IMAGE: rock1017/log-generator:latest
       CI_OLD_CONNECTOR_VERSION: v2.0.1
+      CI_KAFKA_VERSION_BEFORE_3_7: ${{ matrix.kafka_version == '3.5.1' || matrix.kafka_version == '3.6.2' }}
 
     steps:
       - name: Checkout
