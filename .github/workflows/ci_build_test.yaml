@@ -35,7 +35,7 @@ jobs:
     needs:
       - workflow_approval
     steps:
-      - name:  Checkout
+      - name: Checkout
         uses: actions/checkout@v3
         with:
           ref: ${{github.event.pull_request.head.sha}}
@@ -245,7 +245,7 @@ jobs:
           cd /tmp && wget https://packages.confluent.io/archive/${{ matrix.confluent_major_version }}/confluent-community-${{ matrix.confluent_package_version }}.tar.gz
           sudo tar xzf confluent-community-${{ matrix.confluent_package_version }}.tar.gz
           cd confluent-${{ matrix.confluent_package_version }}
-          bin/schema-registry-start ./etc/schema-registry/schema-registry.properties &
+          sudo bin/schema-registry-start ./etc/schema-registry/schema-registry.properties &
 
       - name: Register the protobuf schema
         run: |
@@ -377,7 +377,7 @@ jobs:
           export PYTHONWARNINGS="ignore:Unverified HTTPS request"
           echo "Running functional tests....."
           python -m pytest --log-level=INFO
-        
+
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
