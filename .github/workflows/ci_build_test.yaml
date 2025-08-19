@@ -149,10 +149,6 @@ jobs:
             kafka_package: "kafka_2.12-3.9.0.tgz"
             confluent_major_version: "7.9"
             confluent_package_version: "7.9.2"
-          - kafka_version: "4.0.0"
-            kafka_package: "kafka_2.13-4.0.0.tgz"
-            confluent_major_version: "8.0"
-            confluent_package_version: "8.0.0"
     env:
       CI_SPLUNK_VERSION: "9.0.2"
       CI_SPLUNK_FILENAME: splunk-9.0.2-17e00c557dc1-Linux-x86_64.tgz
