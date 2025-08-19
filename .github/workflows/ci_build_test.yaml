@@ -131,16 +131,28 @@ jobs:
         include:
           - kafka_version: "3.5.1"
             kafka_package: "kafka_2.12-3.5.1.tgz"
+            confluent_major_version: "7.5"
+            confluent_package_version: "7.5.9"
           - kafka_version: "3.6.2"
             kafka_package: "kafka_2.12-3.6.2.tgz"
+            confluent_major_version: "7.6"
+            confluent_package_version: "7.6.6"
           - kafka_version: "3.7.2"
             kafka_package: "kafka_2.12-3.7.2.tgz"
+            confluent_major_version: "7.7"
+            confluent_package_version: "7.7.4"
           - kafka_version: "3.8.1"
             kafka_package: "kafka_2.12-3.8.1.tgz"
+            confluent_major_version: "7.8"
+            confluent_package_version: "7.8.3"
           - kafka_version: "3.9.0"
             kafka_package: "kafka_2.12-3.9.0.tgz"
+            confluent_major_version: "7.9"
+            confluent_package_version: "7.9.2"
           - kafka_version: "4.0.0"
-            kafka_package: "kafka_2.12-4.0.0.tgz"
+            kafka_package: "kafka_2.13-4.0.0.tgz"
+            confluent_major_version: "8.0"
+            confluent_package_version: "8.0.0"
     env:
       CI_SPLUNK_VERSION: "9.0.2"
       CI_SPLUNK_FILENAME: splunk-9.0.2-17e00c557dc1-Linux-x86_64.tgz
@@ -229,9 +241,9 @@ jobs:
 
       - name: Up the Schema Registry
         run: |
-          cd /tmp && wget https://packages.confluent.io/archive/7.1/confluent-community-7.1.1.tar.gz
-          sudo tar xzf confluent-community-7.1.1.tar.gz
-          cd confluent-7.1.1
+          cd /tmp && wget https://packages.confluent.io/archive/${{ matrix.confluent_major_version }}/confluent-community-${{ matrix.confluent_package_version }}.tar.gz
+          sudo tar xzf confluent-community-${{ matrix.confluent_package_version }}.tar.gz
+          cd confluent-${{ matrix.confluent_package_version }}
           bin/schema-registry-start ./etc/schema-registry/schema-registry.properties &
 
       - name: Register the protobuf schema
