@@ -48,7 +48,7 @@ jobs:
         env:
           FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
       - name: upload THIRDPARTY file
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: THIRDPARTY
           path: /tmp/THIRDPARTY
@@ -108,7 +108,7 @@ jobs:
           cp -R target/splunk-kafka-connect*.jar /tmp
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: splunk-kafka-connector
           path: /tmp/splunk-kafka-connect*.jar
@@ -232,7 +232,7 @@ jobs:
           check-latest: true
 
       - name: Download artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: splunk-kafka-connector
           path: /tmp
@@ -353,7 +353,7 @@ jobs:
           python test/lib/eventproducer_connector_upgrade.py 2000 --log-level=INFO
           # Check in splunk that we have recieved 2000 events for with ack and without ack tasks
           python test/lib/connector_upgrade.py --log-level=INFO
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: kafka-connect-logs-${{ matrix.kafka_version }}
@@ -375,7 +375,7 @@ jobs:
           echo "Running functional tests....."
           python -m pytest --log-level=INFO
         
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: splunk-events-${{ matrix.kafka_version }}
