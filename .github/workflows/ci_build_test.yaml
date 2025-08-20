@@ -23,7 +23,7 @@ permissions:
 jobs:
   workflow_approval:
     name: Approve workflow
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: workflow-approval
     steps:
       - name: Approve workflow
@@ -31,7 +31,7 @@ jobs:
 
   fossa-scan:
     continue-on-error: true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - workflow_approval
     steps:
@@ -59,7 +59,7 @@ jobs:
           FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
 
   semgrep:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - workflow_approval
     name: security-sast-semgrep
@@ -88,7 +88,7 @@ jobs:
 
   build-unit-test:
     name: build and run unit test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - workflow_approval
     steps:
@@ -150,8 +150,8 @@ jobs:
             confluent_major_version: "7.9"
             confluent_package_version: "7.9.2"
     env:
-      CI_SPLUNK_VERSION: "9.0.2"
-      CI_SPLUNK_FILENAME: splunk-9.0.2-17e00c557dc1-Linux-x86_64.tgz
+      CI_SPLUNK_VERSION: "10.0.0"
+      CI_SPLUNK_FILENAME: splunk-10.0.0-e8eb0c4654f8-linux-amd64.tgz
       CI_SPLUNK_HOST: 127.0.0.1
       CI_SPLUNK_PORT: 8089
       CI_SPLUNK_USERNAME: admin
@@ -173,7 +173,7 @@ jobs:
 
       - name: Install Splunk
         run: |
-          cd /opt && wget -O $CI_SPLUNK_FILENAME 'https://d7wz6hmoaavd0.cloudfront.net/products/splunk/releases/'$CI_SPLUNK_VERSION'/linux/'$CI_SPLUNK_FILENAME''
+          cd /opt && wget -O $CI_SPLUNK_FILENAME 'https://download.splunk.com/products/splunk/releases/'$CI_SPLUNK_VERSION'/linux/'$CI_SPLUNK_FILENAME''
           sudo tar xzvf $CI_SPLUNK_FILENAME
           # Set user seed
           hashed_pwd=$(sudo /opt/splunk/bin/splunk hash-passwd $CI_SPLUNK_PASSWORD)
