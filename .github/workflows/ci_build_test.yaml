@@ -121,14 +121,19 @@ jobs:
           files: "target/surefire-reports/*.xml"
 
   e2e_test:
-    name: e2e test - kafka version-${{ matrix.kafka_version }}
+    name: e2e test (kafka:${{ matrix.kafka.kafka_version }}, splunk:${{ matrix.splunk.splunk_version }})
     runs-on: ubuntu-latest
     needs:
       - build-unit-test
     strategy:
       fail-fast: false
       matrix:
-        include:
+        splunk:
+          - splunk_version: "10.0.0"
+            splunk_filename: "splunk-10.0.0-e8eb0c4654f8-linux-amd64.tgz"
+          - splunk_version: "9.4.4"
+            splunk_filename: "splunk-9.4.4-f627d88b766b-linux-amd64.tgz"
+        kafka:
           - kafka_version: "3.5.1"
             kafka_package: "kafka_2.12-3.5.1.tgz"
             confluent_major_version: "7.5"
@@ -150,8 +155,8 @@ jobs:
             confluent_major_version: "7.9"
             confluent_package_version: "7.9.2"
     env:
-      CI_SPLUNK_VERSION: "10.0.0"
-      CI_SPLUNK_FILENAME: splunk-10.0.0-e8eb0c4654f8-linux-amd64.tgz
+      CI_SPLUNK_VERSION: ${{matrix.splunk.splunk_version}}
+      CI_SPLUNK_FILENAME: ${{matrix.splunk.splunk_filename}}
       CI_SPLUNK_HOST: 127.0.0.1
       CI_SPLUNK_PORT: 8089
       CI_SPLUNK_USERNAME: admin
@@ -162,7 +167,7 @@ jobs:
       CI_KAFKA_HEADER_INDEX: kafka
       CI_DATAGEN_IMAGE: rock1017/log-generator:latest
       CI_OLD_CONNECTOR_VERSION: v2.0.1
-      CI_KAFKA_VERSION_BEFORE_3_7: ${{ matrix.kafka_version == '3.5.1' || matrix.kafka_version == '3.6.2' }}
+      CI_KAFKA_VERSION_BEFORE_3_7: ${{ matrix.kafka.kafka_version == '3.5.1' || matrix.kafka.kafka_version == '3.6.2' }}
 
     steps:
       - name: Checkout
@@ -205,11 +210,11 @@ jobs:
           # Restart Splunk
           curl -k -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/services/server/control/restart -X POST
 
-      - name: Install Kafka ${{ matrix.kafka_version }}
+      - name: Install Kafka ${{ matrix.kafka.kafka_version }}
         run: |
-          cd /tmp && wget https://archive.apache.org/dist/kafka/${{ matrix.kafka_version }}/${{ matrix.kafka_package }}
-          sudo tar xzf ${{ matrix.kafka_package }}
-          rm ${{ matrix.kafka_package }}
+          cd /tmp && wget https://archive.apache.org/dist/kafka/${{ matrix.kafka.kafka_version }}/${{ matrix.kafka.kafka_package }}
+          sudo tar xzf ${{ matrix.kafka.kafka_package }}
+          rm ${{ matrix.kafka.kafka_package }}
           sudo mv kafka_* /usr/local/kafka
           cd /usr/local/kafka && ls
 
@@ -238,9 +243,9 @@ jobs:
 
       - name: Up the Schema Registry
         run: |
-          cd /tmp && wget https://packages.confluent.io/archive/${{ matrix.confluent_major_version }}/confluent-community-${{ matrix.confluent_package_version }}.tar.gz
-          sudo tar xzf confluent-community-${{ matrix.confluent_package_version }}.tar.gz
-          cd confluent-${{ matrix.confluent_package_version }}
+          cd /tmp && wget https://packages.confluent.io/archive/${{ matrix.kafka.confluent_major_version }}/confluent-community-${{ matrix.kafka.confluent_package_version }}.tar.gz
+          sudo tar xzf confluent-community-${{ matrix.kafka.confluent_package_version }}.tar.gz
+          cd confluent-${{ matrix.kafka.confluent_package_version }}
           sudo bin/schema-registry-start ./etc/schema-registry/schema-registry.properties &
 
       - name: Register the protobuf schema
@@ -355,7 +360,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: kafka-connect-logs-${{ matrix.kafka_version }}
+          name: kafka-connect-logs-${{ matrix.kafka.kafka_version }}
           path: output.log
 
       - name: Install kafka connect
@@ -377,5 +382,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: splunk-events-${{ matrix.kafka_version }}
+          name: splunk-events-${{ matrix.kafka.kafka_version }}
           path: events.txt
