@@ -29,9 +29,16 @@ def check_events_from_topic(target):
    
     t_end = time.time() + 100
     time.sleep(5)
-    while time.time() < t_end:  
-        output1 = subprocess.getoutput(" echo $(/usr/local/kafka/bin/kafka-run-class.sh kafka.tools.GetOffsetShell --broker-list 'localhost:9092' --topic kafka_connect_upgrade  --time -1 | grep -e ':[[:digit:]]*:' | awk -F  ':' '{sum += $3} END {print sum}')")
-        output2 = subprocess.getoutput("echo $(/usr/local/kafka/bin/kafka-run-class.sh kafka.tools.GetOffsetShell --broker-list 'localhost:9092' --topic kafka_connect_upgrade --time -2 | grep -e ':[[:digit:]]*:' | awk -F  ':' '{sum += $3} END {print sum}')")
+    while time.time() < t_end:
+        kafka_version_flag = os.environ.get("CI_KAFKA_VERSION_BEFORE_3_7")
+        if kafka_version_flag == "true":
+            class_name = "kafka.tools.GetOffsetShell"
+        else:
+            class_name = "org.apache.kafka.tools.GetOffsetShell"
+        output1 = subprocess.getoutput(f"echo $(/usr/local/kafka/bin/kafka-run-class.sh {class_name} --broker-list 'localhost:9092' --topic kafka_connect_upgrade  --time -1 2>/dev/null"
+                                       + " | grep -e ':[[:digit:]]*:' | grep -v WARN | awk -F  ':' '{sum += $3} END {print sum}')")
+        output2 = subprocess.getoutput(f"echo $(/usr/local/kafka/bin/kafka-run-class.sh {class_name} --broker-list 'localhost:9092' --topic kafka_connect_upgrade --time -2 2>/dev/null"
+                                       + " | grep -e ':[[:digit:]]*:' | grep -v WARN | awk -F  ':' '{sum += $3} END {print sum}')")
         time.sleep(5)
         if (int(output1)-int(output2))==target:
             logger.info("Events in the topic :" + str(int(output1)-int(output2)))

@@ -23,7 +23,7 @@ permissions:
 jobs:
   workflow_approval:
     name: Approve workflow
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     environment: workflow-approval
     steps:
       - name: Approve workflow
@@ -31,11 +31,11 @@ jobs:
 
   fossa-scan:
     continue-on-error: true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - workflow_approval
     steps:
-      - name:  Checkout
+      - name: Checkout
         uses: actions/checkout@v3
         with:
           ref: ${{github.event.pull_request.head.sha}}
@@ -48,7 +48,7 @@ jobs:
         env:
           FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
       - name: upload THIRDPARTY file
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: THIRDPARTY
           path: /tmp/THIRDPARTY
@@ -59,7 +59,7 @@ jobs:
           FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
 
   semgrep:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - workflow_approval
     name: security-sast-semgrep
@@ -88,7 +88,7 @@ jobs:
 
   build-unit-test:
     name: build and run unit test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs:
       - workflow_approval
     steps:
@@ -108,7 +108,7 @@ jobs:
           cp -R target/splunk-kafka-connect*.jar /tmp
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: splunk-kafka-connector
           path: /tmp/splunk-kafka-connect*.jar
@@ -121,39 +121,42 @@ jobs:
           files: "target/surefire-reports/*.xml"
 
   e2e_test:
-    name: e2e test - kafka version-${{ matrix.kafka_version }}
-    runs-on: ubuntu-20.04
+    name: e2e test (kafka:${{ matrix.kafka.kafka_version }}, splunk:${{ matrix.splunk.splunk_version }})
+    runs-on: ubuntu-latest
     needs:
       - build-unit-test
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - kafka_version: "1.1.1"
-            kafka_package: "kafka_2.11-1.1.1.tgz"
-          - kafka_version: "2.0.0"
-            kafka_package: "kafka_2.11-2.0.0.tgz"
-          - kafka_version: "2.1.0"
-            kafka_package: "kafka_2.12-2.1.0.tgz"
-          - kafka_version: "2.6.0"
-            kafka_package: "kafka_2.13-2.6.0.tgz"
-          - kafka_version: "2.7.1"
-            kafka_package: "kafka_2.13-2.7.1.tgz"
-          - kafka_version: "2.8.0"
-            kafka_package: "kafka_2.13-2.8.0.tgz"
-          - kafka_version: "3.0.0"
-            kafka_package: "kafka_2.13-3.0.0.tgz"
-          - kafka_version: "3.1.0"
-            kafka_package: "kafka_2.13-3.1.0.tgz"
-          - kafka_version: "3.3.1"
-            kafka_package: "kafka_2.13-3.3.1.tgz"
-          - kafka_version: "3.4.1"
-            kafka_package: "kafka_2.13-3.4.1.tgz"
+        splunk:
+          - splunk_version: "10.0.0"
+            splunk_filename: "splunk-10.0.0-e8eb0c4654f8-linux-amd64.tgz"
+          - splunk_version: "9.4.4"
+            splunk_filename: "splunk-9.4.4-f627d88b766b-linux-amd64.tgz"
+        kafka:
           - kafka_version: "3.5.1"
-            kafka_package: "kafka_2.13-3.5.1.tgz"
+            kafka_package: "kafka_2.12-3.5.1.tgz"
+            confluent_major_version: "7.5"
+            confluent_package_version: "7.5.9"
+          - kafka_version: "3.6.2"
+            kafka_package: "kafka_2.12-3.6.2.tgz"
+            confluent_major_version: "7.6"
+            confluent_package_version: "7.6.6"
+          - kafka_version: "3.7.2"
+            kafka_package: "kafka_2.12-3.7.2.tgz"
+            confluent_major_version: "7.7"
+            confluent_package_version: "7.7.4"
+          - kafka_version: "3.8.1"
+            kafka_package: "kafka_2.12-3.8.1.tgz"
+            confluent_major_version: "7.8"
+            confluent_package_version: "7.8.3"
+          - kafka_version: "3.9.0"
+            kafka_package: "kafka_2.12-3.9.0.tgz"
+            confluent_major_version: "7.9"
+            confluent_package_version: "7.9.2"
     env:
-      CI_SPLUNK_VERSION: "9.0.2"
-      CI_SPLUNK_FILENAME: splunk-9.0.2-17e00c557dc1-Linux-x86_64.tgz
+      CI_SPLUNK_VERSION: ${{matrix.splunk.splunk_version}}
+      CI_SPLUNK_FILENAME: ${{matrix.splunk.splunk_filename}}
       CI_SPLUNK_HOST: 127.0.0.1
       CI_SPLUNK_PORT: 8089
       CI_SPLUNK_USERNAME: admin
@@ -164,6 +167,7 @@ jobs:
       CI_KAFKA_HEADER_INDEX: kafka
       CI_DATAGEN_IMAGE: rock1017/log-generator:latest
       CI_OLD_CONNECTOR_VERSION: v2.0.1
+      CI_KAFKA_VERSION_BEFORE_3_7: ${{ matrix.kafka.kafka_version == '3.5.1' || matrix.kafka.kafka_version == '3.6.2' }}
 
     steps:
       - name: Checkout
@@ -174,7 +178,7 @@ jobs:
 
       - name: Install Splunk
         run: |
-          cd /opt && wget -O $CI_SPLUNK_FILENAME 'https://d7wz6hmoaavd0.cloudfront.net/products/splunk/releases/'$CI_SPLUNK_VERSION'/linux/'$CI_SPLUNK_FILENAME''
+          cd /opt && wget -O $CI_SPLUNK_FILENAME 'https://download.splunk.com/products/splunk/releases/'$CI_SPLUNK_VERSION'/linux/'$CI_SPLUNK_FILENAME''
           sudo tar xzvf $CI_SPLUNK_FILENAME
           # Set user seed
           hashed_pwd=$(sudo /opt/splunk/bin/splunk hash-passwd $CI_SPLUNK_PASSWORD)
@@ -206,11 +210,11 @@ jobs:
           # Restart Splunk
           curl -k -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/services/server/control/restart -X POST
 
-      - name: Install Kafka ${{ matrix.kafka_version }}
+      - name: Install Kafka ${{ matrix.kafka.kafka_version }}
         run: |
-          cd /tmp && wget https://archive.apache.org/dist/kafka/${{ matrix.kafka_version }}/${{ matrix.kafka_package }}
-          sudo tar xzf ${{ matrix.kafka_package }}
-          rm ${{ matrix.kafka_package }}
+          cd /tmp && wget https://archive.apache.org/dist/kafka/${{ matrix.kafka.kafka_version }}/${{ matrix.kafka.kafka_package }}
+          sudo tar xzf ${{ matrix.kafka.kafka_package }}
+          rm ${{ matrix.kafka.kafka_package }}
           sudo mv kafka_* /usr/local/kafka
           cd /usr/local/kafka && ls
 
@@ -232,17 +236,17 @@ jobs:
           check-latest: true
 
       - name: Download artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: splunk-kafka-connector
           path: /tmp
 
       - name: Up the Schema Registry
         run: |
-          cd /tmp && wget https://packages.confluent.io/archive/7.1/confluent-community-7.1.1.tar.gz
-          sudo tar xzf confluent-community-7.1.1.tar.gz
-          cd confluent-7.1.1
-          bin/schema-registry-start ./etc/schema-registry/schema-registry.properties &
+          cd /tmp && wget https://packages.confluent.io/archive/${{ matrix.kafka.confluent_major_version }}/confluent-community-${{ matrix.kafka.confluent_package_version }}.tar.gz
+          sudo tar xzf confluent-community-${{ matrix.kafka.confluent_package_version }}.tar.gz
+          cd confluent-${{ matrix.kafka.confluent_package_version }}
+          sudo bin/schema-registry-start ./etc/schema-registry/schema-registry.properties &
 
       - name: Register the protobuf schema
         run: |
@@ -353,10 +357,10 @@ jobs:
           python test/lib/eventproducer_connector_upgrade.py 2000 --log-level=INFO
           # Check in splunk that we have recieved 2000 events for with ack and without ack tasks
           python test/lib/connector_upgrade.py --log-level=INFO
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: kafka-connect-logs-${{ matrix.kafka_version }}
+          name: kafka-connect-logs-${{ matrix.kafka.kafka_version }}
           path: output.log
 
       - name: Install kafka connect
@@ -374,9 +378,9 @@ jobs:
           export PYTHONWARNINGS="ignore:Unverified HTTPS request"
           echo "Running functional tests....."
           python -m pytest --log-level=INFO
-        
-      - uses: actions/upload-artifact@v3
+
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: splunk-events-${{ matrix.kafka_version }}
+          name: splunk-events-${{ matrix.kafka.kafka_version }}
           path: events.txt
