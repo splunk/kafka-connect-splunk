@@ -113,7 +113,7 @@ public class JsonEvenBatchTest {
         Assert.assertEquals(1, events.size());
 
         // Add extra fields
-        Map<String, String> fields = new HashMap<>();
+        Map<String, Object> fields = new HashMap<>();
         fields.put("hello", "world");
         batch.addExtraFields(fields);
 

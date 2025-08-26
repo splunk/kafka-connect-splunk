@@ -404,7 +404,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
                 event.setTied(record);
                 event.addFields(connectorConfig.enrichments);
             } catch(Exception e) {
-                log.error("event does not follow correct HEC pre-formatted format: {}", record.value().toString());
+                log.error("event does not follow correct HEC pre-formatted format: {}", record.value().toString(), e);
                 event = createHECEventNonFormatted(record);
             }
         } else {
@@ -416,7 +416,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         }
 
         if (connectorConfig.trackData) {
-            Map<String, String> trackMetas = new HashMap<>();
+            Map<String, Object> trackMetas = new HashMap<>();
             trackMetas.put("kafka_offset", String.valueOf(record.kafkaOffset()));
             trackMetas.put("kafka_timestamp", String.valueOf(record.timestamp()));
             trackMetas.put("kafka_topic", record.topic());
@@ -459,7 +459,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         // "custom_header_1,custom_header_2,custom_header_3"
         if (!connectorConfig.headerCustom.isEmpty()) {
             String[] customHeaders = connectorConfig.headerCustom.split(",\\s?");
-            Map<String, String> headerMap = new HashMap<>();
+            Map<String, Object> headerMap = new HashMap<>();
             for (String header : customHeaders) {
                 Header customHeader = headers.lastWithName(header);
                 if (customHeader != null) {

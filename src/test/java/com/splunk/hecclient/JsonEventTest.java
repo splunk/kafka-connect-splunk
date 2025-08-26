@@ -65,14 +65,14 @@ public class JsonEventTest {
         Assert.assertNull(event.getFields());
 
         // empty extra fields
-        Map<String, String> fields = new HashMap<>();
+        Map<String, Object> fields = new HashMap<>();
         event.addFields(fields);
         Assert.assertNull(event.getFields());
 
         // one item
         fields.put("ni", "hao");
         event.addFields(fields);
-        Map<String, String> fieldsGot = event.getFields();
+        Map<String, Object> fieldsGot = event.getFields();
         Assert.assertNotNull(fieldsGot);
         Assert.assertEquals(false, fieldsGot.isEmpty());
         Assert.assertEquals(1, fieldsGot.size());
@@ -180,15 +180,15 @@ public class JsonEventTest {
         event.setTied("hao");
         Assert.assertEquals("hao", event.getTied());
 
-        Map<String, String> fields = new HashMap<>();
+        Map<String, Object> fields = new HashMap<>();
         fields.put("hello", "world");
         event.setFields(fields);
         Assert.assertEquals(fields, event.getFields());
 
-        Map<String, String> moreFields = new HashMap<>();
+        Map<String, Object> moreFields = new HashMap<>();
         moreFields.put("ni", "hao");
         event.addFields(moreFields);
-        Map<String, String> got = event.getFields();
+        Map<String, Object> got = event.getFields();
         Assert.assertNotNull(got);
         Assert.assertEquals(2, got.size());
         Assert.assertEquals("world", got.get("hello"));
@@ -219,7 +219,7 @@ public class JsonEventTest {
         String tied = "tied";
         Event event = new JsonEvent(data, tied);
 
-        Map<String, String> fields = new HashMap<>();
+        Map<String, Object> fields = new HashMap<>();
         fields.put("ni", "hao");
         event.addFields(fields);
         event.setHost("localhost");
@@ -239,7 +239,7 @@ public class JsonEventTest {
             Assert.assertEquals("test-sourcetype", deserialized.getSourcetype());
             Assert.assertEquals(event.getTime(), deserialized.getTime());
 
-            Map<String, String> fieldsGot = deserialized.getFields();
+            Map<String, Object> fieldsGot = deserialized.getFields();
             Assert.assertEquals("hao", fieldsGot.get("ni"));
         }
     }

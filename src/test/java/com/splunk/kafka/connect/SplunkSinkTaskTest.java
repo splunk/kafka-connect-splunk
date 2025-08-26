@@ -21,14 +21,12 @@ import com.splunk.hecclient.RawEventBatch;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.config.ConfigException;
-import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.record.TimestampType;
 import org.apache.kafka.connect.errors.RetriableException;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.*;
@@ -265,6 +263,52 @@ public class SplunkSinkTaskTest {
     @Test
     public void putWithRawAndAck() {
         putWithSuccess(true, true);
+    }
+
+    @Test
+    public void checkFormattedEvent() {
+
+        SplunkSinkTask task = new SplunkSinkTask();
+        UnitUtil uu = new UnitUtil(0);
+        Map<String, String> config = uu.createTaskConfig();
+        config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
+        config.put(SplunkSinkConnectorConfig.HEC_EVENT_FORMATTED_CONF, String.valueOf(true));
+
+        Collection<SinkRecord> record = createSinkRecords(
+            1, "{" +
+            "\"index\":\"main\"," +
+            "\"event\":\"Hello, world!\"," +
+            "\"host\":\"host-01\"," +
+            "\"source\":\"bu\"," +
+            "\"fields\":{\"foo\":\"bar\",\"CLASS\":\"class1\",\"cust_id\":[\"000013934\",\"000013935\"]}}"
+        );
+
+        HecMock hec = new HecMock(task);
+        hec.setSendReturnResult(HecMock.success);
+        task.setHec(hec);
+        task.start(config);
+        task.put(record);
+
+        List<EventBatch> batches = hec.getBatches();
+        for (Iterator<EventBatch> iter = batches.listIterator(); iter.hasNext();) {
+            EventBatch batch = iter.next();
+            List<Event> event_list = batch.getEvents();
+            Iterator<Event> iterator = event_list.listIterator() ;
+            Event event = iterator.next();
+
+            Assert.assertEquals("host-01", event.getHost());
+
+            Assert.assertEquals("bar", event.getFields().get("foo"));
+
+            Object custIdObject = event.getFields().get("cust_id");
+            Assert.assertTrue(custIdObject instanceof List);
+            @SuppressWarnings("unchecked")
+            List<String> custIdList = (List<String>) custIdObject;
+            final List<String> expectedCustIdList = Arrays.asList("000013934", "000013935");
+            Assert.assertEquals(expectedCustIdList, custIdList);
+            break;
+        }
+        task.stop();
     }
 
     @Test
