@@ -19,6 +19,9 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
@@ -50,6 +53,8 @@ public final class HttpClientBuilder {
     private int socketTimeout = 60; // in seconds
     private int socketSendBufferSize = 8 * 1024 * 1024; // in bytes
     private boolean disableSSLCertVerification = false;
+    private String httpProxyHost;
+    private int httpProxyPort;
     private SSLContext sslContext = null;
 
     public HttpClientBuilder setMaxConnectionPoolSizePerDestination(int connections) {
@@ -77,6 +82,16 @@ public final class HttpClientBuilder {
         return this;
     }
 
+    public HttpClientBuilder setHttpProxyHost(final String httpProxyHost) {
+        this.httpProxyHost = httpProxyHost;
+        return this;
+    }
+
+    public HttpClientBuilder setHttpProxyPort(final int httpProxyPort) {
+        this.httpProxyPort = httpProxyPort;
+        return this;
+    }
+
     public HttpClientBuilder setSslContext(SSLContext context) {
         this.sslContext = context;
         return this;
@@ -88,9 +103,12 @@ public final class HttpClientBuilder {
                 .setSndBufSize(socketSendBufferSize)
                 .setSoTimeout(socketTimeout * 1000)
                 .build();
-        RequestConfig requestConfig = RequestConfig.custom()
-                .setCookieSpec(CookieSpecs.STANDARD)
-                .build();
+        RequestConfig.Builder requestConfigBuilder = RequestConfig.custom()
+            .setCookieSpec(CookieSpecs.STANDARD);
+        if (StringUtils.isNotEmpty(this.httpProxyHost) && this.httpProxyPort != 0) {
+            requestConfigBuilder.setProxy(new HttpHost(this.httpProxyHost, this.httpProxyPort));
+        }
+        RequestConfig requestConfig = requestConfigBuilder.build();
 
         return HttpClients.custom()
                 .useSystemProperties()

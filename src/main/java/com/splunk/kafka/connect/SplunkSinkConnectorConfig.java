@@ -51,6 +51,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String MAX_HTTP_CONNECTION_PER_CHANNEL_CONF = "splunk.hec.max.http.connection.per.channel";
     static final String MAX_BATCH_SIZE_CONF = "splunk.hec.max.batch.size"; // record count
     static final String HTTP_KEEPALIVE_CONF = "splunk.hec.http.keepalive";
+    static final String HTTP_PROXY_HOST_CONF = "splunk.hec.http.proxy.host";
+    static final String HTTP_PROXY_PORT_CONF = "splunk.hec.http.proxy.port";
     static final String HEC_THREDS_CONF = "splunk.hec.threads";
     static final String SOCKET_TIMEOUT_CONF = "splunk.hec.socket.timeout"; // seconds
     static final String SSL_VALIDATE_CERTIFICATES_CONF = "splunk.hec.ssl.validate.certs";
@@ -128,6 +130,10 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             + "Kafka events not the byte size. By default, this is set to 100.";
     static final String HTTP_KEEPALIVE_DOC = "Valid settings are true or false. Enables or disables HTTP connection "
             + "keep-alive. By default, this is set to true";
+    static final String HTTP_PROXY_HOST_DOC = "This setting is the http proxy server hostname. Configure it to use connector "
+            + "level proxy when connecting to HEC endpoint, otherwise, it'll use JVM level proxy setting in JVM_OPTS.";
+    static final String HTTP_PROXY_PORT_DOC = "This setting is the http proxy server port. Configure it to use connector "
+            + "level proxy when connecting to HEC endpoint, otherwise, it'll use JVM level proxy setting in JVM_OPTS.";
     static final String HEC_THREADS_DOC = "Controls how many threads are spawned to do data injection via HEC in a single "
             + "connector task. By default, this is set to 1.";
     static final String SOCKET_TIMEOUT_DOC = "Max duration in seconds to read / write data to network before internal TCP "
@@ -225,6 +231,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final int maxHttpConnPerChannel;
     final int maxBatchSize;
     final boolean httpKeepAlive;
+    final String httpProxyHost;
+    final int httpProxyPort;
     final int numberOfThreads;
     final int socketTimeout;
     final boolean validateCertificates;
@@ -280,6 +288,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         sourcetypes = getString(SOURCETYPE_CONF);
         sources = getString(SOURCE_CONF);
         httpKeepAlive = getBoolean(HTTP_KEEPALIVE_CONF);
+        httpProxyHost = getString(HTTP_PROXY_HOST_CONF);
+        httpProxyPort = getInt(HTTP_PROXY_PORT_CONF);
         validateCertificates = getBoolean(SSL_VALIDATE_CERTIFICATES_CONF);
         trustStorePath = getString(SSL_TRUSTSTORE_PATH_CONF);
         hasTrustStorePath = StringUtils.isNotBlank(trustStorePath);
@@ -330,7 +340,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         autoExtractTimestamp = getBoolean(AUTO_EXTRACT_TIMESTAMP_CONF);
     }
 
-   
+
     public static ConfigDef conf() {
         return new ConfigDef()
                 .define(TOKEN_CONF, ConfigDef.Type.PASSWORD, ConfigDef.Importance.HIGH, TOKEN_DOC)
@@ -341,6 +351,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(SOURCETYPE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, SOURCETYPE_DOC)
                 .define(SOURCE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, SOURCE_DOC)
                 .define(HTTP_KEEPALIVE_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, HTTP_KEEPALIVE_DOC)
+                .define(HTTP_PROXY_HOST_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.HIGH, HTTP_PROXY_HOST_DOC)
+                .define(HTTP_PROXY_PORT_CONF, ConfigDef.Type.INT, 0, ConfigDef.Importance.HIGH, HTTP_PROXY_PORT_DOC)
                 .define(SSL_VALIDATE_CERTIFICATES_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, SSL_VALIDATE_CERTIFICATES_DOC)
                 .define(SSL_TRUSTSTORE_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PATH_DOC)
                 .define(SSL_TRUSTSTORE_TYPE_CONF, ConfigDef.Type.STRING, "JKS", ConfigDef.Importance.LOW, SSL_TRUSTSTORE_TYPE_DOC)
@@ -392,6 +404,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
               .setTotalChannels(totalHecChannels)
               .setEventBatchTimeout(eventBatchTimeout)
               .setHttpKeepAlive(httpKeepAlive)
+              .setHttpProxyHost(httpProxyHost)
+              .setHttpProxyPort(httpProxyPort)
               .setAckPollInterval(ackPollInterval)
               .setlbPollInterval(lbPollInterval)
               .setAckPollThreads(ackPollThreads)
@@ -424,6 +438,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 + "headerSupport:" + headerSupport + ", "
                 + "headerCustom:" + headerCustom + ", "
                 + "httpKeepAlive:" + httpKeepAlive + ", "
+                + "httpProxyHost:" + httpProxyHost + ", "
+                + "httpProxyPort:" + httpProxyPort + ", "
                 + "validateCertificates:" + validateCertificates + ", "
                 + "trustStorePath:" + trustStorePath + ", "
                 + "trustStoreType:" + trustStoreType + ", "

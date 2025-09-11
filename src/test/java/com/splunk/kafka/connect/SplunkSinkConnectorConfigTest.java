@@ -285,6 +285,17 @@ public class SplunkSinkConnectorConfigTest {
     }
 
     @Test
+    public void testHttpProxy() {
+        UnitUtil uu = new UnitUtil(0);
+        Map<String, String> taskConfig = uu.createTaskConfig();
+        SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
+        HecConfig config = connectorConfig.getHecConfig();
+
+        Assert.assertEquals("proxy.host", config.getHttpProxyHost());
+        Assert.assertEquals(8080, config.getHttpProxyPort());
+    }
+
+    @Test
     public void toStr() {
         UnitUtil uu = new UnitUtil(0);
 

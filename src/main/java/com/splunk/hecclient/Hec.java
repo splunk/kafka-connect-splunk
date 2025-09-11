@@ -283,6 +283,8 @@ public class Hec implements HecInf {
             return new HttpClientBuilder().setDisableSSLCertVerification(config.getDisableSSLCertVerification())
                     .setMaxConnectionPoolSizePerDestination(poolSizePerDest)
                     .setMaxConnectionPoolSize(poolSizePerDest * config.getUris().size())
+                    .setHttpProxyHost(config.getHttpProxyHost())
+                    .setHttpProxyPort(config.getHttpProxyPort())
                     .build();
         }
 
@@ -295,6 +297,8 @@ public class Hec implements HecInf {
                 .setMaxConnectionPoolSizePerDestination(poolSizePerDest)
                 .setMaxConnectionPoolSize(poolSizePerDest * config.getUris().size())
                 .setSslContext(context)
+                .setHttpProxyHost(config.getHttpProxyHost())
+                .setHttpProxyPort(config.getHttpProxyPort())
                 .build();
         }
         else {

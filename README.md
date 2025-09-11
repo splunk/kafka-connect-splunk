@@ -119,6 +119,8 @@ Use the below schema to configure Splunk Connect for Kafka
    "splunk.hec.ack.poll.threads": "<number of threads used to poll event acks>",
    "splunk.hec.ssl.validate.certs": "<true|false>",
    "splunk.hec.http.keepalive": "<true|false>",
+   "splunk.hec.http.proxy.host": "<the http proxy host name>",
+   "splunk.hec.http.proxy.port": "<the http proxy port number>",
    "splunk.hec.max.http.connection.per.channel": "<max number of http connections per channel>",
    "splunk.hec.total.channels": "<total number of channels>",
    "splunk.hec.max.batch.size": "<max number of kafka records post in one batch>",
@@ -167,6 +169,8 @@ Use the below schema to configure Splunk Connect for Kafka
 | `splunk.validation.disable` | Disable validating splunk configurations before creating task. | `false` |
 | `splunk.hec.ssl.validate.certs` | Valid settings are `true` or `false`. Enables or disables HTTPS certification validation. |`true`|
 | `splunk.hec.http.keepalive` | Valid settings are `true` or `false`. Enables or disables HTTP connection keep-alive. |`true`|
+| `splunk.hec.http.proxy.host` | This setting is the http proxy server hostname. Configure it to use connector level proxy when connecting to HEC endpoint, otherwise, it'll use JVM level proxy setting in JVM_OPTS. | `""` |
+| `splunk.hec.http.proxy.port` | This setting is the http proxy server port. Configure it to use connector level proxy when connecting to HEC endpoint, otherwise, it'll use JVM level proxy setting in JVM_OPTS. | `0` |
 | `splunk.hec.max.http.connection.per.channel` | Controls how many HTTP connections will be created and cached in the HTTP pool for one HEC channel. |`2`|
 | `splunk.hec.total.channels` | Controls the total channels created to perform HEC event POSTs. See the Load balancer section for more details. |`2`|
 | `splunk.hec.max.batch.size` | Maximum batch size when posting events to Splunk. The size is the actual number of Kafka events, and not byte size. |`500`|

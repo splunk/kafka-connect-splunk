@@ -41,6 +41,8 @@ public final class HecConfig {
     private String kerberosKeytabPath;
     private int concurrentHecQueueCapacity = 100;
     private Boolean autoExtractTimestamp;
+    private String httpProxyHost;
+    private int httpProxyPort = 0;
 
     public HecConfig(List<String> uris, String token) {
         this.uris = uris;
@@ -61,6 +63,14 @@ public final class HecConfig {
 
     public boolean getHttpKeepAlive() {
         return httpKeepAlive;
+    }
+
+    public String getHttpProxyHost() {
+        return httpProxyHost;
+    }
+
+    public int getHttpProxyPort() {
+        return httpProxyPort;
     }
 
     public int getSocketTimeout() {
@@ -124,6 +134,16 @@ public final class HecConfig {
 
     public HecConfig setHttpKeepAlive(boolean keepAlive) {
         httpKeepAlive = keepAlive;
+        return this;
+    }
+
+    public HecConfig setHttpProxyHost(final String httpProxyHost) {
+        this.httpProxyHost = httpProxyHost;
+        return this;
+    }
+
+    public HecConfig setHttpProxyPort(final int httpProxyPort) {
+        this.httpProxyPort = httpProxyPort;
         return this;
     }
 

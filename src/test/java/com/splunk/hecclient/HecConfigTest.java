@@ -36,6 +36,8 @@ public class HecConfigTest {
         config.setAckPollInterval(1)
               .setDisableSSLCertVerification(true)
               .setHttpKeepAlive(false)
+              .setHttpProxyHost("test.host")
+              .setHttpProxyPort(8080)
               .setSocketSendBufferSize(2)
               .setSocketTimeout(3)
               .setMaxHttpConnectionPerChannel(4)
@@ -60,6 +62,8 @@ public class HecConfigTest {
         Assert.assertEquals(5, config.getTotalChannels());
         Assert.assertEquals(6, config.getAckPollThreads());
         Assert.assertEquals(7, config.getEventBatchTimeout());
+        Assert.assertEquals("test.host", config.getHttpProxyHost());
+        Assert.assertEquals(8080, config.getHttpProxyPort());
         Assert.assertEquals("test", config.getTrustStorePath());
         Assert.assertEquals("PKCS12", config.getTrustStoreType());
         Assert.assertEquals("pass", config.getTrustStorePassword());

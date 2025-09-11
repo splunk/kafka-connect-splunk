@@ -14,6 +14,8 @@ public class ConfigProfile {
     private String sourcetypes;
     private String sources;
     private boolean httpKeepAlive;
+    private String httpProxyHost;
+    private int httpProxyPort;
     private boolean validateCertificates;
     private boolean hasTrustStorePath;
     private String trustStorePath;
@@ -75,6 +77,8 @@ public class ConfigProfile {
         this.sourcetypes = "";
         this.sources = "";
         this.httpKeepAlive = true;
+        this.httpProxyHost = "proxy.host";
+        this.httpProxyPort = 8080;
         this.validateCertificates = true;
         this.hasTrustStorePath = true;
         this.trustStorePath = "./src/test/resources/keystoretest.jks";
@@ -311,6 +315,22 @@ public class ConfigProfile {
         this.httpKeepAlive = httpKeepAlive;
     }
 
+    public int getHttpProxyPort() {
+        return httpProxyPort;
+    }
+
+    public String getHttpProxyHost() {
+        return httpProxyHost;
+    }
+
+    public void setHttpProxyHost(final String httpProxyHost) {
+        this.httpProxyHost = httpProxyHost;
+    }
+
+    public void setHttpProxyPort(final int httpProxyPort) {
+        this.httpProxyPort = httpProxyPort;
+    }
+
     public boolean isValidateCertificates() {
         return validateCertificates;
     }
@@ -472,6 +492,6 @@ public class ConfigProfile {
     }
 
     @Override public String toString() {
-        return "ConfigProfile{" + "topics='" + topics + '\'' + ", topics.regex='" + topicsRegex +  '\'' + ", token='" + token + '\'' + ", uri='" + uri + '\'' + ", raw=" + raw + ", ack=" + ack + ", indexes='" + indexes + '\'' + ", sourcetypes='" + sourcetypes + '\'' + ", sources='" + sources + '\'' + ", httpKeepAlive=" + httpKeepAlive + ", validateCertificates=" + validateCertificates + ", hasTrustStorePath=" + hasTrustStorePath + ", trustStorePath='" + trustStorePath + '\'' + ", trustStoreType='" + trustStoreType + '\'' + ", trustStorePassword='" + trustStorePassword + '\'' + ", eventBatchTimeout=" + eventBatchTimeout + ", ackPollInterval=" + ackPollInterval + ", ackPollThreads=" + ackPollThreads + ", maxHttpConnPerChannel=" + maxHttpConnPerChannel + ", totalHecChannels=" + totalHecChannels + ", socketTimeout=" + socketTimeout + ", enrichements='" + enrichements + '\'' + ", enrichementMap=" + enrichementMap + ", trackData=" + trackData + ", maxBatchSize=" + maxBatchSize + ", numOfThreads=" + numOfThreads + '}';
+        return "ConfigProfile{" + "topics='" + topics + '\'' + ", topics.regex='" + topicsRegex +  '\'' + ", token='" + token + '\'' + ", uri='" + uri + '\'' + ", raw=" + raw + ", ack=" + ack + ", indexes='" + indexes + '\'' + ", sourcetypes='" + sourcetypes + '\'' + ", sources='" + sources + '\'' + ", httpKeepAlive=" + httpKeepAlive + ", httpProxyHost=" + httpProxyHost + ", httpProxyPort=" + httpProxyPort + ", validateCertificates=" + validateCertificates + ", hasTrustStorePath=" + hasTrustStorePath + ", trustStorePath='" + trustStorePath + '\'' + ", " + "trustStoreType='" + trustStoreType + '\'' + ", trustStorePassword='" + trustStorePassword + '\'' + ", eventBatchTimeout=" + eventBatchTimeout + ", ackPollInterval=" + ackPollInterval + ", ackPollThreads=" + ackPollThreads + ", maxHttpConnPerChannel=" + maxHttpConnPerChannel + ", totalHecChannels=" + totalHecChannels + ", socketTimeout=" + socketTimeout + ", enrichements='" + enrichements + '\'' + ", enrichementMap=" + enrichementMap + ", trackData=" + trackData + ", maxBatchSize=" + maxBatchSize + ", numOfThreads=" + numOfThreads + '}';
     }
 }

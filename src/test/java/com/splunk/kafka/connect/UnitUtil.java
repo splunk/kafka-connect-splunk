@@ -41,6 +41,8 @@ public class UnitUtil {
         config.put(SplunkSinkConnectorConfig.SOURCETYPE_CONF, configProfile.getSourcetypes());
         config.put(SplunkSinkConnectorConfig.SOURCE_CONF, configProfile.getSources());
         config.put(SplunkSinkConnectorConfig.HTTP_KEEPALIVE_CONF, String.valueOf(configProfile.isHttpKeepAlive()));
+        config.put(SplunkSinkConnectorConfig.HTTP_PROXY_HOST_CONF, configProfile.getHttpProxyHost());
+        config.put(SplunkSinkConnectorConfig.HTTP_PROXY_PORT_CONF, String.valueOf(configProfile.getHttpProxyPort()));
         config.put(SplunkSinkConnectorConfig.SSL_VALIDATE_CERTIFICATES_CONF, String.valueOf(configProfile.isValidateCertificates()));
 
         if(configProfile.getTrustStorePath() != null ) {

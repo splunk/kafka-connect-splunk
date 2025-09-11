@@ -44,6 +44,27 @@ public class HttpClientBuilderTest {
                 .build();
         Assert.assertNotNull(client);
     }
+
+    @Test
+    public void buildHttpProxy() {
+        HttpClientBuilder builder = new HttpClientBuilder();
+        CloseableHttpClient client = builder.setMaxConnectionPoolSizePerDestination(1)
+            .setHttpProxyHost("rest.host")
+            .setHttpProxyPort(8080)
+            .build();
+        Assert.assertNotNull(client);
+        builder = new HttpClientBuilder();
+        client = builder.setMaxConnectionPoolSizePerDestination(1)
+            .setHttpProxyPort(8080)
+            .build();
+        Assert.assertNotNull(client);
+        builder = new HttpClientBuilder();
+        client = builder.setMaxConnectionPoolSizePerDestination(1)
+            .setHttpProxyHost("rest.host")
+            .build();
+        Assert.assertNotNull(client);
+    }
+
     @Test
     public void buildSecureCustomKeystore() {
         HttpClientBuilder builder = new HttpClientBuilder();
