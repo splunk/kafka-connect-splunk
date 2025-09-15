@@ -205,17 +205,17 @@
     </plugins>
   </reporting>
   <properties>
-    <junit.jupiter.version>5.9.2</junit.jupiter.version>
-    <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-    <slf4j.version>2.0.7</slf4j.version>
-    <junit.version>4.13.2</junit.version>
     <java.version>1.8</java.version>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <kafka.version>3.4.0</kafka.version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <jackson.version>2.14.2</jackson.version>
-    <junit.vintage.version>5.9.2</junit.vintage.version>
     <maven.compiler.source>1.8</maven.compiler.source>
+    <junit.jupiter.version>5.9.2</junit.jupiter.version>
+    <jackson.version>2.15.0</jackson.version>
+    <kafka.version>3.9.1</kafka.version>
     <junit.platform.version>1.9.2</junit.platform.version>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <slf4j.version>2.0.7</slf4j.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <junit.version>4.13.2</junit.version>
+    <junit.vintage.version>5.9.2</junit.vintage.version>
+    <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
   </properties>
 </project>
