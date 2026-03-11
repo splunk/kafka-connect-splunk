@@ -3,7 +3,6 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>com.github.splunk.kafka.connect</groupId>
     <artifactId>splunk-kafka-connect</artifactId>
     <version>v2.2.4</version>
@@ -18,22 +17,19 @@
         <junit.jupiter.version>5.9.2</junit.jupiter.version>
         <junit.vintage.version>5.9.2</junit.vintage.version>
         <junit.platform.version>1.9.2</junit.platform.version>
-        <jackson.version>2.15.0</jackson.version>
+        <jackson.version>2.17.2</jackson.version>
         <kafka.version>3.9.1</kafka.version>
-        <slf4j.version>2.0.7</slf4j.version>
+        <slf4j.version>2.0.13</slf4j.version>
         <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencies>
-
-        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
             <version>${jackson.version}</version>
             <scope>compile</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -58,28 +54,24 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- Only required to run tests in an IDE that bundles an older version -->
         <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-launcher</artifactId>
             <version>${junit.platform.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- Only required to run tests in an IDE that bundles an older version -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- Only required to run tests in an IDE that bundles an older version -->
         <dependency>
             <groupId>org.junit.vintage</groupId>
             <artifactId>junit-vintage-engine</artifactId>
             <version>${junit.vintage.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
@@ -95,8 +87,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- commons-logging and commons-codec are both in the AK packages.
-        Use the version already in the classpath -->
         <dependency>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
@@ -112,114 +102,99 @@
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>1.15</version>
+            <version>1.17.1</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>2.20.0</version>
+            <version>2.25.2</version>
             <scope>compile</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
             <scope>compile</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/commons-cli/commons-cli -->
         <dependency>
             <groupId>commons-cli</groupId>
             <artifactId>commons-cli</artifactId>
-            <version>1.5.0</version>
+            <version>1.8.0</version>
         </dependency>
-        <!-- To avoid compiler warnings about @API annotations in JUnit code -->
         <dependency>
             <groupId>org.apiguardian</groupId>
             <artifactId>apiguardian-api</artifactId>
             <version>1.1.2</version>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.18.0</version>
             <scope>compile</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/io.confluent/kafka-connect-protobuf-converter -->
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-connect-protobuf-converter</artifactId>
-            <version>7.1.1</version>
+            <version>7.6.1</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
-            <version>3.25.5</version>
+            <version>3.25.8</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.10.1</version>
+            <version>2.11.0</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib -->
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
-            <version>1.7.0</version>
+            <version>1.9.24</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>32.0.1-jre</version>
+            <version>33.2.1-jre</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.xerial.snappy/snappy-java -->
         <dependency>
             <groupId>org.xerial.snappy</groupId>
             <artifactId>snappy-java</artifactId>
-            <version>1.1.10.4</version>
+            <version>1.1.10.7</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.avro/avro -->
         <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
             <version>1.11.4</version>
         </dependency>
         <dependency>
-            <groupId>org.jacoco</groupId> 
+            <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
-            <version>0.8.9</version>
-            </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-compress -->
+            <version>0.8.12</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
-            <version>1.26.0</version>
+            <version>1.27.1</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.squareup.okio/okio-jvm -->
         <dependency>
             <groupId>com.squareup.okio</groupId>
             <artifactId>okio-jvm</artifactId>
-            <version>3.4.0</version>
+            <version>3.9.1</version>
             <scope>runtime</scope>
         </dependency>
-
     </dependencies>
 
     <repositories>
