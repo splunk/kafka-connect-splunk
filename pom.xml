@@ -221,7 +221,12 @@
             <groupId>org.jacoco</groupId> 
             <artifactId>jacoco-maven-plugin</artifactId>
             <version>0.8.9</version>
-            </dependency>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-utils</artifactId>
+            <version>4.0.3</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-compress -->
         <dependency>
             <groupId>org.apache.commons</groupId>
