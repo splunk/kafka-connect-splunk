@@ -209,7 +209,7 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <junit.jupiter.version>5.9.2</junit.jupiter.version>
     <jackson.version>2.18.6</jackson.version>
-    <kafka.version>3.9.1</kafka.version>
+    <kafka.version>3.9.2</kafka.version>
     <junit.platform.version>1.9.2</junit.platform.version>
     <maven.compiler.target>1.8</maven.compiler.target>
     <slf4j.version>2.0.7</slf4j.version>
