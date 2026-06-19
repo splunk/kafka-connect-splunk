@@ -28,7 +28,6 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Lookup;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.auth.SPNegoSchemeFactory;
@@ -108,6 +107,13 @@ public final class HttpClientBuilder {
         Lookup<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create().
             register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(true)).build();
         builder.setDefaultAuthSchemeRegistry(authSchemeRegistry);
+        SocketConfig config = SocketConfig.custom()
+                .setSndBufSize(socketSendBufferSize)
+                .setSoTimeout(socketTimeout * 1000)
+                .build();
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setCookieSpec(CookieSpecs.STANDARD)
+                .build();
         BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(new AuthScope(null, -1, null), new Credentials() {
             @Override
@@ -120,15 +126,17 @@ public final class HttpClientBuilder {
             }
         });
         builder.setDefaultCredentialsProvider(credentialsProvider);
-        SSLContextBuilder sslContextBuilderbuilder = new SSLContextBuilder();
-        sslContextBuilderbuilder.loadTrustMaterial(null, (chain, authType) -> true);
-        SSLConnectionSocketFactory sslsf = new
-            SSLConnectionSocketFactory(
-            sslContextBuilderbuilder.build(), NoopHostnameVerifier.INSTANCE);
+        SSLConnectionSocketFactory sslsf = getSSLConnectionFactory();
 
-        builder.setSSLSocketFactory(sslsf);
-        CloseableHttpClient httpClient = builder.build();
-        return httpClient;
+        if (sslsf != null) {
+            builder.setSSLSocketFactory(sslsf);
+        }
+        return builder.useSystemProperties()
+                .setMaxConnPerRoute(maxConnectionPoolSizePerDestination)
+                .setMaxConnTotal(maxConnectionPoolSize)
+                .setDefaultSocketConfig(config)
+                .setDefaultRequestConfig(requestConfig)
+                .build();
     }
 
 
