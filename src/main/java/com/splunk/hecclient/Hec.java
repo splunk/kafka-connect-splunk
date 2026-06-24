@@ -252,55 +252,58 @@ public class Hec implements HecInf {
     }
 
    /**
-    * createHttpClient will construct 2 different versions of the a CloseableHttpClient depending on whether a custom
-    * trust store is to be used or a default configuration is substantial enough. When a trust store path and password
-    * is provided createHttpClient will build an SSL Context to be used with the HTTP Client from the Keystore provided
-    * in conjunction with a default TrustManager.
+    * Creates a CloseableHttpClient using either the default SSL configuration or a custom trust store configuration.
+    * When a trust store path and password are provided, createHttpClient builds an SSL context from the provided
+    * key store and default TrustManager.
     *
-    * @param config Hec Configuration used to construct
+    * @param config Hec configuration used to construct the HTTP client
     * @since        1.0.0
     * @throws       HecException
-    * @return       A configured CloseableHTTPClient customized to the settings proved through config.
+    * @return       A configured CloseableHTTPClient customized to the settings provided through config.
     * @see          CloseableHttpClient
     * @see          HecException
     */
     public static CloseableHttpClient createHttpClient(final HecConfig config) {
-        int poolSizePerDest = config.getMaxHttpConnectionPerChannel();
+
+        HttpClientBuilder builder = configureSSL(new HttpClientBuilder(), config);
+
+        if (hasCustomTrustStoreConfig(config)) {
+            SSLContext context = loadCustomSSLContext(
+                config.getTrustStorePath(),
+                config.getTrustStoreType(),
+                config.getTrustStorePassword()
+            );
+
+            if (context == null) {
+                // failure configuring SSL Context created from trust store path and password values
+                throw new HecException("trust store path provided but failed to initialize ssl context");
+            }
+            builder.setSslContext(context);
+        }
 
         if (config.kerberosAuthEnabled()) {
             try {
-              return new HttpClientBuilder().buildKerberosClient();
+                return builder.buildKerberosClient();
             } catch (KeyStoreException | NoSuchAlgorithmException | KeyManagementException ex) {
-              throw new ConnectException("Unable to build Kerberos Client", ex);
+                throw new ConnectException("Unable to build Kerberos Client", ex);
             }
-          }
-
-        // Code block for default client construction
-        if(!config.getHasCustomTrustStore() &&
-           StringUtils.isBlank(config.getTrustStorePath()) &&
-           StringUtils.isBlank(config.getTrustStorePassword())) {  // no trust store path or password provided via config
-
-            return new HttpClientBuilder().setDisableSSLCertVerification(config.getDisableSSLCertVerification())
-                    .setMaxConnectionPoolSizePerDestination(poolSizePerDest)
-                    .setMaxConnectionPoolSize(poolSizePerDest * config.getUris().size())
-                    .build();
         }
 
-        // Code block for custom keystore client construction
-        SSLContext context = loadCustomSSLContext(config.getTrustStorePath(), config.getTrustStoreType(), config.getTrustStorePassword());
+        return builder.build();
+    }
 
-        if (context != null) {
-            return new HttpClientBuilder()
-                .setDisableSSLCertVerification(config.getDisableSSLCertVerification())
+    private static boolean hasCustomTrustStoreConfig(final HecConfig config) {
+        return config.getHasCustomTrustStore()
+            || StringUtils.isNotBlank(config.getTrustStorePath())
+            || StringUtils.isNotBlank(config.getTrustStorePassword());
+    }
+
+    private static HttpClientBuilder configureSSL(HttpClientBuilder httpClientBuilder, HecConfig config) {
+        int poolSizePerDest = config.getMaxHttpConnectionPerChannel();
+        httpClientBuilder.setDisableSSLCertVerification(config.getDisableSSLCertVerification())
                 .setMaxConnectionPoolSizePerDestination(poolSizePerDest)
-                .setMaxConnectionPoolSize(poolSizePerDest * config.getUris().size())
-                .setSslContext(context)
-                .build();
-        }
-        else {
-             //failure configuring SSL Context created from trust store path and password values
-             throw new HecException("trust store path provided but failed to initialize ssl context");
-         }
+                .setMaxConnectionPoolSize(poolSizePerDest * config.getUris().size());
+        return httpClientBuilder;
     }
 
    /**
