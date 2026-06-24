@@ -82,63 +82,67 @@ public final class HttpClientBuilder {
     }
 
     public CloseableHttpClient build() {
-        SSLConnectionSocketFactory sslFactory = getSSLConnectionFactory();
-        SocketConfig config = SocketConfig.custom()
-                .setSndBufSize(socketSendBufferSize)
-                .setSoTimeout(socketTimeout * 1000)
-                .build();
-        RequestConfig requestConfig = RequestConfig.custom()
-                .setCookieSpec(CookieSpecs.STANDARD)
-                .build();
-
-        return HttpClients.custom()
-                .useSystemProperties()
-                .setSSLSocketFactory(sslFactory)
-                .setMaxConnPerRoute(maxConnectionPoolSizePerDestination)
-                .setMaxConnTotal(maxConnectionPoolSize)
-                .setDefaultSocketConfig(config)
-                .setDefaultRequestConfig(requestConfig)
-                .build();
+        return createHttpClientBuilder().build();
     }
 
     public CloseableHttpClient buildKerberosClient() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
-        org.apache.http.impl.client.HttpClientBuilder builder =
-            org.apache.http.impl.client.HttpClientBuilder.create();
-        Lookup<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create().
-            register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(true)).build();
-        builder.setDefaultAuthSchemeRegistry(authSchemeRegistry);
-        SocketConfig config = SocketConfig.custom()
+        org.apache.http.impl.client.HttpClientBuilder builder = createHttpClientBuilder();
+        configureKerberos(builder);
+        return builder.build();
+    }
+
+    private org.apache.http.impl.client.HttpClientBuilder createHttpClientBuilder() {
+        org.apache.http.impl.client.HttpClientBuilder builder = HttpClients.custom()
+                .useSystemProperties()
+                .setMaxConnPerRoute(maxConnectionPoolSizePerDestination)
+                .setMaxConnTotal(maxConnectionPoolSize)
+                .setDefaultSocketConfig(createSocketConfig())
+                .setDefaultRequestConfig(createRequestConfig());
+
+        SSLConnectionSocketFactory sslFactory = getSSLConnectionFactory();
+        if (sslFactory != null) {
+            builder.setSSLSocketFactory(sslFactory);
+        }
+
+        return builder;
+    }
+
+    private SocketConfig createSocketConfig() {
+        return SocketConfig.custom()
                 .setSndBufSize(socketSendBufferSize)
                 .setSoTimeout(socketTimeout * 1000)
                 .build();
-        RequestConfig requestConfig = RequestConfig.custom()
+    }
+
+    private RequestConfig createRequestConfig() {
+        return RequestConfig.custom()
                 .setCookieSpec(CookieSpecs.STANDARD)
                 .build();
+    }
+
+    private void configureKerberos(org.apache.http.impl.client.HttpClientBuilder builder) {
+        Lookup<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+                .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(true))
+                .build();
+        builder.setDefaultAuthSchemeRegistry(authSchemeRegistry);
+        builder.setDefaultCredentialsProvider(createKerberosCredentialsProvider());
+    }
+
+    private BasicCredentialsProvider createKerberosCredentialsProvider() {
         BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(new AuthScope(null, -1, null), new Credentials() {
             @Override
             public Principal getUserPrincipal() {
                 return null;
             }
+
             @Override
             public String getPassword() {
                 return null;
             }
         });
-        builder.setDefaultCredentialsProvider(credentialsProvider);
-        SSLConnectionSocketFactory sslsf = getSSLConnectionFactory();
-
-        if (sslsf != null) {
-            builder.setSSLSocketFactory(sslsf);
-        }
-        return builder.useSystemProperties()
-                .setMaxConnPerRoute(maxConnectionPoolSizePerDestination)
-                .setMaxConnTotal(maxConnectionPoolSize)
-                .setDefaultSocketConfig(config)
-                .setDefaultRequestConfig(requestConfig)
-                .build();
+        return credentialsProvider;
     }
-
 
     private SSLConnectionSocketFactory getSSLConnectionFactory() {
         if (disableSSLCertVerification) {

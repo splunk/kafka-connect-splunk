@@ -252,24 +252,20 @@ public class Hec implements HecInf {
     }
 
    /**
-    * createHttpClient will construct 2 different versions of the a CloseableHttpClient depending on whether a custom
-    * trust store is to be used or a default configuration is substantial enough. When a trust store path and password
-    * is provided createHttpClient will build an SSL Context to be used with the HTTP Client from the Keystore provided
-    * in conjunction with a default TrustManager.
+    * Creates a CloseableHttpClient using either the default SSL configuration or a custom trust store configuration.
+    * When a trust store path and password are provided, createHttpClient builds an SSL context from the provided
+    * key store and default TrustManager.
     *
-    * @param config Hec Configuration used to construct
+    * @param config Hec configuration used to construct the HTTP client
     * @since        1.0.0
     * @throws       HecException
-    * @return       A configured CloseableHTTPClient customized to the settings proved through config.
+    * @return       A configured CloseableHTTPClient customized to the settings provided through config.
     * @see          CloseableHttpClient
     * @see          HecException
     */
     public static CloseableHttpClient createHttpClient(final HecConfig config) {
-        int poolSizePerDest = config.getMaxHttpConnectionPerChannel();
-        HttpClientBuilder builder = new HttpClientBuilder()
-            .setDisableSSLCertVerification(config.getDisableSSLCertVerification())
-            .setMaxConnectionPoolSizePerDestination(poolSizePerDest)
-            .setMaxConnectionPoolSize(poolSizePerDest * config.getUris().size());
+
+        HttpClientBuilder builder = configureSSL(new HttpClientBuilder(), config);
 
         if (hasCustomTrustStoreConfig(config)) {
             SSLContext context = loadCustomSSLContext(
@@ -300,6 +296,14 @@ public class Hec implements HecInf {
         return config.getHasCustomTrustStore()
             || StringUtils.isNotBlank(config.getTrustStorePath())
             || StringUtils.isNotBlank(config.getTrustStorePassword());
+    }
+
+    private static HttpClientBuilder configureSSL(HttpClientBuilder httpClientBuilder, HecConfig config) {
+        int poolSizePerDest = config.getMaxHttpConnectionPerChannel();
+        httpClientBuilder.setDisableSSLCertVerification(config.getDisableSSLCertVerification())
+                .setMaxConnectionPoolSizePerDestination(poolSizePerDest)
+                .setMaxConnectionPoolSize(poolSizePerDest * config.getUris().size());
+        return httpClientBuilder;
     }
 
    /**
