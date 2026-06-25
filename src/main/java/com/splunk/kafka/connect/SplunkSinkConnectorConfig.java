@@ -156,7 +156,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             + "Will trigger back-pressure event to slow collection. By default, this "
             + "is set to 1000000.";
     static final String MAX_RETRIES_DOC = "Number of retries for failed batches before giving up. By default this is set to "
-            + "-1 which will retry indefinitely.";
+            + "5. If set to -1, the retries are never stopped.";
 
     static final String HEC_BACKOFF_PRESSURE_THRESHOLD_DOC = "The amount of time Splunk Connect for Kafka waits on errors "
             + "sending events to Splunk to attempt resending it";
@@ -359,7 +359,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(HEC_THREDS_CONF, ConfigDef.Type.INT, 1, ConfigDef.Importance.LOW, HEC_THREADS_DOC)
                 .define(LINE_BREAKER_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, LINE_BREAKER_DOC)
                 .define(MAX_OUTSTANDING_EVENTS_CONF, ConfigDef.Type.INT, 1000000, ConfigDef.Importance.MEDIUM, MAX_OUTSTANDING_EVENTS_DOC)
-                .define(MAX_RETRIES_CONF, ConfigDef.Type.INT, -1, ConfigDef.Importance.MEDIUM, MAX_RETRIES_DOC)
+                .define(MAX_RETRIES_CONF, ConfigDef.Type.INT, 5, ConfigDef.Importance.MEDIUM, MAX_RETRIES_DOC)
                 .define(HEC_BACKOFF_PRESSURE_THRESHOLD, ConfigDef.Type.INT, 60, ConfigDef.Importance.MEDIUM, HEC_BACKOFF_PRESSURE_THRESHOLD_DOC)
                 .define(HEC_EVENT_FORMATTED_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.LOW, HEC_EVENT_FORMATTED_DOC)
                 .define(MAX_BATCH_SIZE_CONF, ConfigDef.Type.INT, 500, ConfigDef.Importance.MEDIUM, MAX_BATCH_SIZE_DOC)

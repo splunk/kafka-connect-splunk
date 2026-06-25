@@ -48,6 +48,17 @@ public class SplunkSinkConnectorConfigTest {
     }
 
     @Test
+    public void defaultsMaxRetriesToFive() {
+        UnitUtil uu = new UnitUtil(0);
+        Map<String, String> config = uu.createTaskConfig();
+        config.remove(SplunkSinkConnectorConfig.MAX_RETRIES_CONF);
+
+        SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
+
+        Assert.assertEquals(5, connectorConfig.maxRetries);
+    }
+
+    @Test
     public void getHecConfig() {
         for (int i = 0; i < 2; i++) {
             UnitUtil uu = new UnitUtil(0);
