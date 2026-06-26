@@ -18,6 +18,7 @@ package com.splunk.hecclient;
 import java.util.List;
 
 public final class HecConfig {
+    public static final int DEFAULT_MAX_RESPONSE_SIZE_BYTES = 1024 * 1024;
 
     private List<String> uris;
     private String token;
@@ -41,6 +42,7 @@ public final class HecConfig {
     private String kerberosKeytabPath;
     private int concurrentHecQueueCapacity = 100;
     private Boolean autoExtractTimestamp;
+    private int maxResponseSizeBytes = DEFAULT_MAX_RESPONSE_SIZE_BYTES;
 
     public HecConfig(List<String> uris, String token) {
         this.uris = uris;
@@ -116,6 +118,8 @@ public final class HecConfig {
     public String getTrustStorePassword() { return trustStorePassword; }
 
     public Boolean getAutoExtractTimestamp() { return autoExtractTimestamp; }
+
+    public int getMaxResponseSizeBytes() { return maxResponseSizeBytes; }
 
     public HecConfig setDisableSSLCertVerification(boolean disableVerfication) {
         disableSSLCertVerification = disableVerfication;
@@ -222,6 +226,11 @@ public final class HecConfig {
 
     public HecConfig setAutoExtractTimestamp(Boolean autoExtractTimestamp) {
         this.autoExtractTimestamp = autoExtractTimestamp;
+        return this;
+    }
+
+    public HecConfig setMaxResponseSizeBytes(int maxResponseSizeBytes) {
+        this.maxResponseSizeBytes = maxResponseSizeBytes;
         return this;
     }
 

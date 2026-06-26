@@ -122,6 +122,7 @@ Use the below schema to configure Splunk Connect for Kafka
    "splunk.hec.max.http.connection.per.channel": "<max number of http connections per channel>",
    "splunk.hec.total.channels": "<total number of channels>",
    "splunk.hec.max.batch.size": "<max number of kafka records post in one batch>",
+   "splunk.hec.max.response.size.bytes": "<max HTTP response body bytes to read before truncating>",
    "splunk.hec.threads": "<number of threads to use to do HEC post for single task>",
    "splunk.hec.event.timeout": "<timeout in seconds>",
    "splunk.hec.socket.timeout": "<timeout in seconds>",
@@ -170,6 +171,7 @@ Use the below schema to configure Splunk Connect for Kafka
 | `splunk.hec.max.http.connection.per.channel` | Controls how many HTTP connections will be created and cached in the HTTP pool for one HEC channel. |`2`|
 | `splunk.hec.total.channels` | Controls the total channels created to perform HEC event POSTs. See the Load balancer section for more details. |`2`|
 | `splunk.hec.max.batch.size` | Maximum batch size when posting events to Splunk. The size is the actual number of Kafka events, and not byte size. |`500`|
+| `splunk.hec.max.response.size.bytes` | Maximum HTTP response body size, in bytes, read from Splunk HEC before truncating the response for parsing. |`1048576`|
 | `splunk.hec.threads` | Controls how many threads are spawned to do data injection via HEC in a **single** connector task. |`1`|
 | `splunk.hec.socket.timeout` | Internal TCP socket timeout when connecting to Splunk. Value is in seconds. |`60`|
 | `splunk.hec.ssl.trust.store.path` | Location of Java KeyStore. |`""`|

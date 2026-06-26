@@ -48,6 +48,7 @@ public class HecConfigTest {
               .setTrustStorePassword("pass")
               .setHasCustomTrustStore(true)
               .setBackoffThresholdSeconds(10)
+              .setMaxResponseSizeBytes(11)
               .setlbPollInterval(120);
 
         Assert.assertTrue(config.getDisableSSLCertVerification());
@@ -65,6 +66,7 @@ public class HecConfigTest {
         Assert.assertEquals("pass", config.getTrustStorePassword());
         Assert.assertEquals(10000, config.getBackoffThresholdSeconds());
         Assert.assertEquals(120000, config.getlbPollInterval());
+        Assert.assertEquals(11, config.getMaxResponseSizeBytes());
         Assert.assertTrue(config.getHasCustomTrustStore());
     }
 }

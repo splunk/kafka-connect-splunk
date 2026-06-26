@@ -50,6 +50,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String TOTAL_HEC_CHANNEL_CONF = "splunk.hec.total.channels";
     static final String MAX_HTTP_CONNECTION_PER_CHANNEL_CONF = "splunk.hec.max.http.connection.per.channel";
     static final String MAX_BATCH_SIZE_CONF = "splunk.hec.max.batch.size"; // record count
+    static final String MAX_RESPONSE_SIZE_CONF = "splunk.hec.max.response.size.bytes";
     static final String HTTP_KEEPALIVE_CONF = "splunk.hec.http.keepalive";
     static final String HEC_THREDS_CONF = "splunk.hec.threads";
     static final String SOCKET_TIMEOUT_CONF = "splunk.hec.socket.timeout"; // seconds
@@ -126,6 +127,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             + "when posting events to Splunk.";
     static final String MAX_BATCH_SIZE_DOC = "Maximum batch size when posting events to Splunk. The size is the actual number of "
             + "Kafka events not the byte size. By default, this is set to 100.";
+    static final String MAX_RESPONSE_SIZE_DOC = "Maximum HTTP response body size, in bytes, read from Splunk HEC before "
+            + "truncating the response for parsing. By default, this is set to 1048576.";
     static final String HTTP_KEEPALIVE_DOC = "Valid settings are true or false. Enables or disables HTTP connection "
             + "keep-alive. By default, this is set to true";
     static final String HEC_THREADS_DOC = "Controls how many threads are spawned to do data injection via HEC in a single "
@@ -224,6 +227,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final int totalHecChannels;
     final int maxHttpConnPerChannel;
     final int maxBatchSize;
+    final int maxResponseSizeBytes;
     final boolean httpKeepAlive;
     final int numberOfThreads;
     final int socketTimeout;
@@ -298,6 +302,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         trackData = getBoolean(TRACK_DATA_CONF);
         useRecordTimestamp = getBoolean(USE_RECORD_TIMESTAMP_CONF);
         maxBatchSize = getInt(MAX_BATCH_SIZE_CONF);
+        maxResponseSizeBytes = getInt(MAX_RESPONSE_SIZE_CONF);
         numberOfThreads = getInt(HEC_THREDS_CONF);
         if (taskConfig.get(LINE_BREAKER_CONF) != null && taskConfig.get(LINE_BREAKER_CONF).length() == 1) {
             lineBreaker = taskConfig.get(LINE_BREAKER_CONF);
@@ -362,6 +367,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(MAX_RETRIES_CONF, ConfigDef.Type.INT, 5, ConfigDef.Importance.MEDIUM, MAX_RETRIES_DOC)
                 .define(HEC_BACKOFF_PRESSURE_THRESHOLD, ConfigDef.Type.INT, 60, ConfigDef.Importance.MEDIUM, HEC_BACKOFF_PRESSURE_THRESHOLD_DOC)
                 .define(HEC_EVENT_FORMATTED_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.LOW, HEC_EVENT_FORMATTED_DOC)
+                .define(MAX_RESPONSE_SIZE_CONF, ConfigDef.Type.INT, HecConfig.DEFAULT_MAX_RESPONSE_SIZE_BYTES,
+                        ConfigDef.Range.atLeast(1), ConfigDef.Importance.LOW, MAX_RESPONSE_SIZE_DOC)
                 .define(MAX_BATCH_SIZE_CONF, ConfigDef.Type.INT, 500, ConfigDef.Importance.MEDIUM, MAX_BATCH_SIZE_DOC)
                 .define(HEADER_SUPPORT_CONF, ConfigDef.Type.BOOLEAN, false, ConfigDef.Importance.MEDIUM, HEADER_SUPPORT_DOC)
                 .define(HEADER_CUSTOM_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, HEADER_CUSTOM_DOC)
@@ -403,6 +410,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
               .setHasCustomTrustStore(hasTrustStorePath)
               .setKerberosPrincipal(kerberosUserPrincipal)
               .setKerberosKeytabPath(kerberosKeytabPath)
+              .setMaxResponseSizeBytes(maxResponseSizeBytes)
               .setConcurrentHecQueueCapacity(queueCapacity)
               .setAutoExtractTimestamp(autoExtractTimestamp);
         return config;
@@ -436,6 +444,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 + "totalHecChannels:" + totalHecChannels + ", "
                 + "enrichment:" + getString(ENRICHMENT_CONF) + ", "
                 + "maxBatchSize:" + maxBatchSize + ", "
+                + "maxResponseSizeBytes:" + maxResponseSizeBytes + ", "
                 + "numberOfThreads:" + numberOfThreads + ", "
                 + "lineBreaker:" + lineBreaker + ", "
                 + "maxOutstandingEvents:" + maxOutstandingEvents + ", "

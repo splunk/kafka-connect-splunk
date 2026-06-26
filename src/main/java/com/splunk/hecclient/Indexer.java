@@ -21,8 +21,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.splunk.kafka.connect.VersionUtils;
 import com.sun.security.auth.module.Krb5LoginModule;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
@@ -40,19 +43,16 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 
 final class Indexer implements IndexerInf {
     private static final Logger log = LoggerFactory.getLogger(Indexer.class);
     private static final ObjectMapper jsonMapper = new ObjectMapper();
+    private static final int RESPONSE_BUFFER_SIZE = 4096;
 
     private HecConfig hecConfig;
 
@@ -240,7 +240,7 @@ final class Indexer implements IndexerInf {
         String respPayload;
         HttpEntity entity = resp.getEntity();
         try {
-            respPayload = EntityUtils.toString(entity, "utf-8");
+            respPayload = readResponsePayload(entity);
         } catch (Exception ex) {
             log.error("failed to process http response", ex);
             throw new HecException("failed to process http response", ex);
@@ -293,6 +293,38 @@ final class Indexer implements IndexerInf {
         clearBackPressure();
 
         return respPayload;
+    }
+
+    private String readResponsePayload(HttpEntity entity) throws IOException {
+        if (entity == null) {
+            return "";
+        }
+
+        int maxBytes = Math.max(1, hecConfig.getMaxResponseSizeBytes());
+        int initialSize = Math.min(RESPONSE_BUFFER_SIZE, maxBytes);
+        try (InputStream input = entity.getContent();
+             ByteArrayOutputStream output = new ByteArrayOutputStream(initialSize)) {
+            if (input == null) {
+                return "";
+            }
+
+            byte[] buffer = new byte[RESPONSE_BUFFER_SIZE];
+            int totalBytes = 0;
+            int bytesRead;
+            while ((bytesRead = input.read(buffer)) != -1) {
+                int remainingBytes = maxBytes - totalBytes;
+                if (bytesRead > remainingBytes) {
+                    output.write(buffer, 0, remainingBytes);
+                    log.warn("truncated HEC response payload after reaching configured max size of {} bytes",
+                             maxBytes);
+                    break;
+                }
+                output.write(buffer, 0, bytesRead);
+                totalBytes += bytesRead;
+            }
+
+            return output.toString(StandardCharsets.UTF_8.name());
+        }
     }
 
     private void logBackPressure() {

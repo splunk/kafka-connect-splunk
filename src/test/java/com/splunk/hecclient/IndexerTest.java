@@ -18,6 +18,7 @@ package com.splunk.hecclient;
 import com.splunk.kafka.connect.VersionUtils;
 import java.util.Collections;
 import org.apache.http.Header;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Assert;
 import org.junit.Test;
@@ -183,6 +184,19 @@ public class IndexerTest {
         client.setResponse(CloseableHttpClientMock.SUCCESS);
         client.setThrowOnGetContent(true);
         assertFailure(client);
+    }
+
+    @Test
+    public void executeHttpRequestTruncatesOversizedResponse() {
+        CloseableHttpClientMock client = new CloseableHttpClientMock();
+        client.setResponse(CloseableHttpClientMock.SUCCESS);
+        HecConfig config = new HecConfig(Collections.emptyList(), token)
+            .setKerberosPrincipal("")
+            .setMaxResponseSizeBytes(8);
+
+        Indexer indexer = new Indexer(baseUrl, client, new PollerMock(), config);
+
+        Assert.assertEquals("{\"text\":", indexer.executeHttpRequest(new HttpPost(baseUrl)));
     }
 
     private Indexer assertFailure(CloseableHttpClient client) {

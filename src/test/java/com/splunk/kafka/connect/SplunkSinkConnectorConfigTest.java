@@ -82,7 +82,21 @@ public class SplunkSinkConnectorConfigTest {
             Assert.assertEquals(uu.configProfile.getAckPollInterval(), config.getAckPollInterval());
             Assert.assertEquals(uu.configProfile.getAckPollThreads(), config.getAckPollThreads());
             Assert.assertEquals(uu.configProfile.isTrackData(), config.getEnableChannelTracking());
+            Assert.assertEquals(HecConfig.DEFAULT_MAX_RESPONSE_SIZE_BYTES, config.getMaxResponseSizeBytes());
         }
+    }
+
+    @Test
+    public void getHecConfigCustomMaxResponseSize() {
+        UnitUtil uu = new UnitUtil(0);
+        Map<String, String> taskConfig = uu.createTaskConfig();
+        taskConfig.put(SplunkSinkConnectorConfig.MAX_RESPONSE_SIZE_CONF, "2048");
+
+        SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(taskConfig);
+        HecConfig config = connectorConfig.getHecConfig();
+
+        Assert.assertEquals(2048, connectorConfig.maxResponseSizeBytes);
+        Assert.assertEquals(2048, config.getMaxResponseSizeBytes());
     }
 
     @Test
@@ -338,6 +352,7 @@ public class SplunkSinkConnectorConfigTest {
         Assert.assertEquals(uu.configProfile.getSocketTimeout(), connectorConfig.socketTimeout);
         Assert.assertEquals(uu.configProfile.isTrackData(), connectorConfig.trackData);
         Assert.assertEquals(uu.configProfile.getMaxBatchSize(), connectorConfig.maxBatchSize);
+        Assert.assertEquals(HecConfig.DEFAULT_MAX_RESPONSE_SIZE_BYTES, connectorConfig.maxResponseSizeBytes);
         Assert.assertEquals(uu.configProfile.getNumOfThreads(), connectorConfig.numberOfThreads);
     }
 }
