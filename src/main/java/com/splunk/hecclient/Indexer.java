@@ -300,7 +300,7 @@ final class Indexer implements IndexerInf {
             return "";
         }
 
-        int maxBytes = Math.max(1, hecConfig.getMaxResponseSizeBytes());
+        int maxBytes = hecConfig.getMaxResponseSizeBytes();
         int initialSize = Math.min(RESPONSE_BUFFER_SIZE, maxBytes);
         try (InputStream input = entity.getContent();
              ByteArrayOutputStream output = new ByteArrayOutputStream(initialSize)) {
@@ -308,7 +308,7 @@ final class Indexer implements IndexerInf {
                 return "";
             }
 
-            byte[] buffer = new byte[RESPONSE_BUFFER_SIZE];
+            byte[] buffer = new byte[initialSize];
             int totalBytes = 0;
             int bytesRead;
             while ((bytesRead = input.read(buffer)) != -1) {
