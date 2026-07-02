@@ -176,7 +176,7 @@ Use the below schema to configure Splunk Connect for Kafka
 | `splunk.hec.ssl.trust.store.password` | Password for Java KeyStore. |`""`|
 | `splunk.hec.json.event.formatted` | Set to `true` for events that are already in HEC format. Valid settings are `true` or `false`. |`false`|
 | `splunk.hec.max.outstanding.events` | Maximum amount of un-acknowledged events kept in memory by connector. Will trigger back-pressure event to slow down collection if reached. | `1000000` |
-| `splunk.hec.max.retries` | Amount of times a failed batch will attempt to resend before dropping events completely. Warning: This will result in data loss, default is `-1` which will retry indefinitely  | `-1` |
+| `splunk.hec.max.retries` | Amount of times a failed batch will attempt to resend before dropping events completely. Warning: This will result in data loss after retries are exhausted. Default is `5`. If set to -1, the retries are never stopped. | `5` |
 | `splunk.hec.backoff.threshhold.seconds` | The amount of duration the Indexer object will be stopped after getting error code while posting the data.</br> **NOTE:** <br/>  Other Indexer won't get affected." | `60` |
 | `splunk.hec.lb.poll.interval`  |  Specify this parameter(in seconds) to control the polling interval(increase to do less polling, decrease to do more frequent polling, set `-1` to disable polling) |  `120` |
 | `splunk.hec.enable.compression` | Valid settings are true or false. Used for enable or disable gzip-compression. |`false`|
