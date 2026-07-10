@@ -15,6 +15,8 @@
  */
 package com.splunk.kafka.connect;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -108,6 +110,7 @@ public final class SplunkSinkConnector extends SinkConnector {
         values = validations.stream().collect(Collectors.toMap(ConfigValue::name, Function.identity()));
 
         validateKerberosConfigs(connectorConfigs);
+        validateHecUri(connectorConfigs);
         validateSplunkConfigurations(connectorConfigs);
         return new Config(validations);
     }
@@ -168,6 +171,50 @@ public final class SplunkSinkConnector extends SinkConnector {
             for (String index : indexes) {
                 preparePayloadAndExecuteRequest(connectorConfig, index);
             }
+        }
+    }
+
+    private void validateHecUri(final Map<String, String> configs) throws ConfigException {
+        String sslEnforcedConfig = configs.get(SSL_ENFORCED_CONF);
+        boolean sslEnforced = sslEnforcedConfig == null || Boolean.parseBoolean(sslEnforcedConfig);
+        String uriConf = configs.get(URI_CONF);
+
+        if (uriConf == null) {
+            return;
+        }
+
+        List<String> uris = Arrays.asList(uriConf.split(","));
+        for (String uri : uris) {
+            String scheme = this.getScheme(uri);
+            boolean usesHttps = "https".equalsIgnoreCase(scheme);
+            boolean usesHttp = "http".equalsIgnoreCase(scheme);
+
+            if (!usesHttps && !usesHttp) {
+                throw new ConfigException("Invalid HEC transport configuration: "
+                        + URI_CONF + " contains '" + uri.trim()
+                        + "', but every HEC URI must use HTTP or HTTPS.");
+            }
+
+            if (sslEnforced && !usesHttps) {
+                throw new ConfigException("Invalid HEC transport configuration: "
+                        + URI_CONF + " contains '" + uri.trim() + "', but every HEC URI must use HTTPS when "
+                        + SSL_ENFORCED_CONF + "=true. Set " + SSL_ENFORCED_CONF
+                        + "=false only for private-network HEC deployments without TLS.");
+            }
+
+            if (!sslEnforced && usesHttp) {
+                log.warn("HEC URI '{}' uses HTTP because {}=false. "
+                                + "Event data and the HEC token are not protected by TLS.",
+                        uri.trim(), SSL_ENFORCED_CONF);
+            }
+        }
+    }
+
+    private String getScheme(String uri) {
+        try {
+            return new URI(uri.trim()).getScheme();
+        } catch (URISyntaxException exception) {
+            return null;
         }
     }
 
