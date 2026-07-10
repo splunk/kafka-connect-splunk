@@ -53,6 +53,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String HTTP_KEEPALIVE_CONF = "splunk.hec.http.keepalive";
     static final String HEC_THREDS_CONF = "splunk.hec.threads";
     static final String SOCKET_TIMEOUT_CONF = "splunk.hec.socket.timeout"; // seconds
+    static final String SSL_ENFORCED_CONF = "splunk.hec.ssl.enforced";
     static final String SSL_VALIDATE_CERTIFICATES_CONF = "splunk.hec.ssl.validate.certs";
     static final String ENABLE_COMPRESSSION_CONF = "splunk.hec.enable.compression";
     // only applicable when "splunk.hec.threads" > 1
@@ -132,6 +133,9 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             + "connector task. By default, this is set to 1.";
     static final String SOCKET_TIMEOUT_DOC = "Max duration in seconds to read / write data to network before internal TCP "
             + "Socket timeout.By default, this is set to 60 seconds.";
+    static final String SSL_ENFORCED_DOC = "Valid settings are true or false. Requires every Splunk HEC URI to use "
+            + "HTTPS when enabled. Set to false only for private-network HEC deployments without TLS. "
+            + "By default, this is set to true.";
     static final String SSL_VALIDATE_CERTIFICATES_DOC = "Valid settings are true or false. Enables or disables HTTPS "
             + "certification validation. By default, this is set to true.";
     static final String ENABLE_COMPRESSSION_DOC = "Valid settings are true or false. Used for enable or disable gzip-compression. By default, this is set to false.";
@@ -227,6 +231,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final boolean httpKeepAlive;
     final int numberOfThreads;
     final int socketTimeout;
+    final boolean sslEnforced;
     final boolean validateCertificates;
     final boolean enableCompression;
     final boolean disableValidation;
@@ -280,6 +285,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         sourcetypes = getString(SOURCETYPE_CONF);
         sources = getString(SOURCE_CONF);
         httpKeepAlive = getBoolean(HTTP_KEEPALIVE_CONF);
+        sslEnforced = getBoolean(SSL_ENFORCED_CONF);
         validateCertificates = getBoolean(SSL_VALIDATE_CERTIFICATES_CONF);
         trustStorePath = getString(SSL_TRUSTSTORE_PATH_CONF);
         hasTrustStorePath = StringUtils.isNotBlank(trustStorePath);
@@ -341,6 +347,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(SOURCETYPE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, SOURCETYPE_DOC)
                 .define(SOURCE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, SOURCE_DOC)
                 .define(HTTP_KEEPALIVE_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, HTTP_KEEPALIVE_DOC)
+                .define(SSL_ENFORCED_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.HIGH, SSL_ENFORCED_DOC)
                 .define(SSL_VALIDATE_CERTIFICATES_CONF, ConfigDef.Type.BOOLEAN, true, ConfigDef.Importance.MEDIUM, SSL_VALIDATE_CERTIFICATES_DOC)
                 .define(SSL_TRUSTSTORE_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.HIGH, SSL_TRUSTSTORE_PATH_DOC)
                 .define(SSL_TRUSTSTORE_TYPE_CONF, ConfigDef.Type.STRING, "JKS", ConfigDef.Importance.LOW, SSL_TRUSTSTORE_TYPE_DOC)
@@ -424,6 +431,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 + "headerSupport:" + headerSupport + ", "
                 + "headerCustom:" + headerCustom + ", "
                 + "httpKeepAlive:" + httpKeepAlive + ", "
+                + "sslEnforced:" + sslEnforced + ", "
                 + "validateCertificates:" + validateCertificates + ", "
                 + "trustStorePath:" + trustStorePath + ", "
                 + "trustStoreType:" + trustStoreType + ", "

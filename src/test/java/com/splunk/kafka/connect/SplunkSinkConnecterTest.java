@@ -261,6 +261,57 @@ class SplunkSinkConnecterTest {
     }
 
     @Test
+    public void testRejectsHttpWhenSslEnforcementIsOmitted() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        configs.remove(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF);
+        configs.put("splunk.validation.disable", "true");
+        configs.put("topics", "b");
+
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+
+        Assertions.assertThrows(ConfigException.class, () -> connector.validate(configs));
+    }
+
+    @Test
+    public void testRejectsHttpWhenSslEnforcementIsEnabled() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "true");
+        configs.put("splunk.validation.disable", "true");
+        configs.put("topics", "b");
+
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+
+        Assertions.assertThrows(ConfigException.class, () -> connector.validate(configs));
+    }
+
+    @Test
+    public void testAllowsHttpWhenSslEnforcementIsDisabled() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        configs.put("splunk.validation.disable", "true");
+        configs.put("topics", "b");
+
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+
+        Assertions.assertDoesNotThrow(() -> connector.validate(configs));
+    }
+
+    @Test
+    public void testRejectsUnsupportedHecSchemeWhenSslEnforcementIsDisabled() {
+        final Map<String, String> configs = new HashMap<>();
+        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, "ftp://localhost:8000");
+        configs.put("splunk.validation.disable", "true");
+        configs.put("topics", "b");
+
+        SplunkSinkConnector connector = new SplunkSinkConnector();
+
+        Assertions.assertThrows(ConfigException.class, () -> connector.validate(configs));
+    }
+
+    @Test
     public void testInvalidSplunkConfigurationWithMandatoryFieldMissingWithValidationDisabled() {
         final Map<String, String> configs = new HashMap<>();
         SplunkSinkConnector connector = new SplunkSinkConnector();
@@ -315,6 +366,7 @@ class SplunkSinkConnecterTest {
     private void addNecessaryConfigs(Map<String, String> configs) {
         configs.put(URI_CONF, TEST_URI);
         configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
     }
     private void assertHasErrorMessage(Config config, String property, String msg) {
         assertHasErrorMessage(config, property, msg, 0);

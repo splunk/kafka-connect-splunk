@@ -17,6 +17,7 @@ package com.splunk.kafka.connect;
 
 import com.splunk.hecclient.Hec;
 import com.splunk.hecclient.HecConfig;
+import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.connect.sink.SinkConnector;
 
@@ -56,6 +57,16 @@ public class SplunkSinkConnectorConfigTest {
         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
 
         Assert.assertEquals(5, connectorConfig.maxRetries);
+    }
+
+    @Test
+    public void sslEnforcementDefaultsToTrue() {
+        ConfigDef.ConfigKey configKey = SplunkSinkConnectorConfig.conf()
+                .configKeys()
+                .get(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF);
+
+        Assert.assertNotNull(configKey);
+        Assert.assertEquals(true, configKey.defaultValue);
     }
 
     @Test
