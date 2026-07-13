@@ -88,7 +88,9 @@ class SplunkSinkConnecterTest {
     @Test
     public void testValidKerberosBothEmpty() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
         SinkConnector connector = new SplunkSinkConnector();
         configs.put("topics", "b");
         configs.put("splunk.indexes", "b");
@@ -101,7 +103,9 @@ class SplunkSinkConnecterTest {
     @Test
     public void testValidKerberosBothSet() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
         configs.put(KERBEROS_USER_PRINCIPAL_CONF, TEST_KERB_PRINCIPAL);
         configs.put(KERBEROS_KEYTAB_PATH_CONF, TEST_KERB_KEYTAB_PATH);
         SinkConnector connector = new SplunkSinkConnector();
@@ -116,7 +120,9 @@ class SplunkSinkConnecterTest {
     @Test
     public void testInvalidKerberosOnlyPrincipalSet() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
         configs.put(KERBEROS_USER_PRINCIPAL_CONF, TEST_KERB_PRINCIPAL);
         SplunkSinkConnector connector = new SplunkSinkConnector();
         configs.put("topics", "b");
@@ -131,7 +137,9 @@ class SplunkSinkConnecterTest {
     @Test
     public void testInvalidKerberosOnlyKeytabSet() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
         configs.put(KERBEROS_KEYTAB_PATH_CONF, TEST_KERB_KEYTAB_PATH);
         SplunkSinkConnector connector = new SplunkSinkConnector();
         configs.put("topics", "b");
@@ -146,7 +154,9 @@ class SplunkSinkConnecterTest {
     @Test
     public void testInvalidJsonEventEnrichmentConfig1() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
         SinkConnector connector = new SplunkSinkConnector();
         configs.put("topics", "b");
         configs.put("tasks_max", "3");
@@ -159,7 +169,9 @@ class SplunkSinkConnecterTest {
     @Test
     public void testInvalidJsonEventEnrichmentConfig2() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
         SinkConnector connector = new SplunkSinkConnector();
         configs.put("topics", "b");
         configs.put("splunk.hec.json.event.enrichment", "testing-testing non KV");
@@ -171,7 +183,9 @@ class SplunkSinkConnecterTest {
     @Test
     public void testInvalidJsonEventEnrichmentConfig3() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
         SinkConnector connector = new SplunkSinkConnector();
         configs.put("topics", "b");
         configs.put("tasks_max", "3");
@@ -184,7 +198,9 @@ class SplunkSinkConnecterTest {
     @Test
     public void testInvalidToken() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
         SplunkSinkConnector connector = new SplunkSinkConnector();
         configs.put("topics", "b");
         configs.put("splunk.indexes", "b");
@@ -197,7 +213,9 @@ class SplunkSinkConnecterTest {
     @Test
     public void testNullHecToken() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
         SinkConnector connector = new SplunkSinkConnector();
         configs.put("topics", "b");
         configs.put("splunk.hec.token", null);
@@ -209,7 +227,9 @@ class SplunkSinkConnecterTest {
     @Test
     public void testInvalidIndex() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
         SplunkSinkConnector connector = new SplunkSinkConnector();
         configs.put("topics", "b");
         configs.put("splunk.indexes", "b");
@@ -222,7 +242,9 @@ class SplunkSinkConnecterTest {
     @Test
     public void testValidMultipleURIs() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
         SplunkSinkConnector connector = new SplunkSinkConnector();
         configs.put("topics", "b");
         configs.put("splunk.indexes", "b");
@@ -237,7 +259,9 @@ class SplunkSinkConnecterTest {
     @Test
     public void testValidSplunkConfigurations() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
         SplunkSinkConnector connector = new SplunkSinkConnector();
         configs.put("topics", "b");
         configs.put("splunk.indexes", "b");
@@ -250,7 +274,9 @@ class SplunkSinkConnecterTest {
     @Test
     public void testInvalidSplunkConfigurationsWithValidationDisabled() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
         SplunkSinkConnector connector = new SplunkSinkConnector();
         configs.put("splunk.validation.disable", "true");
         configs.put("topics", "b");
@@ -263,8 +289,8 @@ class SplunkSinkConnecterTest {
     @Test
     public void testRejectsHttpWhenSslEnforcementIsOmitted() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
-        configs.remove(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
         configs.put("splunk.validation.disable", "true");
         configs.put("topics", "b");
 
@@ -276,7 +302,9 @@ class SplunkSinkConnecterTest {
     @Test
     public void testRejectsHttpWhenSslEnforcementIsEnabled() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
         configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "true");
         configs.put("splunk.validation.disable", "true");
         configs.put("topics", "b");
@@ -289,7 +317,9 @@ class SplunkSinkConnecterTest {
     @Test
     public void testAllowsHttpWhenSslEnforcementIsDisabled() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
         configs.put("splunk.validation.disable", "true");
         configs.put("topics", "b");
 
@@ -301,7 +331,9 @@ class SplunkSinkConnecterTest {
     @Test
     public void testRejectsUnsupportedHecSchemeWhenSslEnforcementIsDisabled() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
         configs.put(URI_CONF, "ftp://localhost:8000");
         configs.put("splunk.validation.disable", "true");
         configs.put("topics", "b");
@@ -325,7 +357,9 @@ class SplunkSinkConnecterTest {
     @Test
     public void testInvalidSplunkConfigurationsWithValidationEnabled() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
         SplunkSinkConnector connector = new SplunkSinkConnector();
         configs.put("splunk.validation.disable", "false");
         configs.put("topics", "b");
@@ -338,7 +372,9 @@ class SplunkSinkConnecterTest {
     @Test
     public void testValidQueueCapacity() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
         SplunkSinkConnector connector = new SplunkSinkConnector();
         configs.put("splunk.hec.concurrent.queue.capacity", "100");
         configs.put("topics", "b");
@@ -352,7 +388,9 @@ class SplunkSinkConnecterTest {
     @Test
     public void testInvalidQueueCapacity() {
         final Map<String, String> configs = new HashMap<>();
-        addNecessaryConfigs(configs);
+        configs.put(URI_CONF, TEST_URI);
+        configs.put(TOKEN_CONF, "blah");
+        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
         SplunkSinkConnector connector = new SplunkSinkConnector();
         configs.put("splunk.hec.concurrent.queue.capacity", "-1");
         configs.put("topics", "b");
@@ -363,11 +401,6 @@ class SplunkSinkConnecterTest {
         Assertions.assertThrows(ConfigException.class, ()->connector.validate(configs));
     }
 
-    private void addNecessaryConfigs(Map<String, String> configs) {
-        configs.put(URI_CONF, TEST_URI);
-        configs.put(TOKEN_CONF, "blah");
-        configs.put(SplunkSinkConnectorConfig.SSL_ENFORCED_CONF, "false");
-    }
     private void assertHasErrorMessage(Config config, String property, String msg) {
         assertHasErrorMessage(config, property, msg, 0);
     }
