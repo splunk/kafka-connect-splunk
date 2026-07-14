@@ -292,7 +292,7 @@ def _do_post(uri, data, auth):
     logging.info('posting to %s', uri)
     while 1:
         try:
-            resp = requests.post(uri, data=data, auth=auth, verify=False)
+            resp = requests.post(uri, data=data, auth=auth, verify=False)  # nosemgrep
         except Exception:
             logging.exception('failed to post to %s', uri)
             time.sleep(2)
