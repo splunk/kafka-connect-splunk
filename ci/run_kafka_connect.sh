@@ -22,11 +22,17 @@ sed -i 's/value.converter=org.apache.kafka.connect.storage.StringConverter/value
 
 cd kafka
 
-echo "Start ZooKeeper"
-bin/zookeeper-server-start.sh config/zookeeper.properties > /kafka-connect/logs/zookeeper.txt 2>&1 &
-
-echo "Start kafka server"
-bin/kafka-server-start.sh config/server.properties > /kafka-connect/logs/kafka.txt 2>&1 &
+if [ -f bin/zookeeper-server-start.sh ]; then
+  echo "Start ZooKeeper"
+  bin/zookeeper-server-start.sh config/zookeeper.properties > /kafka-connect/logs/zookeeper.txt 2>&1 &
+  echo "Start kafka server (ZooKeeper mode)"
+  bin/kafka-server-start.sh config/server.properties > /kafka-connect/logs/kafka.txt 2>&1 &
+else
+  echo "Start Kafka (KRaft mode - Kafka 4.x+)"
+  KAFKA_CLUSTER_ID=$(bin/kafka-storage.sh random-uuid)
+  bin/kafka-storage.sh format --standalone -t $KAFKA_CLUSTER_ID -c config/server.properties
+  bin/kafka-server-start.sh config/server.properties > /kafka-connect/logs/kafka.txt 2>&1 &
+fi
 
 echo "Run connect"
 ./bin/connect-distributed.sh /kafka-connect/kafka-connect-splunk/config/connect-distributed-quickstart.properties > /kafka-connect/logs/kafka_connect.txt 2>&1 &
