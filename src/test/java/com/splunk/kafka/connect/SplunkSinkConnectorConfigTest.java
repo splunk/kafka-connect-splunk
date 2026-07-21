@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Splunk, Inc..
+ * Copyright 2026 Splunk, Inc..
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -318,6 +318,39 @@ public class SplunkSinkConnectorConfigTest {
         Assert.assertNotNull(s);
         Assert.assertFalse(s.contains(uu.configProfile.getTrustStorePassword()));
         Assert.assertFalse(s.contains(uu.configProfile.getToken()));
+    }
+
+    @Test
+    public void defaultsRegexTimeoutToFiveHundredMilliseconds() {
+        SplunkSinkConnectorConfig config = new SplunkSinkConnectorConfig(new UnitUtil(0).createTaskConfig());
+
+        Assert.assertEquals(500, config.regexTimeoutMs);
+    }
+
+    @Test
+    public void usesConfiguredRegexTimeout() {
+        Map<String, String> values = new UnitUtil(0).createTaskConfig();
+        values.put(SplunkSinkConnectorConfig.REGEX_TIMEOUT_MS_CONF, "1250");
+
+        SplunkSinkConnectorConfig config = new SplunkSinkConnectorConfig(values);
+
+        Assert.assertEquals(1250, config.regexTimeoutMs);
+    }
+
+    @Test(expected = ConfigException.class)
+    public void rejectsZeroRegexTimeout() {
+        Map<String, String> values = new UnitUtil(0).createTaskConfig();
+        values.put(SplunkSinkConnectorConfig.REGEX_TIMEOUT_MS_CONF, "0");
+
+        new SplunkSinkConnectorConfig(values);
+    }
+
+    @Test(expected = ConfigException.class)
+    public void rejectsNegativeRegexTimeout() {
+        Map<String, String> values = new UnitUtil(0).createTaskConfig();
+        values.put(SplunkSinkConnectorConfig.REGEX_TIMEOUT_MS_CONF, "-1");
+
+        new SplunkSinkConnectorConfig(values);
     }
 
     private void assertMeta(final SplunkSinkConnectorConfig connectorConfig) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Splunk, Inc..
+ * Copyright 2026 Splunk, Inc..
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -321,6 +321,7 @@ public class SplunkSinkTaskTest {
         config.put(SplunkSinkConnectorConfig.RAW_CONF, String.valueOf(false));
         config.put(SplunkSinkConnectorConfig.ENABLE_TIMESTAMP_EXTRACTION_CONF, String.valueOf(true));
         config.put(SplunkSinkConnectorConfig.REGEX_CONF, "\\\"time\\\":\\s*\\\"(?<time>.*?)\"");
+        config.put(SplunkSinkConnectorConfig.REGEX_TIMEOUT_MS_CONF, "750");
         config.put(SplunkSinkConnectorConfig.TIMESTAMP_FORMAT_CONF, "MMM dd yyyy HH:mm:ss.SSS zzz");
         config.put(SplunkSinkConnectorConfig.TIMESTAMP_TIMEZONE_CONF, "UTC");
 

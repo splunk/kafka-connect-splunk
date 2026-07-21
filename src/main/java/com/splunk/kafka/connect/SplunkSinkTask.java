@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Splunk, Inc..
+ * Copyright 2026 Splunk, Inc..
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -546,7 +546,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
         String string = jsonStr.replaceAll("\\\"", "\"");
         String timestamp = "";
         final Pattern pattern = Pattern.compile(connectorConfig.regex);
-        final Matcher matcher = pattern.matcher(string);
+        final Matcher matcher = pattern.matcher(new TimeoutCharSequence(string, connectorConfig.regexTimeoutMs));
         try {
             if (matcher.find()) {
                 timestamp = (matcher.group("time"));

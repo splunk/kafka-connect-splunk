@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Splunk, Inc..
+ * Copyright 2026 Splunk, Inc..
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,6 +100,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
      // Input the Regex String and timestamp format
      static final String ENABLE_TIMESTAMP_EXTRACTION_CONF = "enable.timestamp.extraction";
      static final String REGEX_CONF = "timestamp.regex";
+     static final String REGEX_TIMEOUT_MS_CONF = "timestamp.regex.timeout.ms";
      static final String TIMESTAMP_FORMAT_CONF = "timestamp.format";
      static final String TIMESTAMP_TIMEZONE_CONF = "timestamp.timezone";
 
@@ -213,6 +214,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
 
     static final String ENABLE_TIMESTAMP_EXTRACTION_DOC = "Set to true if you want to extract the timestamp";
     static final String REGEX_DOC = "Regex";
+    static final String REGEX_TIMEOUT_MS_DOC = "Maximum time in milliseconds allowed for a timestamp regex evaluation. "
+            + "The connector skips timestamp extraction when this timeout is reached. Default is 500 milliseconds.";
     static final String TIMESTAMP_FORMAT_DOC = "Timestamp format";
     static final String TIMESTAMP_TIMEZONE_DOC = "Timestamp timezone";
 
@@ -270,6 +273,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
 
     final boolean enableTimestampExtraction;
     final String regex;
+    final int regexTimeoutMs;
     final String timestampFormat;
     final int queueCapacity;
     final String timeZone;
@@ -328,6 +332,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         disableValidation = getBoolean(DISABLE_VALIDATION);
         enableTimestampExtraction = getBoolean(ENABLE_TIMESTAMP_EXTRACTION_CONF);
         regex = getString(REGEX_CONF);
+        regexTimeoutMs = getInt(REGEX_TIMEOUT_MS_CONF);
         timestampFormat = getString(TIMESTAMP_FORMAT_CONF).trim();
         timeZone = getString(TIMESTAMP_TIMEZONE_CONF);
         validateRegexForTimestamp(regex);
@@ -336,7 +341,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         autoExtractTimestamp = getBoolean(AUTO_EXTRACT_TIMESTAMP_CONF);
     }
 
-   
+
     public static ConfigDef conf() {
         return new ConfigDef()
                 .define(TOKEN_CONF, ConfigDef.Type.PASSWORD, ConfigDef.Importance.HIGH, TOKEN_DOC)
@@ -383,6 +388,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(KERBEROS_KEYTAB_PATH_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, KERBEROS_KEYTAB_LOCATION_DOC)
                 .define(ENABLE_TIMESTAMP_EXTRACTION_CONF, ConfigDef.Type.BOOLEAN,  false , ConfigDef.Importance.MEDIUM, ENABLE_TIMESTAMP_EXTRACTION_DOC)
                 .define(REGEX_CONF, ConfigDef.Type.STRING,  "" , ConfigDef.Importance.MEDIUM, REGEX_DOC)
+                .define(REGEX_TIMEOUT_MS_CONF, ConfigDef.Type.INT, 500, ConfigDef.Range.atLeast(1), ConfigDef.Importance.MEDIUM, REGEX_TIMEOUT_MS_DOC)
                 .define(TIMESTAMP_FORMAT_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, TIMESTAMP_FORMAT_DOC)
                 .define(TIMESTAMP_TIMEZONE_CONF, ConfigDef.Type.STRING, "", ConfigDef.Importance.MEDIUM, TIMESTAMP_TIMEZONE_DOC)
                 .define(QUEUE_CAPACITY_CONF, ConfigDef.Type.INT, 100, ConfigDef.Importance.LOW, QUEUE_CAPACITY_DOC);
