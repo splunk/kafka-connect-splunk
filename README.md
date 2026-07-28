@@ -249,6 +249,7 @@ Use the below schema to configure Splunk Connect for Kafka
 |--------           |----------------------------|-----------------------|
 | `enable.timestamp.extraction` |  To enable timestamp extraction ,set the value of this field to `true`. <br/> **NOTE:** <br/> Applicable only if `splunk.hec.raw` is `false` | `false` |
 | `timestamp.regex` |  Regex for timestamp extraction. <br/> **NOTE:** <br/> Regex must have name captured group `"time"` For eg.: `\\\"time\\\":\\s*\\\"(?<time>.*?)\"` | `""` |
+| `timestamp.regex.timeout.ms` | Maximum time in milliseconds for one timestamp regex evaluation. Must be a positive integer. When the timeout is reached, timestamp extraction is skipped for that event and the connector logs a warning. | `500` |
 | `timestamp.format` |  Time-format for timestamp extraction .<br/>For eg.: <br/>If timestamp is `1555209605000` , set `timestamp.format` to `"epoch"` format.<br/> If timestamp is `Jun 13 2010 23:11:52.454 UTC` , set `timestamp.format` to `"MMM dd yyyy HH:mm:ss.SSS zzz".`. <br/> If timestamp is in ISO8601 format `2022-03-29'T'23:11:52.054` , set `timestamp.format` to `"yyyy-MM-dd'\''T'\''HH:mm:ss.SSS"` | `""` |
 | `timestamp.timezone` | Timezone used for extracted timestamp. Defaults to local timezone if nothing is specified | `""` |
 
@@ -257,7 +258,6 @@ Use the below schema to configure Splunk Connect for Kafka
 |--------               |----------------------------|
 | `Out of  band health check` |  This health check targets Loadbalancer and aims to remove all the unhealthy channels from the pool; all unhealthy channels are released for the configurable period using the parameter `splunk.hec.lb.poll.interval`, Although this is configurable (by default 120 seconds), It may still get a 503 result code from the Splunk indexer. For that, there is another health check, and it can be called the in-band-health check. | 
 | `In band healthcheck` | This health check targets Indexer object while posting data. If an error code is received, then it will trigger this health check. When this check fails, It will Pause the indexing from the Particular Indexer object for a configurable time using the parameter `Splunk.hec.backoff.threshhold.seconds` and trigger backpressure handling So that event that could not be indexed will be retried again.  | 
-
 
 ## Load balancing
 
