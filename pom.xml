@@ -178,6 +178,13 @@
             <groupId>io.confluent</groupId>
             <artifactId>kafka-connect-protobuf-converter</artifactId>
             <version>7.1.1</version>
+            <exclusions>
+                <!-- Replace Confluent's transitive Wire runtime explicitly below. -->
+                <exclusion>
+                    <groupId>com.squareup.wire</groupId>
+                    <artifactId>wire-runtime-jvm</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- Override the vulnerable transitive wire-runtime-jvm brought by the Confluent protobuf provider. -->
         <dependency>
