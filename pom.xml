@@ -179,6 +179,12 @@
             <artifactId>kafka-connect-protobuf-converter</artifactId>
             <version>7.1.1</version>
         </dependency>
+        <!-- Override the vulnerable transitive wire-runtime-jvm brought by the Confluent protobuf provider. -->
+        <dependency>
+            <groupId>com.squareup.wire</groupId>
+            <artifactId>wire-runtime-jvm</artifactId>
+            <version>6.3.0</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
         <dependency>
             <groupId>com.google.protobuf</groupId>
