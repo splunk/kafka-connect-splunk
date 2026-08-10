@@ -47,7 +47,7 @@
             <scope>compile</scope>
             <exclusions>
                 <!-- Exclude vulnerable org.lz4:lz4-java (CVE-2025-12183, CVE-2025-66566);
-                     replaced below with the patched fork at.yawk.lz4:lz4-java:1.10.1 -->
+                     replaced below with the patched fork at.yawk.lz4:lz4-java:1.11.1 -->
                 <exclusion>
                     <groupId>org.lz4</groupId>
                     <artifactId>lz4-java</artifactId>
