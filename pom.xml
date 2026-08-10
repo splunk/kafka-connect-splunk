@@ -47,7 +47,7 @@
             <scope>compile</scope>
             <exclusions>
                 <!-- Exclude vulnerable org.lz4:lz4-java (CVE-2025-12183, CVE-2025-66566);
-                     replaced below with the patched fork at.yawk.lz4:lz4-java:1.10.1 -->
+                     replaced below with the patched fork at.yawk.lz4:lz4-java -->
                 <exclusion>
                     <groupId>org.lz4</groupId>
                     <artifactId>lz4-java</artifactId>
@@ -55,11 +55,12 @@
             </exclusions>
         </dependency>
         <!-- Patched fork of lz4-java fixing CVE-2025-12183 and CVE-2025-66566.
-             The original org.lz4:lz4-java project is archived with no safe version available. -->
+             The original org.lz4:lz4-java project is archived with no safe version available.
+             1.11.1 additionally fixes CVE-2026-59949. -->
         <dependency>
             <groupId>at.yawk.lz4</groupId>
             <artifactId>lz4-java</artifactId>
-            <version>1.10.1</version>
+            <version>1.11.1</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
