@@ -65,6 +65,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String ACK_POLL_INTERVAL_CONF = "splunk.hec.ack.poll.interval"; // seconds
     static final String ACK_POLL_THREADS_CONF = "splunk.hec.ack.poll.threads";
     static final String EVENT_TIMEOUT_CONF = "splunk.hec.event.timeout"; // seconds
+    static final String LEGACY_STICKY_SESSION_EXPIRY_CONF =
+            "splunk.hec.ack.legacy.sticky.session.expiry.enabled";
     static final String MAX_OUTSTANDING_EVENTS_CONF = "splunk.hec.max.outstanding.events";
     static final String MAX_RETRIES_CONF = "splunk.hec.max.retries";
     static final String HEC_BACKOFF_PRESSURE_THRESHOLD = "splunk.hec.backoff.threshhold.seconds";
@@ -157,6 +159,10 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             + "When events are POSTed to Splunk and before they are ACKed, this setting "
             + "determines how long the connector will wait before timing out and resending. "
             + "By default, this is set to 300 seconds.";
+    static final String LEGACY_STICKY_SESSION_EXPIRY_DOC = "Restores the deprecated behavior that treats every "
+            + "Set-Cookie response as a sticky-session expiry, resets the HEC channel, and retries its outstanding "
+            + "batches. This can disrupt deployments where a load balancer refreshes cookies on normal responses. "
+            + "By default, this setting is false.";
     static final String MAX_OUTSTANDING_EVENTS_DOC = "Maximum amount of un-acknowledged events kept in memory by connector. "
             + "Will trigger back-pressure event to slow collection. By default, this "
             + "is set to 1000000.";
@@ -244,6 +250,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     final int ackPollInterval;
     final int ackPollThreads;
     final int eventBatchTimeout;
+    final boolean legacyStickySessionExpiryEnabled;
     final int maxOutstandingEvents;
     final int maxRetries;
     final int backoffThresholdSeconds;
@@ -299,6 +306,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
         eventBatchTimeout = getInt(EVENT_TIMEOUT_CONF);
         ackPollInterval = getInt(ACK_POLL_INTERVAL_CONF);
         ackPollThreads = getInt(ACK_POLL_THREADS_CONF);
+        legacyStickySessionExpiryEnabled = getBoolean(LEGACY_STICKY_SESSION_EXPIRY_CONF);
         maxHttpConnPerChannel = getInt(MAX_HTTP_CONNECTION_PER_CHANNEL_CONF);
         lbPollInterval = getInt(LB_POLL_INTERVAL_CONF);
         flushWindow = getInt(FLUSH_WINDOW_CONF);
@@ -361,6 +369,8 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 .define(EVENT_TIMEOUT_CONF, ConfigDef.Type.INT, 300, ConfigDef.Importance.MEDIUM, EVENT_TIMEOUT_DOC)
                 .define(ACK_POLL_INTERVAL_CONF, ConfigDef.Type.INT, 10, ConfigDef.Importance.MEDIUM, ACK_POLL_INTERVAL_DOC)
                 .define(ACK_POLL_THREADS_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.MEDIUM, ACK_POLL_THREADS_DOC)
+                .define(LEGACY_STICKY_SESSION_EXPIRY_CONF, ConfigDef.Type.BOOLEAN, false,
+                        ConfigDef.Importance.LOW, LEGACY_STICKY_SESSION_EXPIRY_DOC)
                 .define(MAX_HTTP_CONNECTION_PER_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.MEDIUM, MAX_HTTP_CONNECTION_PER_CHANNEL_DOC)
                 .define(FLUSH_WINDOW_CONF, ConfigDef.Type.INT, 30, ConfigDef.Importance.LOW, FLUSH_WINDOW_DOC)
                 .define(TOTAL_HEC_CHANNEL_CONF, ConfigDef.Type.INT, 2, ConfigDef.Importance.HIGH, TOTAL_HEC_CHANNEL_DOC)
@@ -408,6 +418,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
               .setAckPollInterval(ackPollInterval)
               .setlbPollInterval(lbPollInterval)
               .setAckPollThreads(ackPollThreads)
+              .setLegacyStickySessionExpiryEnabled(legacyStickySessionExpiryEnabled)
               .setEnableChannelTracking(trackData)
               .setBackoffThresholdSeconds(backoffThresholdSeconds)
               .setTrustStorePath(trustStorePath)
@@ -445,6 +456,7 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
                 + "eventBatchTimeout:" + eventBatchTimeout + ", "
                 + "ackPollInterval:" + ackPollInterval + ", "
                 + "ackPollThreads:" + ackPollThreads + ", "
+                + "legacyStickySessionExpiryEnabled:" + legacyStickySessionExpiryEnabled + ", "
                 + "maxHttpConnectionPerChannel:" + maxHttpConnPerChannel + ", "
                 + "flushWindow:" + flushWindow + ", "
                 + "totalHecChannels:" + totalHecChannels + ", "

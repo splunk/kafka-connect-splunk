@@ -17,9 +17,11 @@ package com.splunk.hecclient;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
+import org.apache.http.Header;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.conn.*;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.params.*;
 import org.apache.http.protocol.HttpContext;
 
@@ -36,11 +38,17 @@ public class CloseableHttpClientMock extends CloseableHttpClient {
     public static final String EXCEPTION = "excpetion";
 
     private String resp = "";
+    private String ackResp;
+    private Header[] responseHeaders = new Header[0];
     private boolean throwOnClose = false;
     private boolean throwOnGetContent = false;
 
     protected CloseableHttpResponse doExecute(HttpHost target, HttpRequest request,
             HttpContext context) throws IOException {
+        if (ackResp != null && request.getRequestLine().getUri().contains("/services/collector/ack")) {
+            return createResponse(ackResp, 200);
+        }
+
         if (resp == EXCEPTION) {
             throw new IOException("mocked up");
         }
@@ -71,11 +79,22 @@ public class CloseableHttpClientMock extends CloseableHttpClient {
         resp.setThrowOnClose(throwOnClose);
         resp.setEntity(entity);
         resp.setStatusLine(status);
+        resp.setHeaders(responseHeaders);
         return resp;
     }
 
     public CloseableHttpClientMock setResponse(final String resp) {
         this.resp = resp;
+        return this;
+    }
+
+    public CloseableHttpClientMock setAckResponse(final String ackResp) {
+        this.ackResp = ackResp;
+        return this;
+    }
+
+    public CloseableHttpClientMock setResponseHeader(final String name, final String value) {
+        this.responseHeaders = new Header[] {new BasicHeader(name, value)};
         return this;
     }
 

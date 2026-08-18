@@ -20,9 +20,22 @@ public interface Poller {
     void stop();
     void add(HecChannel channel, EventBatch batch, String response);
     void fail(HecChannel channel, EventBatch batch, Exception ex);
+
+    /**
+     * @deprecated Sticky-session changes are normally handled by the HTTP client's cookie store.
+     *     This method is active only when legacy sticky-session expiry handling is enabled.
+     */
+    @Deprecated
     void stickySessionHandler(HecChannel channel);
+
+    /**
+     * @deprecated A {@code Set-Cookie} response does not normally indicate that a sticky session
+     *     expired. This method is active only when legacy sticky-session expiry handling is enabled.
+     */
+    @Deprecated
     void setStickySessionToTrue();
-        // minimum load channel
+
+    // minimum load channel
     HecChannel getMinLoadChannel();
     long getTotalOutstandingEventBatches();
 }

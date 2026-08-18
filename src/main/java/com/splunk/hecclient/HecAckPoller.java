@@ -45,6 +45,7 @@ public final class HecAckPoller implements Poller {
     private ExecutorService executorService;
     private AtomicBoolean started;
     private AtomicBoolean stickySessionStarted;
+    private volatile boolean legacyStickySessionExpiryEnabled;
 
     public HecAckPoller(PollerCallback cb) {
         outstandingEventBatches = new ConcurrentHashMap<>();
@@ -55,10 +56,19 @@ public final class HecAckPoller implements Poller {
         pollerCallback = cb;
         started = new AtomicBoolean(false);
         stickySessionStarted = new AtomicBoolean(false);
+        legacyStickySessionExpiryEnabled = false;
     }
 
+    /**
+     * @deprecated A {@code Set-Cookie} response is not evidence that a sticky session expired. This
+     *     method only has an effect when legacy sticky-session expiry handling is explicitly enabled.
+     */
+    @Deprecated
+    @Override
     public void setStickySessionToTrue() {
-        stickySessionStarted.compareAndSet(false, true);
+        if (legacyStickySessionExpiryEnabled) {
+            stickySessionStarted.compareAndSet(false, true);
+        }
     }
 
     @Override
@@ -187,6 +197,14 @@ public final class HecAckPoller implements Poller {
         return this;
     }
 
+    public HecAckPoller setLegacyStickySessionExpiryEnabled(boolean enabled) {
+        legacyStickySessionExpiryEnabled = enabled;
+        if (!enabled) {
+            stickySessionStarted.set(false);
+        }
+        return this;
+    }
+
     public int getAckPollThreads() {
         return pollThreads;
     }
@@ -200,52 +218,43 @@ public final class HecAckPoller implements Poller {
     }
 
     /**
-     * StickySessionHandler is used to reassign channel id and fail the batches for that HecChannel.
-     * Also, the HecChannel will be unavailable during this period.
-     * StickySessionHandler follows the following flow:
-     * 1) Set channel unavailable
-     * 2) Get batches for the channel
-     * 3) Remove batches for the channel from the poller
-     * 4) Remove batches from kafka record tracker to fail them and resend
-     * 5) Remove channel
-     * 6) Change channel id
-     * 7) Set channel available
+     * Runs the deprecated channel reset and batch retry behavior when its feature flag is enabled.
      *
-     * @param  channel  HecChannel is the channel for which id has tobe changed and batches have to be failed.
-     * @see          HecChannel
-     * @since        1.1.0
+     * @deprecated Sticky-session recovery normally uses the existing ACK timeout and retry path.
      */
+    @Deprecated
+    @Override
     public void stickySessionHandler(HecChannel channel) {
-        if (!stickySessionStarted.get()) {
+        if (!legacyStickySessionExpiryEnabled || !stickySessionStarted.get()) {
             return;
         }
+
         String oldChannelId = channel.getId();
         channel.setAvailable(false);
         log.info("Channel {} set to be not available", oldChannelId);
         ConcurrentHashMap<Long, EventBatch> channelBatches = outstandingEventBatches.get(channel);
-        if(channelBatches != null && channelBatches.size() > 0) {
-            log.info("Failing {} batches for the channel {}, these will be resent by the connector.", channelBatches.size(), oldChannelId);
+        if (channelBatches != null && !channelBatches.isEmpty()) {
+            log.info("Failing {} batches for the channel {}, these will be resent by the connector.",
+                    channelBatches.size(), oldChannelId);
             if (pollerCallback != null) {
                 List<EventBatch> expired = new ArrayList<>();
-                Iterator<Map.Entry<Long,EventBatch>> iter = channelBatches.entrySet().iterator();
-                while(iter.hasNext()) {
-                    Map.Entry<Long, EventBatch> pair = iter.next();
-                    EventBatch batch = pair.getValue();
+                Iterator<Map.Entry<Long, EventBatch>> iterator = channelBatches.entrySet().iterator();
+                while (iterator.hasNext()) {
+                    EventBatch batch = iterator.next().getValue();
                     totalOutstandingEventBatches.decrementAndGet();
                     batch.fail();
                     expired.add(batch);
-                    iter.remove();
+                    iterator.remove();
                 }
                 pollerCallback.onEventFailure(expired, new HecException("sticky_session_expired"));
             }
         }
         outstandingEventBatches.remove(channel);
         channel.setId();
-        String newChannelId = channel.getId();
-        log.info("Changed channel id from {} to {}", oldChannelId, newChannelId);
+        log.info("Changed channel id from {} to {}", oldChannelId, channel.getId());
 
         channel.setAvailable(true);
-        log.info("Channel {} is available", newChannelId);
+        log.info("Channel {} is available", channel.getId());
         stickySessionStarted.compareAndSet(true, false);
     }
 

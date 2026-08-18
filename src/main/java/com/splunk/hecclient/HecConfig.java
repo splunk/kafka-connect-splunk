@@ -28,6 +28,7 @@ public final class HecConfig {
     private int eventBatchTimeout = 60 * 2; // in seconds
     private int ackPollInterval = 10; // in seconds
     private int ackPollThreads = 2;
+    private boolean legacyStickySessionExpiryEnabled = false;
     private int socketTimeout = 60; // in seconds
     private int socketSendBufferSize = 8 * 1024 * 1024; // in byte
     private int backoffThresholdSeconds = 60 * 1000;
@@ -89,6 +90,10 @@ public final class HecConfig {
 
     public int getAckPollThreads() {
         return ackPollThreads;
+    }
+
+    public boolean getLegacyStickySessionExpiryEnabled() {
+        return legacyStickySessionExpiryEnabled;
     }
 
     public int getTotalChannels() {
@@ -159,6 +164,11 @@ public final class HecConfig {
 
     public HecConfig setAckPollThreads(int num) {
         ackPollThreads = num;
+        return this;
+    }
+
+    public HecConfig setLegacyStickySessionExpiryEnabled(boolean enabled) {
+        legacyStickySessionExpiryEnabled = enabled;
         return this;
     }
 
