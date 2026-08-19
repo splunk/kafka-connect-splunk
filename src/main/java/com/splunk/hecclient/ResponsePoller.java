@@ -31,10 +31,14 @@ public final class ResponsePoller implements Poller {
         this.callback = callback;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Used only when legacy sticky-session expiry handling is enabled.
+     */
     @Deprecated
     @Override
     public void stickySessionHandler(HecChannel channel) {
-        // Used only when legacy sticky-session expiry handling is enabled.
     }
 
     @Override
@@ -88,9 +92,13 @@ public final class ResponsePoller implements Poller {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Used only when legacy sticky-session expiry handling is enabled.
+     */
     @Deprecated
     @Override
     public void setStickySessionToTrue() {
-        // Used only when legacy sticky-session expiry handling is enabled.
     }
 }

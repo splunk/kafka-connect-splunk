@@ -326,7 +326,7 @@ public class HecAckPollerTest {
     }
 
     @Test
-    public void legacyStickySessionMethodsDoNotInvalidateBatchesByDefault() {
+    public void legacyStickySessionMethodsShouldNotInvalidateBatchesByDefault() {
         PollerCallbackMock cb = new PollerCallbackMock();
         HecAckPoller poller = new HecAckPoller(cb);
 
