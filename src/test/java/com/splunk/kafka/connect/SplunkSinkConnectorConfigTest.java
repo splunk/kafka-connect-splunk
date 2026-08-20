@@ -60,6 +60,28 @@ public class SplunkSinkConnectorConfigTest {
     }
 
     @Test
+    public void legacyStickySessionExpiryDefaultsToFalseAndCanBeEnabled() {
+        // given
+        UnitUtil uu = new UnitUtil(0);
+        Map<String, String> config = uu.createTaskConfig();
+
+        // when
+        SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
+
+        // then
+        Assert.assertFalse(connectorConfig.legacyStickySessionExpiryEnabled);
+        Assert.assertFalse(connectorConfig.getHecConfig().getLegacyStickySessionExpiryEnabled());
+
+        // when
+        config.put(SplunkSinkConnectorConfig.LEGACY_STICKY_SESSION_EXPIRY_CONF, "true");
+        connectorConfig = new SplunkSinkConnectorConfig(config);
+
+        // then
+        Assert.assertTrue(connectorConfig.legacyStickySessionExpiryEnabled);
+        Assert.assertTrue(connectorConfig.getHecConfig().getLegacyStickySessionExpiryEnabled());
+    }
+
+    @Test
     public void sslEnforcementDefaultsToTrue() {
         ConfigDef.ConfigKey configKey = SplunkSinkConnectorConfig.conf()
                 .configKeys()
@@ -92,6 +114,7 @@ public class SplunkSinkConnectorConfigTest {
             Assert.assertEquals(uu.configProfile.isHttpKeepAlive(), config.getHttpKeepAlive());
             Assert.assertEquals(uu.configProfile.getAckPollInterval(), config.getAckPollInterval());
             Assert.assertEquals(uu.configProfile.getAckPollThreads(), config.getAckPollThreads());
+            Assert.assertFalse(config.getLegacyStickySessionExpiryEnabled());
             Assert.assertEquals(uu.configProfile.isTrackData(), config.getEnableChannelTracking());
         }
     }

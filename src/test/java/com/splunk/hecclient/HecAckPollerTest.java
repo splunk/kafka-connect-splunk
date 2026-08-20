@@ -18,6 +18,7 @@ package com.splunk.hecclient;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.List;
 
 public class HecAckPollerTest {
@@ -325,35 +326,127 @@ public class HecAckPollerTest {
     }
 
     @Test
-    public void stickySessionHandler() {
+    public void legacyStickySessionMethodsShouldNotInvalidateBatchesByDefault() {
+        // given
         PollerCallbackMock cb = new PollerCallbackMock();
         HecAckPoller poller = new HecAckPoller(cb);
-        poller.setAckPollThreads(1);
-        poller.setAckPollInterval(2);
-        poller.start();
 
         IndexerMock indexer = new IndexerMock();
-        String ackResponse = "{\"acks\":{\"1\":true}}";
-        indexer.setResponse(ackResponse);
-
         HecChannel ch = new HecChannel(indexer);
         EventBatch batch = UnitUtil.createBatch();
 
         String response = "{\"text\":\"Success\",\"code\":0,\"ackId\":1}";
         poller.add(ch, batch, response);
 
-        long outstanding = poller.getTotalOutstandingEventBatches();
-        Assert.assertEquals(1, outstanding);
-        UnitUtil.milliSleep(3000);
-
+        // when
         String oldId = ch.getId();
         poller.setStickySessionToTrue();
         poller.stickySessionHandler(ch);
+
+        // then
+        Assert.assertEquals(oldId, ch.getId());
+        Assert.assertEquals(1, poller.getTotalOutstandingEventBatches());
+        Assert.assertFalse(batch.isFailed());
+        Assert.assertEquals(0, cb.getFailed().size());
+    }
+
+    @Test
+    public void legacyStickySessionMethodsInvalidateBatchesWhenEnabled() {
+        // given
+        PollerCallbackMock cb = new PollerCallbackMock();
+        HecAckPoller poller = new HecAckPoller(cb)
+                .setLegacyStickySessionExpiryEnabled(true);
+
+        IndexerMock indexer = new IndexerMock();
+        HecChannel ch = new HecChannel(indexer);
+        EventBatch batch = UnitUtil.createBatch();
+
+        String response = "{\"text\":\"Success\",\"code\":0,\"ackId\":1}";
+        poller.add(ch, batch, response);
+
+        // when
+        String oldId = ch.getId();
+        poller.setStickySessionToTrue();
+        poller.stickySessionHandler(ch);
+
+        // then
         Assert.assertNotEquals(oldId, ch.getId());
+        Assert.assertEquals(0, poller.getTotalOutstandingEventBatches());
+        Assert.assertTrue(batch.isFailed());
+        Assert.assertEquals(1, cb.getFailed().size());
+        Assert.assertEquals("sticky_session_expired", cb.getException().getMessage());
+    }
 
-        outstanding = poller.getTotalOutstandingEventBatches();
-        Assert.assertEquals(0, outstanding);
+    @Test
+    public void refreshedLoadBalancerCookieDoesNotDiscardSuccessfulAck() {
+        // given
+        PollerCallbackMock cb = new PollerCallbackMock();
+        HecAckPoller poller = new HecAckPoller(cb);
+        poller.setAckPollThreads(1);
+        poller.setAckPollInterval(1);
 
-        poller.stop();
+        CloseableHttpClientMock client = new CloseableHttpClientMock();
+        client.setResponse(CloseableHttpClientMock.SUCCESS);
+        client.setAckResponse("{\"acks\":{\"2\":true}}");
+        client.setResponseHeader("Set-Cookie", "AWSALB=refreshed; Path=/");
+
+        Indexer indexer = new Indexer("https://localhost:8088", client, poller,
+            new HecConfig(Collections.emptyList(), "token").setKerberosPrincipal(""));
+        EventBatch batch = UnitUtil.createBatch();
+        String channelId = indexer.getChannel().getId();
+
+        try {
+            // when
+            poller.start();
+            Assert.assertTrue(indexer.send(batch));
+            UnitUtil.milliSleep(2500);
+
+            // then
+            Assert.assertEquals(channelId, indexer.getChannel().getId());
+            Assert.assertEquals(0, poller.getTotalOutstandingEventBatches());
+            Assert.assertTrue(batch.isCommitted());
+            Assert.assertFalse(batch.isFailed());
+            Assert.assertEquals(1, cb.getCommitted().size());
+            Assert.assertEquals(0, cb.getFailed().size());
+        } finally {
+            poller.stop();
+        }
+    }
+
+    @Test
+    public void refreshedLoadBalancerCookieUsesLegacyBehaviorWhenEnabled() {
+        // given
+        PollerCallbackMock cb = new PollerCallbackMock();
+        HecConfig config = new HecConfig(Collections.emptyList(), "token")
+                .setKerberosPrincipal("")
+                .setAckPollThreads(1)
+                .setAckPollInterval(1)
+                .setLegacyStickySessionExpiryEnabled(true);
+        HecAckPoller poller = Hec.createPoller(config, cb);
+
+        CloseableHttpClientMock client = new CloseableHttpClientMock();
+        client.setResponse(CloseableHttpClientMock.SUCCESS);
+        client.setAckResponse("{\"acks\":{\"2\":true}}");
+        client.setResponseHeader("Set-Cookie", "AWSALB=refreshed; Path=/");
+
+        Indexer indexer = new Indexer("https://localhost:8088", client, poller, config);
+        EventBatch batch = UnitUtil.createBatch();
+
+        try {
+            // when
+            poller.start();
+            Assert.assertTrue(indexer.send(batch));
+            UnitUtil.milliSleep(2500);
+
+            // then
+            Assert.assertEquals(0, poller.getTotalOutstandingEventBatches());
+            Assert.assertFalse(batch.isCommitted());
+            Assert.assertTrue(batch.isFailed());
+            Assert.assertEquals(0, cb.getCommitted().size());
+            Assert.assertEquals(1, cb.getFailed().size());
+            Assert.assertEquals("sticky_session_expired", cb.getException().getMessage());
+        } finally {
+            poller.stop();
+        }
     }
 }

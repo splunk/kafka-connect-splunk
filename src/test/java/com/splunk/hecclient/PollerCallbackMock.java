@@ -22,9 +22,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class PollerCallbackMock implements PollerCallback {
     private ConcurrentLinkedQueue<EventBatch> failed = new ConcurrentLinkedQueue<>();
     private ConcurrentLinkedQueue<EventBatch> committed = new ConcurrentLinkedQueue<>();
+    private volatile Exception exception;
 
     public void onEventFailure(final List<EventBatch> failure, Exception ex) {
         failed.addAll(failure);
+        exception = ex;
     }
 
     public void onEventCommitted(final List<EventBatch> commit) {
@@ -41,5 +43,9 @@ public class PollerCallbackMock implements PollerCallback {
         List<EventBatch> results = new ArrayList<>();
         results.addAll(committed);
         return results;
+    }
+
+    public Exception getException() {
+        return exception;
     }
 }

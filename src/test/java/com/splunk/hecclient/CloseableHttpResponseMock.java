@@ -17,7 +17,7 @@ package com.splunk.hecclient;
 
 import org.apache.http.*;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.message.HeaderGroup;
 import org.apache.http.params.*;
 
 import java.io.IOException;
@@ -28,6 +28,7 @@ public class CloseableHttpResponseMock implements CloseableHttpResponse {
     private StatusLine statusLine;
     private HttpEntity entity;
     private boolean throwOnClose = false;
+    private HeaderGroup headers = new HeaderGroup();
 
     public CloseableHttpResponseMock setThrowOnClose(boolean th) {
         throwOnClose = th;
@@ -92,65 +93,76 @@ public class CloseableHttpResponseMock implements CloseableHttpResponse {
 
     @Override
     public boolean containsHeader(final String name) {
-        return true;
+        return headers.containsHeader(name);
     }
 
     @Override
     public Header[] getHeaders(final String name) {
-        return null;
+        return headers.getHeaders(name);
     }
 
     @Override
     public Header getFirstHeader(final String name) {
-        return null;
+        return headers.getFirstHeader(name);
     }
 
     @Override
     public Header getLastHeader(final String name) {
-        return null;
+        return headers.getLastHeader(name);
     }
 
     @Override
     public Header[] getAllHeaders() {
-        return null;
+        return headers.getAllHeaders();
     }
 
     @Override
     public void addHeader(final Header header) {
+        headers.addHeader(header);
     }
 
     @Override
     public void addHeader(final String name, final String value) {
+        headers.addHeader(new org.apache.http.message.BasicHeader(name, value));
     }
 
     @Override
     public void setHeader(final Header header) {
+        headers.updateHeader(header);
     }
 
     @Override
     public void setHeader(final String name, final String value) {
+        headers.updateHeader(new org.apache.http.message.BasicHeader(name, value));
     }
 
     @Override
     public void setHeaders(final Header[] headers) {
+        this.headers.setHeaders(headers);
     }
 
     @Override
     public void removeHeader(final Header header) {
+        headers.removeHeader(header);
     }
 
     @Override
     public void removeHeaders(final String name) {
+        HeaderIterator iterator = headers.iterator(name);
+        while (iterator.hasNext()) {
+            iterator.nextHeader();
+            iterator.remove();
+        }
     }
 
     @Override
     public HeaderIterator headerIterator() {
-        return null;
+        return headers.iterator();
     }
 
     @Override
     public HeaderIterator headerIterator(final String name) {
-        return null;
+        return headers.iterator(name);
     }
 
     @Override

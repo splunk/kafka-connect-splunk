@@ -41,6 +41,7 @@ public class HecConfigTest {
               .setMaxHttpConnectionPerChannel(4)
               .setTotalChannels(5)
               .setAckPollThreads(6)
+              .setLegacyStickySessionExpiryEnabled(true)
               .setEnableChannelTracking(true)
               .setEventBatchTimeout(7)
               .setTrustStorePath("test")
@@ -59,6 +60,7 @@ public class HecConfigTest {
         Assert.assertEquals(4, config.getMaxHttpConnectionPerChannel());
         Assert.assertEquals(5, config.getTotalChannels());
         Assert.assertEquals(6, config.getAckPollThreads());
+        Assert.assertTrue(config.getLegacyStickySessionExpiryEnabled());
         Assert.assertEquals(7, config.getEventBatchTimeout());
         Assert.assertEquals("test", config.getTrustStorePath());
         Assert.assertEquals("PKCS12", config.getTrustStoreType());

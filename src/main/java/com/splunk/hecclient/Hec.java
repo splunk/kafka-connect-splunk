@@ -178,7 +178,8 @@ public class Hec implements HecInf {
         return new HecAckPoller(callback)
                 .setAckPollInterval(config.getAckPollInterval())
                 .setAckPollThreads(config.getAckPollThreads())
-                .setEventBatchTimeout(config.getEventBatchTimeout());
+                .setEventBatchTimeout(config.getEventBatchTimeout())
+                .setLegacyStickySessionExpiryEnabled(config.getLegacyStickySessionExpiryEnabled());
     }
 
    /**

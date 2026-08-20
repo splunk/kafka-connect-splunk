@@ -238,6 +238,9 @@ final class Indexer implements IndexerInf {
 
     private String readAndCloseResponse(CloseableHttpResponse resp) {
         String respPayload;
+        boolean legacyStickySessionExpiryDetected =
+                hecConfig.getLegacyStickySessionExpiryEnabled()
+                        && resp.getHeaders("Set-Cookie").length > 0;
         HttpEntity entity = resp.getEntity();
         try {
             respPayload = EntityUtils.toString(entity, "utf-8");
@@ -251,15 +254,11 @@ final class Indexer implements IndexerInf {
                 throw new HecException("failed to close http response", ex); // NOSONAR
             }
         }
-        
-        //log.info("event posting, channel={}, cookies={}, cookies.length={}", channel, resp.getHeaders("Set-Cookie"), resp.getHeaders("Set-Cookie").length);
 
-        if((resp.getHeaders("Set-Cookie") != null) && (resp.getHeaders("Set-Cookie").length > 0)) {
+        if (legacyStickySessionExpiryDetected) {
             log.info("Sticky session expiry detected, will cleanup old channel and its associated batches");
             poller.setStickySessionToTrue();
         }
-
-        
 
         int status = resp.getStatusLine().getStatusCode();
         // FIXME 503 server is busy backpressure
