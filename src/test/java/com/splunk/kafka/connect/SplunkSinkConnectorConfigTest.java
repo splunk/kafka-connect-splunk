@@ -61,15 +61,22 @@ public class SplunkSinkConnectorConfigTest {
 
     @Test
     public void legacyStickySessionExpiryDefaultsToFalseAndCanBeEnabled() {
+        // given
         UnitUtil uu = new UnitUtil(0);
         Map<String, String> config = uu.createTaskConfig();
 
+        // when
         SplunkSinkConnectorConfig connectorConfig = new SplunkSinkConnectorConfig(config);
+
+        // then
         Assert.assertFalse(connectorConfig.legacyStickySessionExpiryEnabled);
         Assert.assertFalse(connectorConfig.getHecConfig().getLegacyStickySessionExpiryEnabled());
 
+        // when
         config.put(SplunkSinkConnectorConfig.LEGACY_STICKY_SESSION_EXPIRY_CONF, "true");
         connectorConfig = new SplunkSinkConnectorConfig(config);
+
+        // then
         Assert.assertTrue(connectorConfig.legacyStickySessionExpiryEnabled);
         Assert.assertTrue(connectorConfig.getHecConfig().getLegacyStickySessionExpiryEnabled());
     }

@@ -225,7 +225,7 @@ public final class HecAckPoller implements Poller {
     @Deprecated
     @Override
     public void stickySessionHandler(HecChannel channel) {
-        if (!legacyStickySessionExpiryEnabled || !stickySessionStarted.get()) {
+        if (!shouldHandleLegacyStickySessionExpiry()) {
             return;
         }
 
@@ -234,17 +234,17 @@ public final class HecAckPoller implements Poller {
         log.info("Channel {} set to be not available", oldChannelId);
         ConcurrentHashMap<Long, EventBatch> channelBatches = outstandingEventBatches.get(channel);
         if (channelBatches != null && !channelBatches.isEmpty()) {
-            log.info("Failing {} batches for the channel {}, these will be resent by the connector.",
+            log.warn("Failing {} batches for the channel {}, these will be resent by the connector.",
                     channelBatches.size(), oldChannelId);
             if (pollerCallback != null) {
                 List<EventBatch> expired = new ArrayList<>();
-                Iterator<Map.Entry<Long, EventBatch>> iterator = channelBatches.entrySet().iterator();
-                while (iterator.hasNext()) {
-                    EventBatch batch = iterator.next().getValue();
+                Iterator<Map.Entry<Long, EventBatch>> eventBatchIterator = channelBatches.entrySet().iterator();
+                while (eventBatchIterator.hasNext()) {
+                    EventBatch batch = eventBatchIterator.next().getValue();
                     totalOutstandingEventBatches.decrementAndGet();
                     batch.fail();
                     expired.add(batch);
-                    iterator.remove();
+                    eventBatchIterator.remove();
                 }
                 pollerCallback.onEventFailure(expired, new HecException("sticky_session_expired"));
             }
@@ -256,6 +256,10 @@ public final class HecAckPoller implements Poller {
         channel.setAvailable(true);
         log.info("Channel {} is available", channel.getId());
         stickySessionStarted.compareAndSet(true, false);
+    }
+
+    private boolean shouldHandleLegacyStickySessionExpiry() {
+        return legacyStickySessionExpiryEnabled && stickySessionStarted.get();
     }
 
     private void poll() {

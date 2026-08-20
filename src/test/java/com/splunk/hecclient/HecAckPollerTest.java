@@ -327,6 +327,7 @@ public class HecAckPollerTest {
 
     @Test
     public void legacyStickySessionMethodsShouldNotInvalidateBatchesByDefault() {
+        // given
         PollerCallbackMock cb = new PollerCallbackMock();
         HecAckPoller poller = new HecAckPoller(cb);
 
@@ -337,10 +338,12 @@ public class HecAckPollerTest {
         String response = "{\"text\":\"Success\",\"code\":0,\"ackId\":1}";
         poller.add(ch, batch, response);
 
+        // when
         String oldId = ch.getId();
         poller.setStickySessionToTrue();
         poller.stickySessionHandler(ch);
 
+        // then
         Assert.assertEquals(oldId, ch.getId());
         Assert.assertEquals(1, poller.getTotalOutstandingEventBatches());
         Assert.assertFalse(batch.isFailed());
@@ -349,6 +352,7 @@ public class HecAckPollerTest {
 
     @Test
     public void legacyStickySessionMethodsInvalidateBatchesWhenEnabled() {
+        // given
         PollerCallbackMock cb = new PollerCallbackMock();
         HecAckPoller poller = new HecAckPoller(cb)
                 .setLegacyStickySessionExpiryEnabled(true);
@@ -360,10 +364,12 @@ public class HecAckPollerTest {
         String response = "{\"text\":\"Success\",\"code\":0,\"ackId\":1}";
         poller.add(ch, batch, response);
 
+        // when
         String oldId = ch.getId();
         poller.setStickySessionToTrue();
         poller.stickySessionHandler(ch);
 
+        // then
         Assert.assertNotEquals(oldId, ch.getId());
         Assert.assertEquals(0, poller.getTotalOutstandingEventBatches());
         Assert.assertTrue(batch.isFailed());
@@ -373,6 +379,7 @@ public class HecAckPollerTest {
 
     @Test
     public void refreshedLoadBalancerCookieDoesNotDiscardSuccessfulAck() {
+        // given
         PollerCallbackMock cb = new PollerCallbackMock();
         HecAckPoller poller = new HecAckPoller(cb);
         poller.setAckPollThreads(1);
@@ -389,10 +396,12 @@ public class HecAckPollerTest {
         String channelId = indexer.getChannel().getId();
 
         try {
+            // when
             poller.start();
             Assert.assertTrue(indexer.send(batch));
             UnitUtil.milliSleep(2500);
 
+            // then
             Assert.assertEquals(channelId, indexer.getChannel().getId());
             Assert.assertEquals(0, poller.getTotalOutstandingEventBatches());
             Assert.assertTrue(batch.isCommitted());
@@ -406,6 +415,7 @@ public class HecAckPollerTest {
 
     @Test
     public void refreshedLoadBalancerCookieUsesLegacyBehaviorWhenEnabled() {
+        // given
         PollerCallbackMock cb = new PollerCallbackMock();
         HecConfig config = new HecConfig(Collections.emptyList(), "token")
                 .setKerberosPrincipal("")
@@ -423,10 +433,12 @@ public class HecAckPollerTest {
         EventBatch batch = UnitUtil.createBatch();
 
         try {
+            // when
             poller.start();
             Assert.assertTrue(indexer.send(batch));
             UnitUtil.milliSleep(2500);
 
+            // then
             Assert.assertEquals(0, poller.getTotalOutstandingEventBatches());
             Assert.assertFalse(batch.isCommitted());
             Assert.assertTrue(batch.isFailed());
