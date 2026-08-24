@@ -90,6 +90,8 @@ jobs:
 
   semgrep-publish:
     runs-on: ubuntu-24.04
+    needs:
+      - workflow_approval
     name: security-sast-semgrep-publish
     if: >-
       github.event_name != 'pull_request' ||
