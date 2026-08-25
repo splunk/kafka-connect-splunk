@@ -45,8 +45,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: ${{github.event.pull_request.head.sha}}
-          repository: ${{github.event.pull_request.head.repo.full_name}}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
       - name: run fossa anlyze and create report
         run: |
           curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install-latest.sh | bash
@@ -81,8 +81,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: ${{github.event.pull_request.head.sha}}
-          repository: ${{github.event.pull_request.head.repo.full_name}}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
       - name: Semgrep tokenless scan
         id: semgrep
         run: |
@@ -104,8 +104,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: ${{github.event.pull_request.head.sha}}
-          repository: ${{github.event.pull_request.head.repo.full_name}}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
       - name: Semgrep authenticated scan and publish
         run: |
           semgrep login
@@ -132,8 +132,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: ${{github.event.pull_request.head.sha}}
-          repository: ${{github.event.pull_request.head.repo.full_name}}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
 
       - name: Get maven dependencies
         run: |
@@ -214,8 +214,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: ${{github.event.pull_request.head.sha}}
-          repository: ${{github.event.pull_request.head.repo.full_name}}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
 
       - name: Install Splunk
         run: |
