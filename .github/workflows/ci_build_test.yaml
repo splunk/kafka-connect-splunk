@@ -2,23 +2,24 @@ name: CI Build Test
 
 on:
   workflow_dispatch:
-  pull_request_target:
-    branches-ignore:
-      - /^release\/.*/
+  pull_request:
+  push:
+    branches:
+      - develop
       - master
+      - "release/**"
   workflow_call:
     secrets:
       FOSSA_API_KEY:
         description: API token for FOSSA app
         required: true
-      
+
       SEMGREP_PUBLISH_TOKEN:
         description: Publish token for Semgrep
         required: true
 
 permissions:
-  checks: write
-  pull-requests: write
+  contents: read
 
 jobs:
   workflow_approval:
@@ -30,6 +31,12 @@ jobs:
         run: echo For security reasons, all pull requests need to be approved first before running any automated CI.
 
   fossa-scan:
+    # only for PRs from the same repo
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       github.actor != 'dependabot[bot]')
     continue-on-error: true
     runs-on: ubuntu-24.04
     needs:
@@ -38,8 +45,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: ${{github.event.pull_request.head.sha}}
-          repository: ${{github.event.pull_request.head.repo.full_name}}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
       - name: run fossa anlyze and create report
         run: |
           curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install-latest.sh | bash
@@ -63,7 +70,10 @@ jobs:
     needs:
       - workflow_approval
     name: security-sast-semgrep
-    if: github.actor != 'dependabot[bot]'
+    if: >-
+      github.event_name == 'pull_request' &&
+      (github.event.pull_request.head.repo.full_name != github.repository ||
+       github.actor == 'dependabot[bot]')
     container:
       # A Docker image with Semgrep installed. Do not change this.
       image: returntocorp/semgrep
@@ -71,10 +81,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: ${{github.event.pull_request.head.sha}}
-          repository: ${{github.event.pull_request.head.repo.full_name}}
-      - name: Semgrep
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+      - name: Semgrep tokenless scan
         id: semgrep
+        run: |
+          semgrep scan --config auto --error
+
+  semgrep-publish:
+    runs-on: ubuntu-24.04
+    needs:
+      - workflow_approval
+    name: security-sast-semgrep-publish
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       github.actor != 'dependabot[bot]')
+    container:
+      image: returntocorp/semgrep
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+      - name: Semgrep authenticated scan and publish
         run: |
           semgrep login
           semgrep ci
@@ -91,12 +123,17 @@ jobs:
     runs-on: ubuntu-24.04
     needs:
       - workflow_approval
+    if: github.event_name != 'push'
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: ${{github.event.pull_request.head.sha}}
-          repository: ${{github.event.pull_request.head.repo.full_name}}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
 
       - name: Get maven dependencies
         run: |
@@ -115,7 +152,11 @@ jobs:
 
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
+        if: >-
+          always() &&
+          (github.event_name != 'pull_request' ||
+           (github.event.pull_request.head.repo.full_name == github.repository &&
+            github.actor != 'dependabot[bot]'))
         with:
           check_name: Unit Test Results
           files: "target/surefire-reports/*.xml"
@@ -173,8 +214,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: ${{github.event.pull_request.head.sha}}
-          repository: ${{github.event.pull_request.head.repo.full_name}}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
 
       - name: Install Splunk
         run: |
