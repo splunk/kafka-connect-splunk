@@ -43,7 +43,7 @@ jobs:
       - workflow_approval
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
@@ -55,7 +55,7 @@ jobs:
         env:
           FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
       - name: upload THIRDPARTY file
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: THIRDPARTY
           path: /tmp/THIRDPARTY
@@ -79,7 +79,7 @@ jobs:
       image: returntocorp/semgrep
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
@@ -130,10 +130,16 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+
+      - name: Set up Java 17
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
+        with:
+          distribution: temurin
+          java-version: '17'
 
       - name: Get maven dependencies
         run: |
@@ -145,13 +151,13 @@ jobs:
           cp -R target/splunk-kafka-connect*.jar /tmp
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: splunk-kafka-connector
           path: /tmp/splunk-kafka-connect*.jar
 
       - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
+        uses: EnricoMi/publish-unit-test-result-action@d0a4676d0e0b938bc201470d88276b7c74c712b3 # v2.24.0
         if: >-
           always() &&
           (github.event_name != 'pull_request' ||
@@ -179,22 +185,33 @@ jobs:
             kafka_package: "kafka_2.12-3.5.1.tgz"
             confluent_major_version: "7.5"
             confluent_package_version: "7.5.9"
+            kraft: false
           - kafka_version: "3.6.2"
             kafka_package: "kafka_2.12-3.6.2.tgz"
             confluent_major_version: "7.6"
             confluent_package_version: "7.6.6"
+            kraft: false
           - kafka_version: "3.7.2"
             kafka_package: "kafka_2.12-3.7.2.tgz"
             confluent_major_version: "7.7"
             confluent_package_version: "7.7.4"
+            kraft: false
           - kafka_version: "3.8.1"
             kafka_package: "kafka_2.12-3.8.1.tgz"
             confluent_major_version: "7.8"
             confluent_package_version: "7.8.3"
+            kraft: false
           - kafka_version: "3.9.0"
             kafka_package: "kafka_2.12-3.9.0.tgz"
             confluent_major_version: "7.9"
             confluent_package_version: "7.9.2"
+            kraft: false
+          - kafka_version: "4.3.1"
+            kafka_package: "kafka_2.13-4.3.1.tgz"
+            confluent_major_version: "8.3"
+            confluent_package_version: "8.3.0"
+            kraft: true
+
     env:
       CI_SPLUNK_VERSION: ${{matrix.splunk.splunk_version}}
       CI_SPLUNK_FILENAME: ${{matrix.splunk.splunk_filename}}
@@ -212,10 +229,16 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+
+      - name: Set up Java 17
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
+        with:
+          distribution: temurin
+          java-version: '17'
 
       - name: Install Splunk
         run: |
@@ -260,24 +283,33 @@ jobs:
           cd /usr/local/kafka && ls
 
       - name: Start ZooKeeper Server
+        if: ${{ !matrix.kafka.kraft }}
         working-directory: /usr/local/kafka
         run: |
           echo "Start ZooKeeper"
           sudo bin/zookeeper-server-start.sh config/zookeeper.properties &
 
-      - name: Start Kafka Server
+      - name: Start Kafka Server (ZooKeeper mode)
+        if: ${{ !matrix.kafka.kraft }}
         working-directory: /usr/local/kafka
         run: |
-          echo "Start kafka server"
           sudo bin/kafka-server-start.sh config/server.properties &
 
-      - uses: actions/setup-python@v4
+      - name: Start Kafka Server (KRaft mode)
+        if: ${{ matrix.kafka.kraft }}
+        working-directory: /usr/local/kafka
+        run: |
+          KAFKA_CLUSTER_ID=$(bin/kafka-storage.sh random-uuid)
+          bin/kafka-storage.sh format --standalone -t $KAFKA_CLUSTER_ID -c config/server.properties
+          sudo bin/kafka-server-start.sh config/server.properties &
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: 3.11
           check-latest: true
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: splunk-kafka-connector
           path: /tmp
@@ -398,7 +430,7 @@ jobs:
           python test/lib/eventproducer_connector_upgrade.py 2000 --log-level=INFO
           # Check in splunk that we have recieved 2000 events for with ack and without ack tasks
           python test/lib/connector_upgrade.py --log-level=INFO
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
           name: kafka-connect-logs-${{ matrix.kafka.kafka_version }}
@@ -420,7 +452,7 @@ jobs:
           echo "Running functional tests....."
           python -m pytest --log-level=INFO
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
           name: splunk-events-${{ matrix.kafka.kafka_version }}
