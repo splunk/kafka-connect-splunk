@@ -120,16 +120,15 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
             + "as indexes can be applied. If left un-configured, the default source binds to"
             + " the HEC token. By default, this setting is empty.";
     static final String SOURCETYPE_DOC = "Splunk event sourcetype metadata for Kafka topic data. The same configuration "
-            + "rules as indexes can be applied here. If left unconfigured, the default source"
-            + " binds to the HEC token. By default, this setting is empty"
-            + "through to splunk. Only use with JSON Event endpoint";
+            + "rules as indexes can be applied here. If left unconfigured, the connector uses the default sourcetype "
+            + "associated with the HEC token. By default, this setting is empty.";
     static final String FLUSH_WINDOW_DOC = "The interval in seconds at which the events from kafka connect will be flushed to Splunk.";
     static final String TOTAL_HEC_CHANNEL_DOC = "Total HEC Channels used to post events to Splunk. When enabling HEC ACK, "
             + "setting to the same or 2X number of indexers is generally good.";
     static final String MAX_HTTP_CONNECTION_PER_CHANNEL_DOC = "Max HTTP connections pooled for one HEC Channel "
             + "when posting events to Splunk.";
     static final String MAX_BATCH_SIZE_DOC = "Maximum batch size when posting events to Splunk. The size is the actual number of "
-            + "Kafka events not the byte size. By default, this is set to 100.";
+            + "Kafka events not the byte size. By default, this is set to 500.";
     static final String HTTP_KEEPALIVE_DOC = "Valid settings are true or false. Enables or disables HTTP connection "
             + "keep-alive. By default, this is set to true";
     static final String HEC_THREADS_DOC = "Controls how many threads are spawned to do data injection via HEC in a single "
@@ -148,13 +147,13 @@ public final class SplunkSinkConnectorConfig extends AbstractConfig {
     static final String ACK_DOC = "Valid settings are true or false. When set to true Splunk Connect for Kafka will "
             + "poll event ACKs for POST events before check-pointing the Kafka offsets. This is used "
             + "to prevent data loss, as this setting implements guaranteed delivery. By default, this "
-            + "setting is set to true.";
+            + "setting is set to false.";
     static final String ACK_POLL_INTERVAL_DOC = "This setting is only applicable when splunk.hec.ack.enabled is set to "
             + "true. Internally it controls the event ACKs polling interval. By default, "
             + "this setting is 10 seconds.";
     static final String ACK_POLL_THREADS_DOC = "This setting is used for performance tuning and is only applicable when "
             + "splunk.hec.ack.enabled is set to true. It controls how many threads "
-            + "should be spawned to poll event ACKs. By default, this is set to 1.";
+            + "should be spawned to poll event ACKs. By default, this is set to 2.";
     static final String EVENT_TIMEOUT_DOC = "This setting is applicable when splunk.hec.ack.enabled is set to true. "
             + "When events are POSTed to Splunk and before they are ACKed, this setting "
             + "determines how long the connector will wait before timing out and resending. "
