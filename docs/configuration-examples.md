@@ -183,21 +183,21 @@ curl http://<KAFKA_CONNECT_HOST>:8083/connectors \
   }'
 ```
 
-## Collectd metrics
+## Collected metrics
 
-The Splunk 2.2 guide provides this pattern for sending collectd data to a metrics index. Ensure the HEC token and sourcetype are configured for metrics in the target Splunk deployment.
+The Splunk 2.2 guide provides this pattern for sending collected data to a metrics index. Ensure the HEC token and sourcetype are configured for metrics in the target Splunk deployment.
 
 ```sh
 curl http://<KAFKA_CONNECT_HOST>:8083/connectors \
   -X POST \
   -H 'Content-Type: application/json' \
   -d '{
-    "name": "splunk-collectd-metrics",
+    "name": "splunk-collected-metrics",
     "config": {
       "connector.class": "com.splunk.kafka.connect.SplunkSinkConnector",
       "tasks.max": "10",
-      "topics": "collectd",
-      "splunk.sourcetypes": "collectd_http",
+      "topics": "collected",
+      "splunk.sourcetypes": "collected_http",
       "splunk.hec.uri": "https://idx1.example.com:8088,https://idx2.example.com:8088,https://idx3.example.com:8088",
       "splunk.hec.token": "<SPLUNK_HEC_TOKEN>",
       "splunk.hec.ack.enabled": "true",
