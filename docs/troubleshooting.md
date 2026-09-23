@@ -38,7 +38,7 @@ access.control.allow.origin=<CONTROL_CENTER_ORIGIN>
 access.control.allow.methods=GET,OPTIONS,HEAD,POST,PUT,DELETE
 ```
 
-The Splunk 2.2 guide uses `access.control.allow.origin=*`. Prefer the exact trusted UI origin because the Connect REST API exposes administrative operations and connector configuration.
+You can use `access.control.allow.origin=*`, but prefer the exact trusted UI origin because the Connect REST API exposes administrative operations and connector configuration.
 
 ## Malformed data
 
@@ -49,6 +49,41 @@ type=malformed
 ```
 
 Inspect the producer serialization and the worker's `value.converter` when malformed records appear repeatedly.
+
+## Detect HEC backpressure
+
+HEC backpressure commonly starts with an HTTP `503` response and is followed by channel backpressure messages:
+
+```text
+failed to post events resp={"text":"Server busy","code":1}, status=503
+Still in Backpressure window 1523:60000
+com.splunk.hecclient.HecException: All channels have back pressure
+```
+
+The two numbers in `Still in Backpressure window` are the elapsed time and configured backoff window in milliseconds. A successful recovery is reported as:
+
+```text
+Clearing Backpressure
+```
+
+With HEC acknowledgment enabled, the connector can also pause Kafka consumption when too many events are awaiting acknowledgment:
+
+```text
+max outstanding events 1000000 have reached, pause the pull for a while
+```
+
+To detect and troubleshoot backpressure:
+
+1. Search the Kafka Connect worker logs for `status=503`, `Backpressure`, `All channels have back pressure`, `max outstanding events`, `attempting to resend`, and `dropping EventBatch`.
+2. Check the connector consumer group's lag. The connector may remain `RUNNING` while consumption is paused or batches are retried, so increasing lag is an important secondary signal.
+3. Check HEC health, Splunk indexing latency and queues, ingestion limits, and the network or load balancer between the workers and HEC.
+4. Review `splunk.hec.backoff.threshhold.seconds`, `splunk.hec.max.outstanding.events`, and `splunk.hec.max.retries`. Increasing these values can delay failure but does not remove the underlying bottleneck.
+
+When you see this message, it means that the backpressure caused a data loss:
+
+```text
+dropping EventBatch <BATCH_ID> with <EVENT_COUNT> events after reaching maximum retries <MAX_RETRIES>
+```
 
 ## Performance declines after several minutes
 
@@ -85,7 +120,7 @@ timed out event batch after 60 seconds not acked
 detected event batches timedout
 ```
 
-Increase `splunk.hec.event.timeout` above the normal worst-case HEC acknowledgment latency. The Splunk 2.2 guide specifically warns against values below two minutes for this scenario; the repository default is documented in the [acknowledgment parameter table](../README.md#use-ack).
+Increase `splunk.hec.event.timeout` above the normal worst-case HEC acknowledgment latency. It is not recommended to use values below two minutes for this scenario; the repository default is documented in the [acknowledgment parameter table](../README.md#use-ack).
 
 Confirm that sticky sessions are configured when HEC is behind a load balancer. See [Load balancing configurations](load-balancing.md).
 

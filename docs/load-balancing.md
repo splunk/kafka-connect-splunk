@@ -14,7 +14,7 @@ For Splunk Cloud Platform, work with Splunk Support when a load balancer must be
 When `splunk.hec.ack.enabled=true` and `splunk.hec.uri` points to a load balancer:
 
 1. Configure cookie-based sticky sessions with the longest practical cookie lifetime. An acknowledgment poll must reach the same HEC backend that accepted the corresponding batch.
-2. Configure multiple HEC channels with `splunk.hec.total.channels`. A useful starting point is one or more channels per backend; the Splunk 2.2 guide suggests up to two times the number of indexers behind the load balancer.
+2. Configure multiple HEC channels with `splunk.hec.total.channels`. A useful starting point is one or more channels per backend; we suggest up to two times the number of indexers behind the load balancer.
 3. Tune `splunk.hec.lb.poll.interval`, which controls endpoint health polling. The default is 120 seconds. Increase it to reduce polling or decrease it to detect endpoint changes more quickly. Set it to `-1` only when polling must be disabled.
 4. Save the connector configuration and observe the distribution of requests and acknowledgment latency.
 
