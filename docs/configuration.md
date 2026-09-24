@@ -153,7 +153,7 @@ First confirm that Kafka Connect, rather than Kafka brokers, the network, HEC, o
 - Add CPU or memory when the workers are resource constrained.
 - Add Kafka Connect workers to the distributed cluster.
 
-`tasks.max` should not exceed the number of source partitions because each partition can be assigned to only one task. A starting estimate from the Splunk 2.2 guide is two tasks per worker CPU, capped by the partition count. For five 8-CPU workers and 200 partitions, that estimate is 80 tasks; with 60 partitions, cap it at 60.
+`tasks.max` should not exceed the number of source partitions because each partition can be assigned to only one task. A starting estimate is two tasks per worker CPU, capped by the partition count. For five 8-CPU workers and 200 partitions, that estimate is 80 tasks; with 60 partitions, cap it at 60.
 
 Capacity-test with your own event sizes, transforms, acknowledgment mode, network, and Splunk deployment. The source guide reports approximately 50-60 MB/s for an 8-CPU, 16-GB worker when the downstream Splunk deployment is sized appropriately, but this is an example rather than a guarantee.
 
