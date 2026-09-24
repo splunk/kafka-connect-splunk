@@ -24,7 +24,7 @@ Splunk Connect for Kafka runs as a Kafka Connect plugin and does not add views t
 ## Requirements
 
 * Kafka Connect running with Kafka 1.0.0 or later.
-  * Tested versions: 3.5.1, 3.6.2, 3.7.2, 3.8.1, and 3.9.0.
+  * Tested versions: 3.5.1, 3.6.2, 3.7.2, 3.8.1, and 3.9.0
 * Java 8 or later.
 * Splunk platform 8.0.0 or later with a valid HTTP Event Collector (HEC) token.
   * Tested versions: 9.4.4 and 10.0.0.
@@ -45,7 +45,7 @@ Splunk Connect for Kafka lets you subscribe to a Kafka topic and stream the data
 ## Build
 
 1. Clone the repo from https://github.com/splunk/kafka-connect-splunk
-2. Verify that Java8 JRE or JDK is installed.
+2. Verify that Java 8 JRE or JDK is installed.
 3. Verify that maven is installed.
 4. Run `mvn package`. This will build the jar in the /target directory. The name will be `splunk-kafka-connect-[VERSION].jar`.
 
