@@ -165,15 +165,13 @@ When broker-side client authentication is disabled, the client keystore settings
 
 Kafka Connect cannot set these sink-consumer properties separately for each connector through this connector's configuration. If separate client identities are required, run connectors on workers with the appropriate worker configuration.
 
-Start Kafka and Kafka Connect after saving the settings:
+Start Kafka and Kafka Connect after saving the settings. Kafka 3.x deployments that use ZooKeeper can start the services as follows:
 
 ```sh
 $KAFKA_HOME/bin/zookeeper-server-start.sh config/zookeeper.properties
 $KAFKA_HOME/bin/kafka-server-start.sh config/server.properties
 $KAFKA_HOME/bin/connect-distributed.sh config/connect-distributed.properties
 ```
-
-For Kafka deployments that do not use ZooKeeper, start the cluster using its KRaft-specific procedure.
 
 ### Secure command-line clients
 
