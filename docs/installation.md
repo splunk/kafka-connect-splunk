@@ -2,6 +2,8 @@
 
 The installation procedure applies to Apache Kafka and Confluent Platform deployments.
 
+The connector is compiled with JDK 17 or later using `--release 8` and the Kafka 3.5.1 Connect API. The Connect API is not bundled in the connector JAR. This allows the same artifact to run on a Kafka 3.x Connect worker using Java 8 and on a Kafka 4.x worker using Java 17, provided the connector only uses APIs available in Kafka 3.5.1.
+
 > **New deployments:** Splunk's current product guidance recommends Splunk OpenTelemetry Connector for Kafka (SOC4Kafka) for new Kafka-to-Splunk deployments. Use this connector when maintaining an existing Splunk Connect for Kafka deployment or when its behavior is specifically required. See the [official Splunk Connect for Kafka overview](https://help.splunk.com/en/splunk-cloud-platform/get-data-in/splunk-connect-for-kafka/2.2/overview/splunk-connect-for-kafka) before selecting an ingestion path.
 
 ## Install the connector
@@ -55,6 +57,8 @@ The installation procedure applies to Apache Kafka and Confluent Platform deploy
 9. Create a connector using the [configuration guide](configuration.md), then search the destination Splunk index to verify ingestion.
 
 `$KAFKA_HOME` is the Kafka or Kafka Connect installation directory on the worker host.
+
+Kafka 4.x requires KRaft. Format its storage with `kafka-storage.sh` and start the brokers using the Kafka 4.x [KRaft deployment procedure](https://kafka.apache.org/43/operations/kraft/); do not start ZooKeeper.
 
 ## Kafka Connect REST commands
 
