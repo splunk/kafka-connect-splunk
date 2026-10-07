@@ -250,7 +250,7 @@ jobs:
           [role_admin]
           delete_by_keyword = enabled
           EOF
-          sudo /opt/splunk/bin/splunk start --accept-license --answer-yes --no-prompt
+          sudo /opt/splunk/bin/splunk start --accept-license --answer-yes --no-prompt --run-as-root
           # Enable HEC services
           curl -X POST -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -k https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/servicesNS/nobody/splunk_httpinput/data/inputs/http/http/enable
           # Create new HEC token
