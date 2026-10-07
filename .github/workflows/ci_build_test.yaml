@@ -178,8 +178,10 @@ jobs:
         splunk:
           - splunk_version: "10.6.0.5"
             splunk_filename: "splunk-10.6.0.5-86587d4e3b27-linux-amd64.tgz"
+            run_as_root: true
           - splunk_version: "9.4.16"
             splunk_filename: "splunk-9.4.16-fbe3c1243d26-linux-amd64.tgz"
+            run_as_root: false
         kafka:
           - kafka_version: "3.9.2"
             kafka_package: "kafka_2.12-3.9.2.tgz"
@@ -209,6 +211,7 @@ jobs:
     env:
       CI_SPLUNK_VERSION: ${{matrix.splunk.splunk_version}}
       CI_SPLUNK_FILENAME: ${{matrix.splunk.splunk_filename}}
+      CI_SPLUNK_RUN_AS_ROOT: ${{matrix.splunk.run_as_root}}
       CI_SPLUNK_HOST: 127.0.0.1
       CI_SPLUNK_PORT: 8089
       CI_SPLUNK_USERNAME: admin
@@ -250,7 +253,11 @@ jobs:
           [role_admin]
           delete_by_keyword = enabled
           EOF
-          sudo /opt/splunk/bin/splunk start --accept-license --answer-yes --no-prompt --run-as-root
+          SPLUNK_RUN_AS_ROOT_ARGS=()
+          if [[ "$CI_SPLUNK_RUN_AS_ROOT" == "true" ]]; then
+            SPLUNK_RUN_AS_ROOT_ARGS+=(--run-as-root)
+          fi
+          sudo /opt/splunk/bin/splunk start --accept-license --answer-yes --no-prompt "${SPLUNK_RUN_AS_ROOT_ARGS[@]}"
           # Enable HEC services
           curl -X POST -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -k https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/servicesNS/nobody/splunk_httpinput/data/inputs/http/http/enable
           # Create new HEC token
