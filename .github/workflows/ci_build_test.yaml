@@ -176,45 +176,33 @@ jobs:
       fail-fast: false
       matrix:
         splunk:
-          - splunk_version: "10.0.0"
-            splunk_filename: "splunk-10.0.0-e8eb0c4654f8-linux-amd64.tgz"
-          - splunk_version: "9.4.4"
-            splunk_filename: "splunk-9.4.4-f627d88b766b-linux-amd64.tgz"
+          - splunk_version: "10.6.0"
+            splunk_filename: "splunk-10.6.0-37c5143b091f-linux-amd64.tgz"
+          - splunk_version: "9.4.16"
+            splunk_filename: "splunk-9.4.16-fbe3c1243d26-linux-amd64.tgz"
         kafka:
-          - kafka_version: "3.5.1"
-            kafka_package: "kafka_2.12-3.5.1.tgz"
-            confluent_major_version: "7.5"
-            confluent_package_version: "7.5.9"
-            java_version: "8"
-            kraft: false
-          - kafka_version: "3.6.2"
-            kafka_package: "kafka_2.12-3.6.2.tgz"
-            confluent_major_version: "7.6"
-            confluent_package_version: "7.6.6"
-            java_version: "8"
-            kraft: false
-          - kafka_version: "3.7.2"
-            kafka_package: "kafka_2.12-3.7.2.tgz"
-            confluent_major_version: "7.7"
-            confluent_package_version: "7.7.4"
-            java_version: "8"
-            kraft: false
-          - kafka_version: "3.8.1"
-            kafka_package: "kafka_2.12-3.8.1.tgz"
-            confluent_major_version: "7.8"
-            confluent_package_version: "7.8.3"
-            java_version: "8"
-            kraft: false
-          - kafka_version: "3.9.0"
-            kafka_package: "kafka_2.12-3.9.0.tgz"
+          - kafka_version: "3.9.2"
+            kafka_package: "kafka_2.12-3.9.2.tgz"
             confluent_major_version: "7.9"
-            confluent_package_version: "7.9.2"
-            java_version: "8"
+            confluent_package_version: "7.9.10"
+            java_version: "17"
             kraft: false
+          - kafka_version: "4.1.2"
+            kafka_package: "kafka_2.13-4.1.2.tgz"
+            confluent_major_version: "8.1"
+            confluent_package_version: "8.1.6"
+            java_version: "17"
+            kraft: true
+          - kafka_version: "4.2.2"
+            kafka_package: "kafka_2.13-4.2.2.tgz"
+            confluent_major_version: "8.2"
+            confluent_package_version: "8.2.4"
+            java_version: "17"
+            kraft: true
           - kafka_version: "4.3.1"
             kafka_package: "kafka_2.13-4.3.1.tgz"
             confluent_major_version: "8.3"
-            confluent_package_version: "8.3.0"
+            confluent_package_version: "8.3.2"
             java_version: "17"
             kraft: true
 
@@ -231,7 +219,6 @@ jobs:
       CI_KAFKA_HEADER_INDEX: kafka
       CI_DATAGEN_IMAGE: rock1017/log-generator:latest
       CI_OLD_CONNECTOR_VERSION: v2.0.1
-      CI_KAFKA_VERSION_BEFORE_3_7: ${{ matrix.kafka.kafka_version == '3.5.1' || matrix.kafka.kafka_version == '3.6.2' }}
 
     steps:
       - name: Checkout
