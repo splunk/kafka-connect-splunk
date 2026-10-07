@@ -176,8 +176,8 @@ jobs:
       fail-fast: false
       matrix:
         splunk:
-          - splunk_version: "10.6.0"
-            splunk_filename: "splunk-10.6.0-37c5143b091f-linux-amd64.tgz"
+          - splunk_version: "10.6.0.5"
+            splunk_filename: "splunk-10.6.0.5-86587d4e3b27-linux-amd64.tgz"
           - splunk_version: "9.4.16"
             splunk_filename: "splunk-9.4.16-fbe3c1243d26-linux-amd64.tgz"
         kafka:
