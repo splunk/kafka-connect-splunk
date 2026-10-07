@@ -272,7 +272,7 @@ jobs:
           curl -X POST -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -k -d "name=$CI_INDEX_EVENTS&datatype=event" https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/servicesNS/-/search/data/indexes
           curl -X POST -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -k -d "name=$CI_KAFKA_HEADER_INDEX&datatype=event" https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/servicesNS/-/search/data/indexes
           # Restart Splunk
-          curl -k -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/services/server/control/restart -X POST
+          sudo /opt/splunk/bin/splunk restart "${SPLUNK_RUN_AS_ROOT_ARGS[@]}"
 
       - name: Install Kafka ${{ matrix.kafka.kafka_version }}
         run: |
