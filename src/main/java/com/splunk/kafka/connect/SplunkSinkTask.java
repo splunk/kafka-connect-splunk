@@ -16,9 +16,6 @@
 package com.splunk.kafka.connect;
 
 import com.splunk.hecclient.*;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.SystemUtils;
-import org.apache.kafka.clients.admin.Config;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.connect.errors.RetriableException;
@@ -28,7 +25,6 @@ import org.apache.kafka.connect.sink.SinkTask;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.connect.header.Header;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.ParseException;

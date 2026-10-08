@@ -11,15 +11,14 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <java.version>1.8</java.version>
+        <maven.compiler.release>17</maven.compiler.release>
         <junit.version>4.13.2</junit.version>
         <junit.jupiter.version>5.9.2</junit.jupiter.version>
         <junit.vintage.version>5.9.2</junit.vintage.version>
         <junit.platform.version>1.9.2</junit.platform.version>
         <jackson.version>2.22.1</jackson.version>
-        <kafka.version>4.3.1</kafka.version>
+        <!-- Compile against the oldest tested Connect API for forward compatibility. -->
+        <kafka.version>3.9.2</kafka.version>
         <slf4j.version>2.0.7</slf4j.version>
         <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
@@ -44,7 +43,8 @@
             <groupId>org.apache.kafka</groupId>
             <artifactId>connect-api</artifactId>
             <version>${kafka.version}</version>
-            <scope>compile</scope>
+            <!-- Kafka Connect supplies this API at runtime; do not shade it into the connector. -->
+            <scope>provided</scope>
             <exclusions>
                 <!-- Exclude vulnerable org.lz4:lz4-java (CVE-2025-12183, CVE-2025-66566);
                      replaced below with the patched fork at.yawk.lz4:lz4-java -->
@@ -302,8 +302,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <release>${maven.compiler.release}</release>
                     <compilerArgument>-Xlint:all</compilerArgument>
                     <showWarnings>true</showWarnings>
                     <showDeprecation>true</showDeprecation>

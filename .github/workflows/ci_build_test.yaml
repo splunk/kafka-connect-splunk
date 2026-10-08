@@ -168,7 +168,7 @@ jobs:
           files: "target/surefire-reports/*.xml"
 
   e2e_test:
-    name: e2e test (kafka:${{ matrix.kafka.kafka_version }}, splunk:${{ matrix.splunk.splunk_version }})
+    name: e2e test (kafka:${{ matrix.kafka.kafka_version }}, java:${{ matrix.kafka.java_version }}, splunk:${{ matrix.splunk.splunk_version }})
     runs-on: ubuntu-latest
     needs:
       - build-unit-test
@@ -176,45 +176,42 @@ jobs:
       fail-fast: false
       matrix:
         splunk:
-          - splunk_version: "10.0.0"
-            splunk_filename: "splunk-10.0.0-e8eb0c4654f8-linux-amd64.tgz"
-          - splunk_version: "9.4.4"
-            splunk_filename: "splunk-9.4.4-f627d88b766b-linux-amd64.tgz"
+          - splunk_version: "10.6.0.5"
+            splunk_filename: "splunk-10.6.0.5-86587d4e3b27-linux-amd64.tgz"
+            run_as_root: true
+          - splunk_version: "9.4.16"
+            splunk_filename: "splunk-9.4.16-fbe3c1243d26-linux-amd64.tgz"
+            run_as_root: false
         kafka:
-          - kafka_version: "3.5.1"
-            kafka_package: "kafka_2.12-3.5.1.tgz"
-            confluent_major_version: "7.5"
-            confluent_package_version: "7.5.9"
-            kraft: false
-          - kafka_version: "3.6.2"
-            kafka_package: "kafka_2.12-3.6.2.tgz"
-            confluent_major_version: "7.6"
-            confluent_package_version: "7.6.6"
-            kraft: false
-          - kafka_version: "3.7.2"
-            kafka_package: "kafka_2.12-3.7.2.tgz"
-            confluent_major_version: "7.7"
-            confluent_package_version: "7.7.4"
-            kraft: false
-          - kafka_version: "3.8.1"
-            kafka_package: "kafka_2.12-3.8.1.tgz"
-            confluent_major_version: "7.8"
-            confluent_package_version: "7.8.3"
-            kraft: false
-          - kafka_version: "3.9.0"
-            kafka_package: "kafka_2.12-3.9.0.tgz"
+          - kafka_version: "3.9.2"
+            kafka_package: "kafka_2.12-3.9.2.tgz"
             confluent_major_version: "7.9"
-            confluent_package_version: "7.9.2"
+            confluent_package_version: "7.9.10"
+            java_version: "17"
             kraft: false
+          - kafka_version: "4.1.2"
+            kafka_package: "kafka_2.13-4.1.2.tgz"
+            confluent_major_version: "8.1"
+            confluent_package_version: "8.1.6"
+            java_version: "17"
+            kraft: true
+          - kafka_version: "4.2.2"
+            kafka_package: "kafka_2.13-4.2.2.tgz"
+            confluent_major_version: "8.2"
+            confluent_package_version: "8.2.4"
+            java_version: "17"
+            kraft: true
           - kafka_version: "4.3.1"
             kafka_package: "kafka_2.13-4.3.1.tgz"
             confluent_major_version: "8.3"
-            confluent_package_version: "8.3.0"
+            confluent_package_version: "8.3.2"
+            java_version: "17"
             kraft: true
 
     env:
       CI_SPLUNK_VERSION: ${{matrix.splunk.splunk_version}}
       CI_SPLUNK_FILENAME: ${{matrix.splunk.splunk_filename}}
+      CI_SPLUNK_RUN_AS_ROOT: ${{matrix.splunk.run_as_root}}
       CI_SPLUNK_HOST: 127.0.0.1
       CI_SPLUNK_PORT: 8089
       CI_SPLUNK_USERNAME: admin
@@ -225,7 +222,6 @@ jobs:
       CI_KAFKA_HEADER_INDEX: kafka
       CI_DATAGEN_IMAGE: rock1017/log-generator:latest
       CI_OLD_CONNECTOR_VERSION: v2.0.1
-      CI_KAFKA_VERSION_BEFORE_3_7: ${{ matrix.kafka.kafka_version == '3.5.1' || matrix.kafka.kafka_version == '3.6.2' }}
 
     steps:
       - name: Checkout
@@ -234,11 +230,11 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
 
-      - name: Set up Java 17
+      - name: Set up Java ${{ matrix.kafka.java_version }}
         uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: ${{ matrix.kafka.java_version }}
 
       - name: Install Splunk
         run: |
@@ -257,7 +253,11 @@ jobs:
           [role_admin]
           delete_by_keyword = enabled
           EOF
-          sudo /opt/splunk/bin/splunk start --accept-license --answer-yes --no-prompt
+          SPLUNK_RUN_AS_ROOT_ARGS=()
+          if [[ "$CI_SPLUNK_RUN_AS_ROOT" == "true" ]]; then
+            SPLUNK_RUN_AS_ROOT_ARGS+=(--run-as-root)
+          fi
+          sudo /opt/splunk/bin/splunk start --accept-license --answer-yes --no-prompt "${SPLUNK_RUN_AS_ROOT_ARGS[@]}"
           # Enable HEC services
           curl -X POST -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -k https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/servicesNS/nobody/splunk_httpinput/data/inputs/http/http/enable
           # Create new HEC token
@@ -272,7 +272,7 @@ jobs:
           curl -X POST -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -k -d "name=$CI_INDEX_EVENTS&datatype=event" https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/servicesNS/-/search/data/indexes
           curl -X POST -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD -k -d "name=$CI_KAFKA_HEADER_INDEX&datatype=event" https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/servicesNS/-/search/data/indexes
           # Restart Splunk
-          curl -k -u $CI_SPLUNK_USERNAME:$CI_SPLUNK_PASSWORD https://$CI_SPLUNK_HOST:$CI_SPLUNK_PORT/services/server/control/restart -X POST
+          sudo /opt/splunk/bin/splunk restart "${SPLUNK_RUN_AS_ROOT_ARGS[@]}"
 
       - name: Install Kafka ${{ matrix.kafka.kafka_version }}
         run: |
