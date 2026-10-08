@@ -16,7 +16,7 @@
         <junit.jupiter.version>5.9.2</junit.jupiter.version>
         <junit.vintage.version>5.9.2</junit.vintage.version>
         <junit.platform.version>1.9.2</junit.platform.version>
-        <jackson.version>2.22.1</jackson.version>
+        <jackson.version>2.22.3</jackson.version>
         <!-- Compile against the oldest tested Connect API for forward compatibility. -->
         <kafka.version>3.9.2</kafka.version>
         <slf4j.version>2.0.7</slf4j.version>
