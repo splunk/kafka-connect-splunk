@@ -123,7 +123,6 @@ jobs:
     runs-on: ubuntu-24.04
     needs:
       - workflow_approval
-    if: github.event_name != 'push'
     permissions:
       contents: read
       checks: write
