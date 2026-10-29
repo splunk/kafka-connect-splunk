@@ -22,14 +22,6 @@ permissions:
   contents: read
 
 jobs:
-  workflow_approval:
-    name: Approve workflow
-    runs-on: ubuntu-24.04
-    environment: workflow-approval
-    steps:
-      - name: Approve workflow
-        run: echo For security reasons, all pull requests need to be approved first before running any automated CI.
-
   fossa-scan:
     # only for PRs from the same repo
     if: >-
@@ -39,8 +31,6 @@ jobs:
        github.actor != 'dependabot[bot]')
     continue-on-error: true
     runs-on: ubuntu-24.04
-    needs:
-      - workflow_approval
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -67,8 +57,6 @@ jobs:
 
   semgrep:
     runs-on: ubuntu-24.04
-    needs:
-      - workflow_approval
     name: security-sast-semgrep
     if: >-
       github.event_name == 'pull_request' &&
@@ -90,8 +78,6 @@ jobs:
 
   semgrep-publish:
     runs-on: ubuntu-24.04
-    needs:
-      - workflow_approval
     name: security-sast-semgrep-publish
     if: >-
       github.event_name != 'pull_request' ||
@@ -121,8 +107,6 @@ jobs:
   build-unit-test:
     name: build and run unit test
     runs-on: ubuntu-24.04
-    needs:
-      - workflow_approval
     permissions:
       contents: read
       checks: write
