@@ -54,13 +54,13 @@ public final class VersionUtils {
      * @return version string, or "unknown" when metadata cannot be read
      */
     static String readVersion(InputStream input) {
-        try (input) {
-            if (input == null) {
+        try (InputStream in = input) {
+            if (in == null) {
                 return DEFAULT_VERSION;
             }
 
             Properties properties = new Properties();
-            properties.load(input);
+            properties.load(in);
 
             String version = properties.getProperty("version", "").trim();
             return version.isEmpty() ? DEFAULT_VERSION : version;
