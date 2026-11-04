@@ -44,7 +44,7 @@ public class IndexerTest {
         Assert.assertEquals("__splunk_app_name", headers[3].getName());
         Assert.assertEquals(VersionUtils.getAppName(), headers[3].getValue());
         Assert.assertEquals("__splunk_app_version", headers[4].getName());
-        Assert.assertEquals(VersionUtils.getVersionString(), headers[4].getValue());
+        Assert.assertEquals(VersionUtils.getVersion(), headers[4].getValue());
 
         indexer.setKeepAlive(false);
         Assert.assertFalse(indexer.getKeepAlive());
@@ -59,7 +59,7 @@ public class IndexerTest {
         Assert.assertEquals("__splunk_app_name", headers[3].getName());
         Assert.assertEquals(VersionUtils.getAppName(), headers[3].getValue());
         Assert.assertEquals("__splunk_app_version", headers[4].getName());
-        Assert.assertEquals(VersionUtils.getVersionString(), headers[4].getValue());
+        Assert.assertEquals(VersionUtils.getVersion(), headers[4].getValue());
 
         // try again
         indexer.setKeepAlive(false);
@@ -74,7 +74,7 @@ public class IndexerTest {
         Assert.assertEquals("__splunk_app_name", headers[3].getName());
         Assert.assertEquals(VersionUtils.getAppName(), headers[3].getValue());
         Assert.assertEquals("__splunk_app_version", headers[4].getName());
-        Assert.assertEquals(VersionUtils.getVersionString(), headers[4].getValue());
+        Assert.assertEquals(VersionUtils.getVersion(), headers[4].getValue());
 
     }
 

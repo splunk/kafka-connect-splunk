@@ -94,7 +94,7 @@ public final class SplunkSinkConnector extends SinkConnector {
 
     @Override
     public String version() {
-        return VersionUtils.getVersionString();
+        return VersionUtils.getVersion();
     }
 
     @Override

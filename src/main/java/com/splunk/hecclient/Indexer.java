@@ -88,7 +88,7 @@ final class Indexer implements IndexerInf {
         headers[0] = new BasicHeader("Authorization", String.format("Splunk %s", hecToken));
         headers[1] = new BasicHeader("X-Splunk-Request-Channel", channel.getId());
         headers[3] = new BasicHeader("__splunk_app_name", VersionUtils.getAppName());
-        headers[4] = new BasicHeader("__splunk_app_version", VersionUtils.getVersionString());
+        headers[4] = new BasicHeader("__splunk_app_version", VersionUtils.getVersion());
 
         keepAlive = false;
         setKeepAlive(true);
