@@ -25,20 +25,26 @@ import org.junit.Test;
 public final class VersionUtilsTest {
 
     @Test
-    public void  getVersion() {
+    public void getVersionMatchesMavenVersion() {
+        // given
+        String expectedVersion = System.getProperty("splunk.kafka.version");
+
         // when
         String version = VersionUtils.getVersion();
+        String connectorVersion = new SplunkSinkConnector().version();
+        String taskVersion = new SplunkSinkTask().version();
 
         // then
-        Assert.assertEquals("unknown", version);
+        Assert.assertNotNull("Maven must provide splunk.kafka.version", expectedVersion);
+        Assert.assertEquals(expectedVersion, version);
+        Assert.assertEquals(expectedVersion, connectorVersion);
+        Assert.assertEquals(expectedVersion, taskVersion);
     }
 
     @Test
     public void readsVersionMockProperties() {
         // given
-        String metadata = "groupId=com.github.splunk.kafka.connect\n"
-                + "artifactId=splunk-kafka-connect\n"
-                + "version=v2.2.8\n";
+        String metadata = "version=v2.2.8\n";
         InputStream input = new ByteArrayInputStream(
                 metadata.getBytes(StandardCharsets.ISO_8859_1));
 
@@ -47,5 +53,17 @@ public final class VersionUtilsTest {
 
         // then
         Assert.assertEquals("v2.2.8", version);
+    }
+
+    @Test
+    public void missingVersionPropertiesReturnsUnknown() {
+        // given
+        InputStream input = null;
+
+        // when
+        String version = VersionUtils.readVersion(input);
+
+        // then
+        Assert.assertEquals("unknown", version);
     }
 }

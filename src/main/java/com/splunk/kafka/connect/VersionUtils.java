@@ -26,11 +26,10 @@ public final class VersionUtils {
     private static final String DEFAULT_VERSION = "unknown";
     private static final String DEFAULT_APP_NAME = "Splunk Connect for Kafka";
     private static final Logger log = LoggerFactory.getLogger(VersionUtils.class);
-    private static final String VERSION_RESOURCE = "/META-INF/maven/com.github.splunk.kafka.connect/"
-            + "splunk-kafka-connect/pom.properties";
+    private static final String VERSION_RESOURCE = "/version.properties";
 
     /**
-     * Returns the version from the connector's packaged Maven metadata.
+     * Returns the Maven-filtered connector version from version.properties.
      *
      * @return version string, or "unknown" when metadata is unavailable
      */
@@ -48,9 +47,9 @@ public final class VersionUtils {
     }
 
     /**
-     * Reads and closes a Maven metadata stream.
+     * Reads and closes a version properties stream.
      *
-     * @param input Maven metadata stream, or null when unavailable
+     * @param input version properties stream, or null when unavailable
      * @return version string, or "unknown" when metadata cannot be read
      */
     static String readVersion(InputStream input) {
@@ -65,7 +64,7 @@ public final class VersionUtils {
             String version = properties.getProperty("version", "").trim();
             return version.isEmpty() ? DEFAULT_VERSION : version;
         } catch (IOException ex) {
-            log.error("Failed to read connector version metadata.", ex);
+            log.error("Failed to read connector version properties.", ex);
             return DEFAULT_VERSION;
         }
     }

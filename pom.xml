@@ -11,6 +11,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <splunk.kafka.version>${project.version}</splunk.kafka.version>
         <maven.compiler.release>17</maven.compiler.release>
         <junit.version>4.13.2</junit.version>
         <junit.jupiter.version>5.9.2</junit.jupiter.version>
@@ -275,6 +276,15 @@
     </reporting>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>version.properties</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -392,6 +402,9 @@
                 <configuration>
                     <!-- Sets the VM argument line used when unit tests are run. -->
                     <argLine>${surefireArgLine}</argLine>
+                    <systemPropertyVariables>
+                        <splunk.kafka.version>${splunk.kafka.version}</splunk.kafka.version>
+                    </systemPropertyVariables>
                     <!-- Skips unit tests if the value of skip.unit.tests property is true -->
                     <skipTests>${skip.unit.tests}</skipTests>
 
