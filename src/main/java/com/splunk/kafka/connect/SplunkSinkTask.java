@@ -367,7 +367,7 @@ public final class SplunkSinkTask extends SinkTask implements PollerCallback {
 
     @Override
     public String version() {
-        return VersionUtils.getVersionString();
+        return VersionUtils.getVersion();
     }
 
     public void onEventCommitted(final List<EventBatch> batches) {

@@ -15,8 +15,9 @@
  */
 package com.splunk.kafka.connect;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -24,26 +25,45 @@ import org.junit.Test;
 public final class VersionUtilsTest {
 
     @Test
-    public void  getVersionFromProperties() {
-        String version = VersionUtils.getVersionFromProperties(null);
-        Assert.assertEquals(version, "dev");
+    public void getVersionMatchesMavenVersion() {
+        // given
+        String expectedVersion = System.getProperty("splunk.kafka.version");
 
-        version = VersionUtils.getVersionFromProperties(new ArrayList<String>());
-        Assert.assertEquals(version, "dev");
+        // when
+        String version = VersionUtils.getVersion();
+        String connectorVersion = new SplunkSinkConnector().version();
+        String taskVersion = new SplunkSinkTask().version();
 
-        List<String> properties = VersionUtils.readResourceFile("/testversion.properties");
-        version = VersionUtils.getVersionFromProperties(properties);
-        Assert.assertEquals(version, "0.1.3");
+        // then
+        Assert.assertNotNull("Maven must provide splunk.kafka.version", expectedVersion);
+        Assert.assertEquals(expectedVersion, version);
+        Assert.assertEquals(expectedVersion, connectorVersion);
+        Assert.assertEquals(expectedVersion, taskVersion);
     }
 
     @Test
-    public void readResourceFile() {
-        // test when the resource file does not exist 
-        List<String> res = VersionUtils.readResourceFile("/randomFile");
-        Assert.assertEquals(res.size(), 0);
+    public void readsVersionMockProperties() {
+        // given
+        String metadata = "version=v2.2.8\n";
+        InputStream input = new ByteArrayInputStream(
+                metadata.getBytes(StandardCharsets.ISO_8859_1));
 
+        // when
+        String version = VersionUtils.readVersion(input);
 
-        res = VersionUtils.readResourceFile("/testversion.properties");
-        Assert.assertEquals(res.size(), 3);
+        // then
+        Assert.assertEquals("v2.2.8", version);
+    }
+
+    @Test
+    public void missingVersionPropertiesReturnsUnknown() {
+        // given
+        InputStream input = null;
+
+        // when
+        String version = VersionUtils.readVersion(input);
+
+        // then
+        Assert.assertEquals("unknown", version);
     }
 }
