@@ -21,6 +21,8 @@ Kafka Connect stores distributed connector configurations and offsets in its int
 
 ## Changes to review for recent releases
 
+- The supported Kafka and Kafka Connect release lines are now 4.2.x, 4.3.x, and 4.4.x, with CI coverage for 4.2.2, 4.3.2, and 4.4.0. Kafka 3.9.x and 4.1.x are no longer supported. Before installing the connector, upgrade older workers to a supported version and Java 17 or later. For ZooKeeper-based clusters, complete the KRaft migration before upgrading to Kafka 4.x; follow the [Apache Kafka upgrade instructions](https://kafka.apache.org/44/getting-started/upgrade/).
+- Upgrade the Kafka Connect worker installation as well as the connector JAR when remediating Kafka library vulnerabilities. The plugin uses the worker's Connect API and Kafka clients; replacing only the plugin does not update those runtime libraries.
 - Version 2.2.7 rejects non-HTTPS HEC URIs by default. Set `splunk.hec.ssl.enforced=false` only for an intentionally isolated HTTP deployment. It also defaults `splunk.hec.max.retries` to `5`; after those retries are exhausted, the connector drops the failed batch. Set `-1` only when unbounded retries and the resulting lag are acceptable.
 - Version 2.2.8 no longer treats every normal `Set-Cookie` response as a sticky-session expiry. `splunk.hec.ack.legacy.sticky.session.expiry.enabled=true` restores the deprecated behavior, but it can reset HEC channels and retry outstanding batches whenever a load balancer refreshes a cookie.
 

@@ -23,7 +23,7 @@ Splunk Connect for Kafka runs as a Kafka Connect plugin and does not add views t
 
 ## Requirements
 
-* Supported Kafka versions 3.9.2, 4.1.2, 4.2.2, and 4.3.1.
+* Supported Apache Kafka and Kafka Connect release lines: 4.2.x, 4.3.x, and 4.4.x. CI covers 4.2.2, 4.3.2, and 4.4.0; use these patch versions or newer patches in the same release line.
 * Kafka Connect must run on Java 17 or later.
 * Kafka Connect supplies the API at runtime; it is not bundled in the connector JAR.
 * Kafka 4.x uses KRaft and does not support ZooKeeper mode.
@@ -49,6 +49,8 @@ Splunk Connect for Kafka lets you subscribe to a Kafka topic and stream the data
 2. Verify that a Java 17 or later JDK is installed. CI uses JDK 17 and produces Java 17-compatible bytecode.
 3. Verify that maven is installed.
 4. Run `mvn package`. This will build the jar in the /target directory. The name will be `splunk-kafka-connect-[VERSION].jar`.
+
+CI builds once and runs unit tests against the Kafka 4.2.2 Connect API, the oldest supported baseline. The resulting connector JAR is used for the end-to-end tests on Kafka 4.2.2, 4.3.2, and 4.4.0.
 
 ## Quick Start
 

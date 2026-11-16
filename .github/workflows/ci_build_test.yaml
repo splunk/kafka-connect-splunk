@@ -88,7 +88,7 @@ jobs:
       image: returntocorp/semgrep
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
@@ -130,7 +130,7 @@ jobs:
 
       - name: Run Unit tests
         run: |
-          mvn package -Dsurefire.useSystemClassLoader=false -q
+          mvn clean package -Dsurefire.useSystemClassLoader=false -q
           cp -R target/splunk-kafka-connect*.jar /tmp
 
       - name: Upload artifact
@@ -166,26 +166,18 @@ jobs:
             splunk_filename: "splunk-9.4.16-fbe3c1243d26-linux-amd64.tgz"
             run_as_root: false
         kafka:
-          - kafka_version: "3.9.2"
-            kafka_package: "kafka_2.12-3.9.2.tgz"
-            confluent_major_version: "7.9"
-            confluent_package_version: "7.9.10"
-            java_version: "17"
-            kraft: false
-          - kafka_version: "4.1.2"
-            kafka_package: "kafka_2.13-4.1.2.tgz"
-            confluent_major_version: "8.1"
-            confluent_package_version: "8.1.6"
-            java_version: "17"
-            kraft: true
           - kafka_version: "4.2.2"
             kafka_package: "kafka_2.13-4.2.2.tgz"
             confluent_major_version: "8.2"
             confluent_package_version: "8.2.4"
             java_version: "17"
-            kraft: true
-          - kafka_version: "4.3.1"
-            kafka_package: "kafka_2.13-4.3.1.tgz"
+          - kafka_version: "4.3.2"
+            kafka_package: "kafka_2.13-4.3.2.tgz"
+            confluent_major_version: "8.3"
+            confluent_package_version: "8.3.2"
+            java_version: "17"
+          - kafka_version: "4.4.0"
+            kafka_package: "kafka_2.13-4.4.0.tgz"
             confluent_major_version: "8.3"
             confluent_package_version: "8.3.2"
             java_version: "17"
@@ -265,21 +257,7 @@ jobs:
           sudo mv kafka_* /usr/local/kafka
           cd /usr/local/kafka && ls
 
-      - name: Start ZooKeeper Server
-        if: ${{ !matrix.kafka.kraft }}
-        working-directory: /usr/local/kafka
-        run: |
-          echo "Start ZooKeeper"
-          sudo bin/zookeeper-server-start.sh config/zookeeper.properties &
-
-      - name: Start Kafka Server (ZooKeeper mode)
-        if: ${{ !matrix.kafka.kraft }}
-        working-directory: /usr/local/kafka
-        run: |
-          sudo bin/kafka-server-start.sh config/server.properties &
-
-      - name: Start Kafka Server (KRaft mode)
-        if: ${{ matrix.kafka.kraft }}
+      - name: Start Kafka Server
         working-directory: /usr/local/kafka
         run: |
           KAFKA_CLUSTER_ID=$(bin/kafka-storage.sh random-uuid)
@@ -416,7 +394,7 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
-          name: kafka-connect-logs-${{ matrix.kafka.kafka_version }}
+          name: kafka-connect-logs-${{ matrix.kafka.kafka_version }}-splunk-${{ matrix.splunk.splunk_version }}
           path: output.log
 
       - name: Install kafka connect
@@ -438,5 +416,5 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
-          name: splunk-events-${{ matrix.kafka.kafka_version }}
+          name: splunk-events-${{ matrix.kafka.kafka_version }}-splunk-${{ matrix.splunk.splunk_version }}
           path: events.txt
