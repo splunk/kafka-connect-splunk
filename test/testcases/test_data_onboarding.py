@@ -1,7 +1,11 @@
 import pytest
+import json
+import time
+import requests
 from lib.commonsplunk import check_events_from_splunk
 from lib.commonkafka import *
 from lib.helper import get_test_folder
+from lib.data_gen import generate_connector_content
 
 logging.config.fileConfig(os.path.join(get_test_folder(), "logging.conf"))
 logger = logging.getLogger("test_case")
@@ -27,20 +31,31 @@ class TestDataOnboarding:
         logger.info("Splunk received %s events in the last hour", len(events))
         assert len(events) == expected
 
-    # @pytest.mark.parametrize("test_scenario, test_input, expected", [
-    #     ("protobuf", "sourcetype::protobuf", 1),
-    # ])
-    # def test_proto_data_onboarding(self, setup, test_scenario, test_input, expected):
-    #     logger.info(f"testing {test_scenario} input={test_input} expected={expected} event(s)")
-    #     search_query = f"index={setup['splunk_index']} | search {test_input}"
-    #     logger.info(search_query)
-    #     events = check_events_from_splunk(start_time="-15m@m",
-    #                                       url=setup["splunkd_url"],
-    #                                       user=setup["splunk_user"],
-    #                                       query=[f"search {search_query}"],
-    #                                       password=setup["splunk_password"])
-    #     logger.info("Splunk received %s events in the last hour", len(events))
-    #     assert len(events) == expected
+    @pytest.mark.protobuf
+    def test_proto_data_onboarding(self, setup):
+        search_query = (f"search index={setup['splunk_index']} sourcetype=protobuf "
+                        f'"{setup["protobuf_record_id"]}"')
+        deadline = time.monotonic() + 60
+        while True:
+            events = check_events_from_splunk(
+                start_time="-15m@m", url=setup["splunkd_url"],
+                user=setup["splunk_user"], query=[search_query],
+                password=setup["splunk_password"])
+            if events or time.monotonic() >= deadline:
+                break
+            time.sleep(1)
+        assert len(events) == 1, f"Expected one indexed Protobuf record, got {len(events)}"
+        record = json.loads(events[0]['_raw'])
+        assert record['id'] == setup['protobuf_record_id']
+        assert record['amount'] == pytest.approx(1.9)
+        assert record['customer_id'] == 'Hello'
+        response = requests.get(setup['kafka_connect_url'] + '/connectors/test_protobuf_events/status',
+                                timeout=10)
+        response.raise_for_status()
+        status = response.json()
+        assert status.get('connector', {}).get('state') == 'RUNNING', status
+        tasks = status.get('tasks', [])
+        assert tasks and all(task['state'] == 'RUNNING' for task in tasks), status
 
     @pytest.mark.parametrize("test_scenario, test_input, expected", [
         ("date_format", "latest=1365209605.000 sourcetype::date_format", "2010-06-13T23:11:52.454+00:00"),
