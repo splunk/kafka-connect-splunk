@@ -72,7 +72,7 @@ Choose the converter for the **Connect worker** release. The release families fo
 
 Use the corresponding 8.2.x, 8.3.x, or 8.4.x converter family for Kafka Connect 4.2.x, 4.3.x, or 4.4.x. A converter selected for Kafka 4.4 is not a substitute for the converter selected for older workers.
 
-Find the converter in [Confluent Marketplace](https://www.confluent.io/hub/confluentinc/kafka-connect-protobuf-converter). Follow Confluent's [plugin installation](https://docs.confluent.io/platform/current/connect/userguide.html#install-a-connect-plugin) and [converter configuration](https://docs.confluent.io/platform/current/schema-registry/connect.html) documentation.
+Find the converter in [Confluent Marketplace](https://www.confluent.io/hub/confluentinc/kafka-connect-protobuf-converter). Follow Confluent's [plugin installation](https://docs.confluent.io/platform/current/connect/userguide.html#install-a-plugin) and [converter configuration](https://docs.confluent.io/platform/current/schema-registry/connect.html#protobuf) documentation.
 
 
 Keep the complete package, including `lib/`, licenses, and metadata.
