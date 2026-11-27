@@ -22,7 +22,7 @@ The connector is compiled using `--release 17` against the Kafka 4.2.2 Connect A
 
 3. Create or select a Kafka Connect plugin directory. The directory must be included in the worker's `plugin.path`.
 
-4. Configure every distributed worker in `$KAFKA_HOME/config/connect-distributed.properties`:
+4. Configure the properties file passed to each worker's startup command, for example, `$KAFKA_HOME/config/connect-distributed.properties`.
 
    ```properties
    bootstrap.servers=<BROKER_1>:9092,<BROKER_2>:9092,<BROKER_3>:9092
@@ -61,6 +61,59 @@ The connector is compiled using `--release 17` against the Kafka 4.2.2 Connect A
 `$KAFKA_HOME` is the Kafka or Kafka Connect installation directory on the worker host.
 
 Kafka 4.x requires KRaft. Format its storage with `kafka-storage.sh` and start the brokers using the Kafka 4.x [KRaft deployment procedure](https://kafka.apache.org/44/operations/kraft/); do not start ZooKeeper. Use the storage tool from the same Kafka distribution as the broker.
+
+## Install the Protobuf converter
+
+> **Third-party software:** Starting with Splunk Connect for Kafka version 2.4.0, the Confluent Protobuf Converter and its dependencies are no longer bundled with the connector. To enable Protobuf schema support, install the converter separately. The Confluent Protobuf Converter is developed and distributed by Confluent and is subject to its own license terms. Install it from the official Confluent distribution using the version specified for your Kafka Connect runtime.
+
+String and JSON ingestion use Kafka's built-in converters and do not require this package or Schema Registry.
+
+Choose the converter for the **Connect worker** release. The release families follow [Confluent's Kafka compatibility table](https://docs.confluent.io/platform/8.4/installation/versions-interoperability.html). 
+
+Use the corresponding 8.2.x, 8.3.x, or 8.4.x converter family for Kafka Connect 4.2.x, 4.3.x, or 4.4.x. A converter selected for Kafka 4.4 is not a substitute for the converter selected for older workers.
+
+Find the converter in [Confluent Marketplace](https://www.confluent.io/hub/confluentinc/kafka-connect-protobuf-converter). Follow Confluent's [plugin installation](https://docs.confluent.io/platform/current/connect/userguide.html#install-a-plugin) and [converter configuration](https://docs.confluent.io/platform/current/schema-registry/connect.html#protobuf) documentation.
+
+
+Keep the complete package, including `lib/`, licenses, and metadata.
+
+Install the Splunk connector in a sibling directory and include their parent in `plugin.path`, preserving existing path entries:
+
+```text
+/opt/kafka/plugins/
+  sc4kafka/
+    splunk-kafka-connect-<VERSION>.jar
+  confluentinc-kafka-connect-protobuf-converter-8.4.1/
+    lib/
+      kafka-connect-protobuf-converter-8.4.1.jar
+      <all other supplied JARs>
+```
+
+```properties
+plugin.path=/opt/kafka/plugins
+```
+
+Merge these properties into the Splunk connector configuration for string keys and Protobuf values:
+
+```json
+{
+  "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+  "value.converter": "io.confluent.connect.protobuf.ProtobufConverter",
+  "value.converter.schema.registry.url": "https://schema-registry.example.com"
+}
+```
+
+Use the appropriate key converter for the topic's key format. Configure Schema Registry authentication and TLS as required. The registry must contain the schemas referenced by the records, which must use Confluent's Protobuf serialization format.
+
+Remove the old Splunk JAR containing the bundled converter before restarting workers. 
+
+Check task health using the Connect REST endpoint and `jq`:
+
+```sh
+curl --fail --silent --show-error \
+  "http://localhost:8083/connectors/<CONNECTOR_NAME>/status" |
+  jq -e '.connector.state == "RUNNING" and (.tasks | length > 0) and all(.tasks[]; .state == "RUNNING")'
+```
 
 ## Kafka Connect REST commands
 

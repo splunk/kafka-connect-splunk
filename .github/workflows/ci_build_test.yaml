@@ -151,13 +151,14 @@ jobs:
           files: "target/surefire-reports/*.xml"
 
   e2e_test:
-    name: e2e test (kafka:${{ matrix.kafka.kafka_version }}, java:${{ matrix.kafka.java_version }}, splunk:${{ matrix.splunk.splunk_version }})
+    name: e2e test (kafka:${{ matrix.kafka.kafka_version }}, java:${{ matrix.kafka.java_version }}, splunk:${{ matrix.splunk.splunk_version }}, protobuf:${{ matrix.protobuf }})
     runs-on: ubuntu-latest
     needs:
       - build-unit-test
     strategy:
       fail-fast: false
       matrix:
+        protobuf: [false, true]
         splunk:
           - splunk_version: "10.6.0.5"
             splunk_filename: "splunk-10.6.0.5-86587d4e3b27-linux-amd64.tgz"
@@ -170,16 +171,19 @@ jobs:
             kafka_package: "kafka_2.13-4.2.2.tgz"
             confluent_major_version: "8.2"
             confluent_package_version: "8.2.4"
+            protobuf_converter_version: "8.2.5"
             java_version: "17"
           - kafka_version: "4.3.2"
             kafka_package: "kafka_2.13-4.3.2.tgz"
             confluent_major_version: "8.3"
             confluent_package_version: "8.3.2"
+            protobuf_converter_version: "8.3.3"
             java_version: "17"
           - kafka_version: "4.4.0"
             kafka_package: "kafka_2.13-4.4.0.tgz"
             confluent_major_version: "8.3"
             confluent_package_version: "8.3.2"
+            protobuf_converter_version: "8.4.1"
             java_version: "17"
 
     env:
@@ -275,6 +279,7 @@ jobs:
           path: /tmp
 
       - name: Up the Schema Registry
+        if: matrix.protobuf
         run: |
           cd /tmp && wget https://packages.confluent.io/archive/${{ matrix.kafka.confluent_major_version }}/confluent-community-${{ matrix.kafka.confluent_package_version }}.tar.gz
           sudo tar xzf confluent-community-${{ matrix.kafka.confluent_package_version }}.tar.gz
@@ -282,6 +287,7 @@ jobs:
           sudo bin/schema-registry-start ./etc/schema-registry/schema-registry.properties &
 
       - name: Register the protobuf schema
+        if: matrix.protobuf
         run: |
           sleep 10
           curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" --data "{\"schemaType\": \"PROTOBUF\",\"schema\": \"syntax = \\\"proto3\\\";\\npackage com.mycorp.mynamespace;\\n\\nmessage MyRecord {\\n  string id = 1;\\n  float amount = 2;\\n  string customer_id = 3;\\n}\\n\"}" http://localhost:8081/subjects/prototopic-value/versions
@@ -393,8 +399,19 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
-          name: kafka-connect-logs-${{ matrix.kafka.kafka_version }}-splunk-${{ matrix.splunk.splunk_version }}
+          name: kafka-connect-logs-${{ matrix.kafka.kafka_version }}-splunk-${{ matrix.splunk.splunk_version }}-protobuf-${{ matrix.protobuf }}
           path: output.log
+
+      - name: Install external Protobuf converter
+        if: matrix.protobuf
+        run: |
+          VERSION='${{ matrix.kafka.protobuf_converter_version }}'
+          PACKAGE="confluentinc-kafka-connect-protobuf-converter-${VERSION}"
+          curl --fail --location \
+            "https://hub-downloads.confluent.io/api/plugins/confluentinc/kafka-connect-protobuf-converter/versions/${VERSION}/${PACKAGE}.zip" \
+            --output "/tmp/${PACKAGE}.zip"
+          sudo mkdir -p /usr/local/share/kafka/plugins
+          sudo unzip -q "/tmp/${PACKAGE}.zip" -d /usr/local/share/kafka/plugins/
 
       - name: Install kafka connect
         run: |
@@ -404,16 +421,22 @@ jobs:
           sudo /usr/local/kafka/bin/connect-distributed.sh $GITHUB_WORKSPACE/config/connect-distributed-quickstart.properties &
 
       - name: Run functional tests
+        env:
+          PROTOBUF_ENABLED: ${{ matrix.protobuf }}
         run: |
           sleep 5
           pip install --upgrade pip
           pip install -r test/requirements.txt
           export PYTHONWARNINGS="ignore:Unverified HTTPS request"
           echo "Running functional tests....."
-          python -m pytest --log-level=INFO
+          PYTEST_ARGS=()
+          if [[ "$PROTOBUF_ENABLED" == "true" ]]; then
+            PYTEST_ARGS+=(--protobuf)
+          fi
+          python -m pytest test --log-level=INFO "${PYTEST_ARGS[@]}"
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
-          name: splunk-events-${{ matrix.kafka.kafka_version }}-splunk-${{ matrix.splunk.splunk_version }}
+          name: splunk-events-${{ matrix.kafka.kafka_version }}-splunk-${{ matrix.splunk.splunk_version }}-protobuf-${{ matrix.protobuf }}
           path: events.txt

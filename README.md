@@ -275,15 +275,29 @@ Use either `topics` or `topics.regex`, never both. See [Configuration examples](
 | `kerberos.user.principal` | Kerberos user principal used for SPNEGO authentication to a protected HEC endpoint. This does not configure Kafka broker authentication. | `""` |
 | `kerberos.keytab.path` | Absolute keytab path used with `kerberos.user.principal` for outbound HEC HTTP authentication. | `""` |
 
+### JSON Converter Parameters
+
+These settings apply when `key.converter` or `value.converter` is `org.apache.kafka.connect.json.JsonConverter`. They control whether JSON records include a `schema` and `payload` envelope. The defaults below are Kafka's [JsonConverter defaults](https://github.com/apache/kafka/blob/4.4.0/connect/json/src/main/java/org/apache/kafka/connect/json/JsonConverterConfig.java#L31-L33).
+
+| Name | Description | JsonConverter Default |
+| --- | --- | --- |
+| `key.converter.schemas.enable` | Set to `false` for plain JSON keys, or `true` for keys containing the `schema` and `payload` envelope. | `true` |
+| `value.converter.schemas.enable` | Set to `false` for plain JSON values, or `true` for values containing the `schema` and `payload` envelope. | `true` |
+
+See [JSON converter settings](docs/configuration.md#json-converter-settings) for an example with string keys and plain JSON values.
+
 ### Protobuf Parameters
+
+> **Third-party software:** Starting with Splunk Connect for Kafka version 2.4.0, the Confluent Protobuf Converter and its dependencies are no longer bundled with the connector. To enable Protobuf schema support, install the converter separately. The Confluent Protobuf Converter is developed and distributed by Confluent and is subject to its own license terms. Install it from the official Confluent distribution using the version specified for your Kafka Connect runtime.
+
+See [Protobuf converter installation](docs/installation.md#install-the-protobuf-converter) for official installation resources, worker versions, and configuration.
+
 | Name              | Description                | Default Value  |
 |--------           |----------------------------|-----------------------|
 | `value.converter` |  Converter class used to convert between Kafka Connect format and the serialized form that is written to Kafka. This controls the format of the values in messages written to or read from Kafka. For using protobuf format ,set the value of this field to `io.confluent.connect.protobuf.ProtobufConverter` | `org.apache.kafka.connect.storage.StringConverter` |
 | `value.converter.schema.registry.url` |  Schema Registry URL. | `""` |
-| `value.converter.schemas.enable` | For using protobuf format ,set the value of this field to `true` | `false` |
 | `key.converter` |  Converter class used to convert between Kafka Connect format and the serialized form that is written to Kafka. This controls the format of the keys in messages written to or read from Kafka. For using protobuf format ,set the value of this field to `io.confluent.connect.protobuf.ProtobufConverter` | `org.apache.kafka.connect.storage.StringConverter` |
 | `key.converter.schema.registry.url` |  Schema Registry URL. | `""` |
-| `key.converter.schemas.enable` | For using protobuf format ,set the value of this field to `true` | `false` |
 
 ### Timestamp extraction Parameters
 | Name              | Description                | Default Value  |
