@@ -135,6 +135,22 @@ The following template collects the connector settings covered by the Splunk Con
 
 Most settings are optional. Remove fields that do not apply instead of submitting placeholder values, and use either `topics` or `topics.regex`, never both. See [Configuration examples](configuration-examples.md) for complete requests covering common deployment patterns.
 
+### JSON converter settings
+
+Kafka's built-in `org.apache.kafka.connect.json.JsonConverter` uses `key.converter.schemas.enable` and `value.converter.schemas.enable` to select the JSON record format. Set the corresponding option to `false` for plain JSON, or `true` for records containing a `schema` and `payload` envelope. Both options default to `true` in JsonConverter and do not require Schema Registry.
+
+For string keys and plain JSON values such as `{"message":"hello"}`, merge these settings into the connector configuration:
+
+```json
+{
+  "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+  "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+  "value.converter.schemas.enable": "false"
+}
+```
+
+If the keys are also plain JSON, use `org.apache.kafka.connect.json.JsonConverter` for `key.converter` and set `key.converter.schemas.enable` to `false` as well. See the [JSON converter parameter reference](../README.md#json-converter-parameters).
+
 ### Start at the latest topic offsets
 
 Before starting Kafka Connect, add this worker property and then restart the worker:
